@@ -17,8 +17,10 @@ vex::motor leftdownlift = vex::motor(vex::PORT5);
 
 vex::motor_group lift = vex::motor_group(rightuplift, rightdownlift, leftdownlift, leftuplift);
 
-vex::motor claw = vex::motor(vex::PORT20);
+vex::motor upclaw = vex::motor(vex::PORT18);
+vex::motor downclaw = vex::motor(vex::PORT20, true);
 
+vex::motor_group claw = vex::motor_group(upclaw, downclaw);
 vex::controller rc = vex::controller();
 
 /**

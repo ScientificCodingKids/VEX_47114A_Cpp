@@ -3,11 +3,13 @@ using namespace vex;
 extern brain Brain;
 extern motor leftDriveMotor, rightDriveMotor;
 extern motor rightuplift, rightdownlift, leftuplift, leftdownlift;
+extern motor upclaw;
+extern motor downclaw;
 
 extern drivetrain dt;
 extern motor_group lift;
+extern motor_group claw;
 
-extern motor claw;
 extern controller rc;
 
 /**

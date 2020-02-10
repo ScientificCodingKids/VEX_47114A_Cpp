@@ -14,11 +14,8 @@
 
 using namespace vex;
 
-int main() {
-  // Initializing Robot Configuration. DO NOT REMOVE!
-  vexcodeInit();
-  
-}
+competition Competition;
+
 
 
 void pre_auton( void ) {
@@ -34,7 +31,7 @@ void pre_auton( void ) {
 void autonomous( void ) {
   // copied from our Robot Mesh code used in Roslyn event
     Brain.Screen.print("auto");
-
+ 
     dt.setDriveVelocity(75, vex::percentUnits::pct);
     dt.driveFor(vex::directionType::rev, 12, vex::distanceUnits::in);
     dt.turnFor(vex::turnType::left, 90, vex::rotationUnits::deg);
@@ -107,4 +104,19 @@ void usercontrol( void ) {
 
     vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources. 
   }
+}
+
+
+int main() {
+  // Initializing Robot Configuration. DO NOT REMOVE!
+  vexcodeInit();
+  Competition.autonomous( autonomous );
+  Competition.drivercontrol( usercontrol );
+
+  pre_auton();
+
+  while(1){
+    vex::task::sleep(100);
+  }
+  return 0;
 }

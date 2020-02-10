@@ -10,17 +10,18 @@ vex::motor rightDriveMotor = vex::motor(vex::PORT1, true);
 
 vex::drivetrain dt = vex::drivetrain(leftDriveMotor, rightDriveMotor);
 
-vex::motor rightuplift = vex::motor(vex::PORT4);
-vex::motor rightdownlift = vex::motor(vex::PORT7, true);
+vex::motor rightuplift = vex::motor(vex::PORT5);  // 4->5
+vex::motor rightdownlift = vex::motor(vex::PORT3, true);
 vex::motor leftuplift = vex::motor(vex::PORT6, true);
-vex::motor leftdownlift = vex::motor(vex::PORT5);
+vex::motor leftdownlift = vex::motor(vex::PORT9); //5->8
 
-vex::motor_group lift = vex::motor_group(rightuplift, rightdownlift, leftdownlift, leftuplift);
+vex::motor_group lift = vex::motor_group( leftdownlift, leftuplift, rightuplift, rightdownlift);
+
 
 vex::motor upclaw = vex::motor(vex::PORT18);
 vex::motor downclaw = vex::motor(vex::PORT20, true);
 
-vex::motor_group claw = vex::motor_group(upclaw, downclaw);
+vex::motor_group claw = vex::motor_group(downclaw);
 vex::controller rc = vex::controller();
 
 /**

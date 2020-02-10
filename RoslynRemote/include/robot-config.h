@@ -8,8 +8,8 @@ extern motor downclaw;
 
 extern drivetrain dt;
 extern motor_group lift;
-extern motor_group claw;
 
+extern motor_group claw;
 extern controller rc;
 
 /**

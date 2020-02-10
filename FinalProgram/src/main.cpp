@@ -110,6 +110,7 @@ void usercontrol( void ) {
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+  Brain.Screen.print("Get ready to start!");
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );
 

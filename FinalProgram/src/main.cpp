@@ -34,9 +34,12 @@ void autonomous( void ) {
     lift.spinFor(vex::directionType::fwd, 100, vex::rotationUnits::deg);
     dt.setDriveVelocity(75, vex::percentUnits::pct);
     dt.driveFor(vex::directionType::rev, 10, vex::distanceUnits::in);
-    dt.turnFor(vex::turnType::right, 90, vex::rotationUnits::deg);
-    dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
-    claw.rotateFor(vex::directionType::fwd, 140, vex::rotationUnits::deg);
+    dt.turnFor(vex::turnType::right, 110, vex::rotationUnits::deg);
+    dt.setDriveVelocity(25, vex::percentUnits::pct);
+    dt.driveFor(vex::directionType::fwd, 4.5, vex::distanceUnits::in);
+    dt.drive(vex::directionType::fwd, 25, vex::velocityUnits::pct);
+    claw.rotateFor(vex::directionType::fwd, 120, vex::rotationUnits::deg);
+    dt.stop();
 }
 
 void usercontrol( void ) {

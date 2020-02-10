@@ -35,14 +35,12 @@ void autonomous( void ) {
   // copied from our Robot Mesh code used in Roslyn event
     Brain.Screen.print("auto");
 
-    // dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
-    // dt.setDriveVelocity(25, vex::percentUnits::pct);
-    // dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
-    // claw.rotateFor(vex::directionType::rev, 4, vex::rotationUnits::rev);
-    // dt.turnFor(vex::turnType::right, 130, vex::rotationUnits::deg);
-    // dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in);
-    // claw.rotateFor(vex::directionType::fwd, 2.5, vex::rotationUnits::rev);
-    // dt.driveFor(vex::directionType::rev, 4, vex::distanceUnits::in);
+    dt.setDriveVelocity(75, vex::percentUnits::pct);
+    dt.driveFor(vex::directionType::rev, 12, vex::distanceUnits::in);
+    dt.turnFor(vex::turnType::left, 90, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in);
+    claw.rotateFor(vex::directionType::fwd, 2.5, vex::rotationUnits::rev);
+    dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
 }
 
 void usercontrol( void ) {

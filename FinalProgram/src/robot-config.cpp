@@ -11,7 +11,7 @@ vex::motor rightDriveMotor = vex::motor(vex::PORT1, true);
 vex::drivetrain dt = vex::drivetrain(leftDriveMotor, rightDriveMotor);
 
 vex::motor rightuplift = vex::motor(vex::PORT5);  // 4->5
-vex::motor rightdownlift = vex::motor(vex::PORT7, true);
+vex::motor rightdownlift = vex::motor(vex::PORT2, true);
 vex::motor leftuplift = vex::motor(vex::PORT6, true);
 vex::motor leftdownlift = vex::motor(vex::PORT9); //5->8
 

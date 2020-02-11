@@ -52,11 +52,11 @@ void usercontrol( void ) {
     }
     if (rc.ButtonR1.pressing()) {
       lift.spin(vex::directionType::fwd);
- //       leftdownlift.spin(vex::directionType::fwd);
+      //  rightdownlift.spin(vex::directionType::fwd);
     }
     else if (rc.ButtonR2.pressing()) {
       lift.spin(vex::directionType::rev);
-    //    leftdownlift.spin(vex::directionType::rev);
+      //  rightdownlift.spin(vex::directionType::rev);
     }
     else {
       lift.stop(vex::brakeType::hold);

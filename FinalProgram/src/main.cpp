@@ -59,11 +59,11 @@ void usercontrol( void ) {
     if (rc.ButtonR1.pressing()) {
       lift.spin(vex::directionType::fwd);
       // leftuplift.setVelocity(7, vex::percentUnits::pct);
-      // leftuplift.spin(vex::directionType::fwd);
+      // rightdownlift.spin(vex::directionType::fwd);
     }
     else if (rc.ButtonR2.pressing()) {
       lift.spin(vex::directionType::rev);
-      //  leftuplift.spin(vex::directionType::rev);
+      //  rightdownlift.spin(vex::directionType::rev);
     }
     else {
       lift.stop(vex::brakeType::hold);

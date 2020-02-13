@@ -36,16 +36,15 @@ void autonomous( void ) {
     dt.driveFor(vex::directionType::rev, 10, vex::distanceUnits::in);
     dt.turnFor(vex::turnType::right, 110, vex::rotationUnits::deg);
     dt.setDriveVelocity(25, vex::percentUnits::pct);
-    dt.driveFor(vex::directionType::fwd, 4.5, vex::distanceUnits::in);
-    dt.drive(vex::directionType::fwd, 25, vex::velocityUnits::pct);
-    lift.spinFor(vex::directionType::fwd, 100, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::fwd, 8.5, vex::distanceUnits::in);
+    // dt.drive(vex::directionType::fwd, 25, vex::velocityUnits::pct);
+    lift.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg);
     claw.rotateFor(vex::directionType::fwd, 120, vex::rotationUnits::deg);
     dt.stop();
     claw.spin(vex::directionType::fwd, 1, vex::percentUnits::pct);
-    lift.spinFor(vex::directionType::fwd, 100, vex::rotationUnits::deg);
     dt.turnFor(vex::turnType::right, 90, vex::rotationUnits::deg);
     dt.driveFor(vex::directionType::rev, 12, vex::distanceUnits::in);
-    dt.turnFor(vex::turnType::right, 30, vex::rotationUnits::deg);
+    dt.turnFor(vex::turnType::right, 35, vex::rotationUnits::deg);
     dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in);
 }
 

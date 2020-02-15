@@ -30,21 +30,32 @@ void pre_auton( void ) {
 
 void autonomous( void ) {
   // copied from our Robot Mesh code used in Roslyn event
+    claw.stop(vex::brakeType::hold);
     Brain.Screen.print("auto");
-    lift.spinFor(vex::directionType::fwd, 100, vex::rotationUnits::deg);
+    lift.spinFor(vex::directionType::fwd, 50, vex::rotationUnits::deg);
     dt.setDriveVelocity(75, vex::percentUnits::pct);
     dt.driveFor(vex::directionType::rev, 10, vex::distanceUnits::in);
     dt.turnFor(vex::turnType::right, 110, vex::rotationUnits::deg);
-    dt.setDriveVelocity(18, vex::percentUnits::pct);
-    dt.driveFor(vex::directionType::fwd, 10, vex::distanceUnits::in);
+    dt.setDriveVelocity(20, vex::percentUnits::pct);
+    dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
+    claw.setVelocity(40, vex::percentUnits::pct);
+    claw.rotateFor(vex::directionType::fwd, 70, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
     // dt.drive(vex::directionType::fwd, 25, vex::velocityUnits::pct);
-    lift.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg);
-    claw.rotateFor(vex::directionType::fwd, 120, vex::rotationUnits::deg);
-    claw.spin(vex::directionType::fwd, 0.5, vex::percentUnits::pct);
-    dt.turnFor(vex::turnType::right, 90, vex::rotationUnits::deg);
-    dt.driveFor(vex::directionType::rev, 12, vex::distanceUnits::in);
-    dt.turnFor(vex::turnType::right, 35, vex::rotationUnits::deg);
-    dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in);
+    lift.spinFor(vex::directionType::rev, 40, vex::rotationUnits::deg);
+    claw.setVelocity(40, vex::percentUnits::pct);
+    claw.setMaxTorque(100, vex::currentUnits::amp);
+    claw.rotateFor(vex::directionType::fwd, 93, vex::rotationUnits::deg);
+    claw.spin(vex::directionType::fwd, 0.7, vex::percentUnits::pct);
+    lift.spinFor(vex::directionType::fwd, 50, vex::rotationUnits::deg);
+    dt.setDriveVelocity(80, vex::percentUnits::pct);
+    dt.setTurnVelocity(80, vex::percentUnits::pct);
+    dt.turnFor(vex::turnType::right, 50, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::rev, 4, vex::distanceUnits::in);
+    dt.turnFor(vex::turnType::right, 60, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::fwd, 2, vex::distanceUnits::in);
+    claw.rotateFor(vex::directionType::rev, 50, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::rev, 6, vex::distanceUnits::in);
 }
 
 void usercontrol( void ) {

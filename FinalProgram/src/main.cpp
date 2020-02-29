@@ -5,7 +5,7 @@
 /*    Created:      Wed Jan 22 2020                                           */
 /*    Description:  V5 project                                                */
 /*                                                                            */
-/*----------------------------------------------------------------------------*/
+/*----------------------------------------xsssssssssss------------------------------------*/
 
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // ---- END VEXCODE CONFIGURED DEVICES ----
@@ -31,31 +31,26 @@ void pre_auton( void ) {
 void autonomous( void ) {
   // copied from our Robot Mesh code used in Roslyn event
     claw.stop(vex::brakeType::hold);
-    Brain.Screen.print("auto");
-    lift.spinFor(vex::directionType::fwd, 50, vex::rotationUnits::deg);
-    dt.setDriveVelocity(75, vex::percentUnits::pct);
+    Brain.Screen.print("auto\n");
+    claw.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+    lift.spinFor(vex::directionType::fwd, 250, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::fwd, 11, vex::distanceUnits::in);
+    lift.spinFor(vex::directionType::rev, 20, vex::rotationUnits::deg);
+    claw.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::rev, 3, vex::distanceUnits::in);
+    lift.spinFor(vex::directionType::rev, 190, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
+    claw.spinFor(vex::directionType::fwd, 100, vex::rotationUnits::deg); //
+    Brain.Screen.print("Hooray\n");
+    lift.spinFor(vex::directionType::fwd, 110, vex::rotationUnits::deg);
+    Brain.Screen.print("Good job"); 
+    dt.turnFor(vex::turnType::left, 90, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::fwd, 2, vex::distanceUnits::in); // 5->2 (9am, parking lot) 
+    dt.turnFor(vex::turnType::left, 50, vex::rotationUnits::deg);
+    dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in); // 5->4 (9am, parking lot)
+    claw.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg);
     dt.driveFor(vex::directionType::rev, 10, vex::distanceUnits::in);
-    dt.turnFor(vex::turnType::right, 110, vex::rotationUnits::deg);
-    dt.setDriveVelocity(20, vex::percentUnits::pct);
-    dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
-    claw.setVelocity(40, vex::percentUnits::pct);
-    claw.rotateFor(vex::directionType::fwd, 70, vex::rotationUnits::deg);
-    dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in);
-    // dt.drive(vex::directionType::fwd, 25, vex::velocityUnits::pct);
-    lift.spinFor(vex::directionType::rev, 40, vex::rotationUnits::deg);
-    claw.setVelocity(40, vex::percentUnits::pct);
-    claw.setMaxTorque(100, vex::currentUnits::amp);
-    claw.rotateFor(vex::directionType::fwd, 93, vex::rotationUnits::deg);
-    claw.spin(vex::directionType::fwd, 0.7, vex::percentUnits::pct);
-    lift.spinFor(vex::directionType::fwd, 50, vex::rotationUnits::deg);
-    dt.setDriveVelocity(80, vex::percentUnits::pct);
-    dt.setTurnVelocity(80, vex::percentUnits::pct);
-    dt.turnFor(vex::turnType::right, 50, vex::rotationUnits::deg);
-    dt.driveFor(vex::directionType::rev, 4, vex::distanceUnits::in);
-    dt.turnFor(vex::turnType::right, 60, vex::rotationUnits::deg);
-    dt.driveFor(vex::directionType::fwd, 2, vex::distanceUnits::in);
-    claw.rotateFor(vex::directionType::rev, 50, vex::rotationUnits::deg);
-    dt.driveFor(vex::directionType::rev, 6, vex::distanceUnits::in);
+    Brain.Screen.print("done");
 }
 
 void usercontrol( void ) {
@@ -65,10 +60,10 @@ void usercontrol( void ) {
   
     if (rc.ButtonUp.pressing()) {
       pinch = 1;
-    }
+    } 
     if (rc.ButtonR1.pressing()) {
       lift.spin(vex::directionType::fwd);
-      // leftuplift.setVelocity(7, vex::percentUnits::pct);
+      // leftdownlift.setVelocity(7, vex::percentUnits::pct);
       // rightdownlift.spin(vex::directionType::fwd);
     }
     else if (rc.ButtonR2.pressing()) {

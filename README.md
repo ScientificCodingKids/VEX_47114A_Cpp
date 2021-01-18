@@ -1,4 +1,4 @@
-How to manage VEXCode V5 Code files effectively using github and Visual Studio Code.
+How to manage VEXcode Pro V5 files effectively using github and Visual Studio Code.
 
 The note is taken from a class instructed by our team coach.
 
@@ -15,7 +15,15 @@ It is one of best tools available for code reading. Please install C/C++ plugin.
 
 Note that our vex.h refers to some header files like v5.h, v5_vcs.h. We must provide their location so that Visual Studio Code knows how to analyze the symbols and we can actually jump to there.
 
-Be sure settings.json has the following snipplet.
+Be sure settings.json (in C/C++ plugin) has the following snipplet.
 
+```
+"C_Cpp.default.includePath": ["C:\\Program Files (x86)\\VEX Robotics\\VEXcode Pro V5\\sdk\\vexv5\\include", "C:\\Program Files (x86)\\VEX Robotics\\VEXcode Pro V5\\sdk\\vexv5\\gcc\\include", "C:\\Program Files (x86)\\VEX Robotics\\VEXcode Pro V5\\sdk\\vexv5\\gcc\\include\\c++\\4.9.3", ", "C:\\Program Files (x86)\\VEX Robotics\\VEXcode Pro V5\\sdk\\vexv5\\clang\\8.0.0\\include"]
+```
+
+For older app (VEXCode V5 Text):
+
+```
 "C_Cpp.default.includePath": ["C:\\Users\\XYZ\\AppData\\Local\\VEX Coding Studio\\VEX Coding Studio\\sdk\\vexv5\\include"]
 }
+```

@@ -16,7 +16,7 @@ using namespace vex;
 
 competition Competition;
 
-
+double x = 0.5;
 
 void pre_auton( void ) {
   // All activities that occur before the competition starts
@@ -24,7 +24,6 @@ void pre_auton( void ) {
   Brain.Screen.print("Hello, 47114A! Program to start. haha");
   //lift.stop(vex::brakeType::hold);
   claw.stop(vex::brakeType::hold);
-
 }
 
 
@@ -46,11 +45,14 @@ void autonomous( void ) {
     Brain.Screen.print("Good job"); 
     dt.turnFor(vex::turnType::left, 90, vex::rotationUnits::deg);
     dt.driveFor(vex::directionType::fwd, 2, vex::distanceUnits::in); // 5->2 (9am, parking lot) 
-    dt.turnFor(vex::turnType::left, 50, vex::rotationUnits::deg);
+    dt.turnFor(vex::turnType::left, 65, vex::rotationUnits::deg);
     dt.driveFor(vex::directionType::fwd, 4, vex::distanceUnits::in); // 5->4 (9am, parking lot)
-    claw.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg);
+    claw.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg);
     dt.driveFor(vex::directionType::rev, 10, vex::distanceUnits::in);
     Brain.Screen.print("done");
+    // dt.setDriveVelocity(90, vex::percentUnits::pct);
+    // dt.driveFor(vex::directionType::rev, 12, vex::distanceUnits::in);
+    // dt.driveFor(vex::directionType::fwd, 5, vex::distanceUnits::in);
 }
 
 void usercontrol( void ) {
@@ -58,6 +60,14 @@ void usercontrol( void ) {
 
   while (1) { // put all our code within this indefinite loop
   
+    if (rc.ButtonA.pressing()) {
+      x = 0.8;
+    }
+
+    if (rc.ButtonLeft.pressing()) {
+      x = 0.5;
+    }
+
     if (rc.ButtonUp.pressing()) {
       pinch = 1;
     } 
@@ -75,8 +85,8 @@ void usercontrol( void ) {
   //      leftdownlift.stop(vex::brakeType::hold);
     }
  
-    double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.5;
-    double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.5;
+    double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * x;
+    double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * x;
  
     double clawMoveSpeed = 20;
     double clawPinchSpeed = 0.5;  // force claw to pinch tightly

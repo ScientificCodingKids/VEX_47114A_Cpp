@@ -11,7 +11,7 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
-#include "utils/nutils.hpp"
+#include "../../../Utils/nutils.hpp"
 
 using namespace vex;
 competition Competition;
@@ -20,8 +20,7 @@ competition Competition;
 
 double x = 0.5;
 
-
-auto ss = ScrollingScreen();
+auto ss = ScrollingScreen<int>();
 
 
 void pre_auton( void ) {

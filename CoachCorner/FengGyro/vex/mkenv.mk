@@ -97,6 +97,5 @@ LIBS =  --start-group -lv5rt -lstdc++ -lc -lm -lgcc --end-group
 
 # include file paths
 INC += $(addprefix -I, ${INC_F}) 
-#INC += $(addprefix -I, ${INC_F}"/../../..")
 INC += -I"$(TOOLCHAIN)/$(PLATFORM)/include"
 INC += ${TOOL_INC}

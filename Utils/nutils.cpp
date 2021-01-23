@@ -4,6 +4,7 @@
 //#include <algorithm>
 #include <cstdarg>
 
+/*
 void ScrollingScreen::print(const char* fmt...) {
   char buf[1024];
 
@@ -32,3 +33,4 @@ void ScrollingScreen::print(const char* fmt...) {
 
   va_end(args);
 }
+*/

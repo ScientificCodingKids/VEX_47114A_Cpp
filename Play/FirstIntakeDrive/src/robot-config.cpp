@@ -5,10 +5,10 @@ using namespace vex;
 // A global instance of brain used for printing to the V5 brain screen
 brain Brain;
 
-vex::motor backleftdrive = vex::motor(PORT10, true);
-vex::motor backrightdrive = vex::motor(PORT1);
-vex::motor frontleftdrive = vex::motor(PORT16);
-vex::motor frontrightdrive = vex::motor(PORT15, true);
+vex::motor backleftdrive = vex::motor(PORT10);
+vex::motor backrightdrive = vex::motor(PORT1, true);
+vex::motor frontleftdrive = vex::motor(PORT16, true);
+vex::motor frontrightdrive = vex::motor(PORT15);
 
 // vex::drivetrain dt = vex::drivetrain(leftdrive, rightdrive);
 

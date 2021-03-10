@@ -1,16 +1,25 @@
 using namespace vex;
 
 extern brain Brain;
-extern motor leftDriveMotor, rightDriveMotor;
-extern motor rightuplift, rightdownlift, leftuplift, leftdownlift;
-extern motor upclaw;
-extern motor downclaw;
 
-extern drivetrain dt;
-extern motor_group lift;
+extern vex::motor backleftdrive;
+extern vex::motor backrightdrive;
+extern vex::motor frontleftdrive;
+extern vex::motor frontrightdrive;
 
-extern motor_group claw;
-extern controller rc;
+// extern vex::drivetrain dt;
+
+extern vex::motor rightlift;
+extern vex::motor leftlift;
+
+extern vex::motor_group lift;
+
+extern vex::motor leftintake;
+extern vex::motor rightintake;
+
+//extern vex::motor_group intake;
+extern vex::controller rc;
+
 extern inertial inertialSensor;
 
 /**

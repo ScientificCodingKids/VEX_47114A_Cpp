@@ -5,25 +5,25 @@ using namespace vex;
 // A global instance of brain used for printing to the V5 brain screen
 brain Brain;
 
-vex::motor leftDriveMotor = vex::motor(vex::PORT11);
-vex::motor rightDriveMotor = vex::motor(vex::PORT1, true);
+vex::motor backleftdrive = vex::motor(PORT10);
+vex::motor backrightdrive = vex::motor(PORT1, true);
+vex::motor frontleftdrive = vex::motor(PORT16, true);
+vex::motor frontrightdrive = vex::motor(PORT15);
 
-vex::drivetrain dt = vex::drivetrain(leftDriveMotor, rightDriveMotor);
+// vex::drivetrain dt = vex::drivetrain(leftdrive, rightdrive);
 
-vex::motor rightuplift = vex::motor(vex::PORT5);  // 4->5
-vex::motor leftuplift = vex::motor(vex::PORT6, true);
+vex::motor rightlift = vex::motor(PORT4, true);
+vex::motor leftlift = vex::motor(PORT9);
 
-vex::motor_group lift = vex::motor_group(leftuplift, rightuplift);
+vex::motor_group lift = vex::motor_group(rightlift, leftlift);
 
+vex::motor rightintake = vex::motor(PORT20, true);
+vex::motor leftintake = vex::motor(PORT18);
 
-vex::motor upclaw = vex::motor(vex::PORT18);
-vex::motor downclaw = vex::motor(vex::PORT20, true);
+vex::inertial inertialSensor = vex::inertial(vex::PORT2);
 
-vex::motor_group claw = vex::motor_group(downclaw);
 vex::controller rc = vex::controller();
 
-
-vex::inertial inertialSensor = vex::inertial(vex::PORT16);
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Text.

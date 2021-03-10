@@ -11,6 +11,7 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 #include <algorithm>
 #include "vex.h"
+
 #include "../../../Utils/nutils.hpp"
 
 using namespace vex;
@@ -19,6 +20,39 @@ competition Competition;
 // use heading(), data range [0, 360]. so calibrate to 0 means the initial reading can be 365.5 !
 
 auto ss = ScrollingScreen<int>();
+
+
+double computeDistanceForOneRotation() {
+  // return the wheel travel distance (in inch) when motor spins one rotation
+  double wheelDiameter = 4.0; // omni "green" wheel
+  double wheelToDriveGearRatio = 1.0;
+  double motorGearRatio = 18.0; // standard gear in-use, 200 rpm
+  
+  return 3.14159265 * wheelDiameter / wheelToDriveGearRatio / motorGearRatio;
+}
+
+
+double computeRotationsFromDistance(double x /*inch*/) {
+  return x / computeDistanceForOneRotation();
+}
+
+void resetDriveTrainRotation() {
+  backleftdrive.resetPosition();
+  frontleftdrive.resetPosition();
+
+  backrightdrive.resetPosition();
+  frontrightdrive.resetPosition();
+}
+
+void stopDriveTrain() {
+  backleftdrive.stop();
+  frontleftdrive.stop();
+
+  backrightdrive.stop();
+  frontrightdrive.stop();
+
+  backleftdrive.index();
+}
 
 
 void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpeed, double minEndSpeed, double multiplierEndSpeed, bool turnLeft) {
@@ -39,10 +73,9 @@ void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpee
     vex::wait(50, timeUnits::msec);
   }
 
-
   inertialSensor.resetRotation();
-  leftDriveMotor.resetPosition();
-  rightDriveMotor.resetPosition();
+
+  resetDriveTrainRotation();
 
   double speed = 0.0;
 
@@ -80,19 +113,25 @@ void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpee
     }
 
     // drive the motors using equal speeds but opposite direction to turn
-    leftDriveMotor.setVelocity(speed, vex::percentUnits::pct);
-    rightDriveMotor.setVelocity(speed, vex::percentUnits::pct);
+    backleftdrive.setVelocity(speed, vex::percentUnits::pct);
+    frontleftdrive.setVelocity(speed, vex::percentUnits::pct);
 
-    leftDriveMotor.spin(directionType::rev);
-    rightDriveMotor.spin(directionType::fwd);
+    backrightdrive.setVelocity(speed, vex::percentUnits::pct);
+    frontrightdrive.setVelocity(speed, vex::percentUnits::pct);
+
+    backleftdrive.spin(directionType::rev);
+    frontleftdrive.spin(directionType::rev);
+    
+    backrightdrive.spin(directionType::fwd);
+    frontrightdrive.spin(directionType::fwd);
 
     ss.print("Rotate %4.1f , %4.1f\n", r, speed);
     vex::task::sleep(10);
   } // while
 
   // FINALE
-  leftDriveMotor.stop();
-  rightDriveMotor.stop();
+  stopDriveTrain();
+
   ss.print("makeTurn() ENDS");
 }
 
@@ -111,15 +150,14 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
   // P-only algorithm modifies the speed on both motors to suppress above deviation so that robot goes straight forward
 
   // INITIALIZATION
-  leftDriveMotor.resetRotation(); 
-  rightDriveMotor.resetRotation();
+  resetDriveTrainRotation();
 
   // MOVEMENT LOOP
-  while (leftDriveMotor.rotation(vex::rotationUnits::deg) < rotationsToGo * 360) {
+  while (backleftdrive.rotation(vex::rotationUnits::deg) < rotationsToGo * 360) {
     // set baseline speed
     double speed = baseSpeed;
-    double leftRot = leftDriveMotor.rotation(vex::rotationUnits::deg);
-    double rightRot = rightDriveMotor.rotation(vex::rotationUnits::deg);
+    double leftRot = backleftdrive.rotation(vex::rotationUnits::deg);
+    double rightRot = backrightdrive.rotation(vex::rotationUnits::deg);
 
     // for control purpose, we focus on err
     double err = leftRot - rightRot;
@@ -141,23 +179,28 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
     }
 
     // drive the motors using equal+adj speeds in same direction
-    leftDriveMotor.setVelocity(speed - speed * err * kp, vex::percentUnits::pct);
-    rightDriveMotor.setVelocity(speed + speed * err * kp, vex::percentUnits::pct);
+    backleftdrive.setVelocity(speed - speed * err * kp, vex::percentUnits::pct);
+    frontleftdrive.setVelocity(speed - speed * err * kp, vex::percentUnits::pct);
 
-    leftDriveMotor.spin(directionType::fwd);
-    rightDriveMotor.spin(directionType::fwd);
+    backrightdrive.setVelocity(speed + speed * err * kp, vex::percentUnits::pct);
+    frontrightdrive.setVelocity(speed + speed * err * kp, vex::percentUnits::pct);
+
+    backleftdrive.spin(directionType::fwd);
+    frontleftdrive.spin(directionType::fwd);
+    
+    backrightdrive.spin(directionType::fwd);
+    frontrightdrive.spin(directionType::fwd);
     ss.print("Rot: %f / %f; Speed: %f; adj %f, err: %f", leftRot, rightRot, speed, speed * err * kp, err);
     vex::task::sleep(10);
   }
 
   // FINALE
-  leftDriveMotor.stop();
-  rightDriveMotor.stop();
+  stopDriveTrain();
   ss.print("goStraight() ENDS");
 
 }
 
-
+/*
 void goStraightWithGyro(double rotationsToGo, double baseSpeed, double minStartSpeed, double minEndSpeed, double kp) {
   // auto rotation using simplied PID (P-only) with help from inertial sensor
   // recommended baseSpeed is 30 (normal), 10 (slow)
@@ -217,7 +260,7 @@ void goStraightWithGyro(double rotationsToGo, double baseSpeed, double minStartS
   ss.print("goStraightWithGryo() ENDS");
 
 }
-
+*/
 
 void pre_auton( void ) {
   // All activities that occur before the competition starts
@@ -228,85 +271,22 @@ void pre_auton( void ) {
 
 
 void autonomous( void ) {
-  // copied from our Robot Mesh code used in Roslyn event
-  // todo
+  double kp = 0.0;
+  double dist = 50.0;
+  ss.print("Go straight ahead for %4.1f inches, PID kp=%4.1f\n", dist, kp);
+
+  goStraight(computeRotationsFromDistance(dist), 50, 10, 10, 0.0);
+  
+  vex::task::sleep(2000);
+  
+  ss.print("Make left turn");
+  makeTurn(50, 10, 1.1, 10, 1.1, true);
+  ss.print("DONE");
 }
 
 
 void usercontrol( void ) {
-  int pinch = 0;
-  double x = 0.5;
-
-  while (1) { // put all our code within this indefinite loop
-  
-    if (rc.ButtonA.pressing()) {
-      x = 0.8;
-    }
-
-    if (rc.ButtonLeft.pressing()) {
-      x = 0.5;
-    }
-
-    if (rc.ButtonUp.pressing()) {
-      pinch = 1;
-    } 
-    if (rc.ButtonR1.pressing()) {
-      lift.spin(vex::directionType::fwd);
-      // leftdownlift.setVelocity(7, vex::percentUnits::pct);
-      // rightdownlift.spin(vex::directionType::fwd);
-    }
-    else if (rc.ButtonR2.pressing()) {
-      lift.spin(vex::directionType::rev);
-      //  rightdownlift.spin(vex::directionType::rev);
-    }
-    else {
-      lift.stop(vex::brakeType::hold);
-  //      leftdownlift.stop(vex::brakeType::hold);
-    }
- 
-    double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * x;
-    double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * x;
- 
-    double clawMoveSpeed = 20;
-    double clawPinchSpeed = 0.5;  // force claw to pinch tightly
-
-    if (fabs(leftMotorSpeed) > 5.0) {
-      leftDriveMotor.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
-      leftDriveMotor.spin(fwd);
-    }
-    else {
-      leftDriveMotor.stop(vex::brakeType::hold);
-    }
-
-    if (fabs(rightMotorSpeed) > 5.0) {
-      rightDriveMotor.setVelocity(rightMotorSpeed, vex::velocityUnits::pct);
-      rightDriveMotor.spin(fwd);
-    }
-    else {
-      rightDriveMotor.stop(vex::brakeType::hold);
-    }
-
-
-    if (rc.ButtonL1.pressing()) {
-      claw.setVelocity(clawMoveSpeed, vex::percentUnits::pct);
-      claw.spin(vex::directionType::fwd);
-    }
-    else if (rc.ButtonL2.pressing()) {
-      claw.setVelocity(clawMoveSpeed, vex::percentUnits::pct);
-      claw.spin(vex::directionType::rev);
-    }
-    else {
-      if (pinch == 1) {
-        claw.setVelocity(clawPinchSpeed, vex::percentUnits::pct);
-        claw.spin(vex::directionType::fwd);
-      }
-      else { 
-        claw.stop(vex::brakeType::brake);
-      }
-    }
-
-    vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources. 
-  }
+  ss.print("User control not impl yet");
 }
 
 

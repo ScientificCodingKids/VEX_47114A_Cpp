@@ -35,7 +35,7 @@ void ScrollingScreen<T>::print(const char* fmt...) {
   Brain.Screen.clearScreen();
 
   for (unsigned int i=0; i<m; ++i) {
-    Brain.Screen.setCursor(1, 1);
+    Brain.Screen.setCursor(i, 1);
     Brain.Screen.print( _rows[n+i].c_str() );
     Brain.Screen.newLine();
   }

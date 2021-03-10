@@ -33,8 +33,6 @@ void autonomous( void ) {
 // use left and right joysticks to adjust speed
 
 void usercontrol( void ) {
-  int spin = 0;
-
   double wheelSpeed = 50;
   double liftSpeed = 30;
 

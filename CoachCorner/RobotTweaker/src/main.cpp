@@ -38,22 +38,10 @@ void usercontrol( void ) {
   double wheelSpeed = 50;
   double liftSpeed = 30;
 
+  double intakeSpeed = 50;  // fixed speed
+
   while (1) {
-
-    if (rc.ButtonL1.pressing()) {
-      frontleftdrive.spin(vex::directionType::fwd);
-    }
-    else if (rc.ButtonL2.pressing()) {
-      backleftdrive.spin(vex::directionType::fwd);
-    }
-
-    if (rc.ButtonR1.pressing()) {
-      frontrightdrive.spin(vex::directionType::fwd);
-    }
-    else if (rc.ButtonR2.pressing()) {
-      backrightdrive.spin(vex::directionType::fwd);
-    }
-
+    
     wheelSpeed *= 1.0 + rc.Axis3.position(vex::percentUnits::pct)/100.0 * 0.01;
     liftSpeed *= 1.0 + rc.Axis2.position(vex::percentUnits::pct)/100.0 * 0.05;
 
@@ -68,12 +56,67 @@ void usercontrol( void ) {
     leftlift.setVelocity(liftSpeed, vex::velocityUnits::pct);
     rightlift.setVelocity(liftSpeed, vex::velocityUnits::pct);
 
+    // drive train motion
+    if (rc.ButtonL1.pressing()) {
+      frontleftdrive.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonL2.pressing()) {
+      backleftdrive.spin(vex::directionType::fwd);
+    }
 
+    if (rc.ButtonR1.pressing()) {
+      frontrightdrive.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonR2.pressing()) {
+      backrightdrive.spin(vex::directionType::fwd);
+    }
 
-    ss.print("Speed: %4.1f, %4.1f \n", wheelSpeed, liftSpeed);
+    // lift motion
+    if (rc.ButtonUp.pressing()) {
+      leftlift.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonDown.pressing()) {
+      leftlift.spin(vex::directionType::rev);
+    }
+    else {
+      leftlift.setBrake(vex::brakeType::hold);
+    }
+
+    if (rc.ButtonX.pressing()) {
+      rightlift.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonB.pressing()) {
+      rightlift.spin(vex::directionType::rev);
+    }
+    else {
+      rightlift.setBrake(vex::brakeType::hold);
+    }
+
+    // intake motion
+    if (rc.ButtonRight.pressing()) {
+      leftintake.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonLeft.pressing()) {
+      leftintake.spin(vex::directionType::rev);
+    }
+    else {
+      leftintake.setBrake(vex::brakeType::coast);
+    }
+
+    if (rc.ButtonA.pressing()) {
+      rightintake.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonY.pressing()) {
+      rightintake.spin(vex::directionType::rev);
+    }
+    else {
+      rightintake.setBrake(vex::brakeType::coast);
+    }
+
+    ss.print("[Speed] wheel: %4.1f, lift: %4.1f, intake: %4.1f \n", wheelSpeed, liftSpeed, intakeSpeed);
 
     vex::task::sleep(100);
-  }
+  }  // while
 }
 
 int main() {

@@ -47,24 +47,24 @@ void usercontrol( void ) {
     double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.5;
 
     if (fabs(leftMotorSpeed) > 5.0) {
-      // backleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
-      // backleftdrive.spin(fwd);
+      backleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
+      backleftdrive.spin(fwd);
       frontleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
       frontleftdrive.spin(fwd);
     }
     else {
-      // backleftdrive.stop(vex::brakeType::hold);
+      backleftdrive.stop(vex::brakeType::hold);
       frontleftdrive.stop(vex::brakeType::hold);
     }
 
     if (fabs(rightMotorSpeed) > 5.0) {
-      // backrightdrive.setVelocity(rightMotorSpeed, vex::velocityUnits::pct);
-      // backrightdrive.spin(fwd);  
+      backrightdrive.setVelocity(rightMotorSpeed, vex::velocityUnits::pct);
+      backrightdrive.spin(fwd);  
       frontrightdrive.setVelocity(rightMotorSpeed, vex::velocityUnits::pct);
       frontrightdrive.spin(fwd);
     }
     else {
-      // backrightdrive.stop(vex::brakeType::hold);
+      backrightdrive.stop(vex::brakeType::hold);
       frontrightdrive.stop(vex::brakeType::hold);
     }
 

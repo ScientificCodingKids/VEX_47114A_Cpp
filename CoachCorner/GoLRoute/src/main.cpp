@@ -19,7 +19,7 @@ competition Competition;
 
 // use heading(), data range [0, 360]. so calibrate to 0 means the initial reading can be 365.5 !
 
-auto ss = ScrollingScreen<int>();
+auto ss = ScrollingScreen<int>(3, 5);
 
 
 double computeDistanceForOneRotation() {
@@ -79,8 +79,8 @@ void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpee
 
   double speed = 0.0;
 
-  ss.print("Initial: %4.1f \n", inertialSensor.rotation());
-  
+  ss.print("Initial: %.1f \n", inertialSensor.rotation());
+
   // MOVEMENT LOOP
   while ((inertialSensor.heading() < 90.0) || (inertialSensor.heading() > 180)) {
     // set baseline speed
@@ -190,7 +190,7 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
     
     backrightdrive.spin(directionType::fwd);
     frontrightdrive.spin(directionType::fwd);
-    ss.print("Rot: %f / %f; Speed: %f; adj %f, err: %f", leftRot, rightRot, speed, speed * err * kp, err);
+    ss.print("Rot: %.1f / %.1f; Spd: %.1f; adj %.1f, err: %.1f", leftRot, rightRot, speed, speed * err * kp, err);
     vex::task::sleep(10);
   }
 
@@ -272,10 +272,10 @@ void pre_auton( void ) {
 
 void autonomous( void ) {
   double kp = 0.0;
-  double dist = 50.0;
+  double dist = 1.0;
   ss.print("Go straight ahead for %4.1f inches, PID kp=%4.1f\n", dist, kp);
 
-  goStraight(computeRotationsFromDistance(dist), 50, 10, 10, 0.0);
+  goStraight(computeRotationsFromDistance(dist), 50, 20, 20, 0.0);
   
   vex::task::sleep(2000);
   

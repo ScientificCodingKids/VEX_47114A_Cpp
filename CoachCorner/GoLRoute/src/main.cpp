@@ -18,7 +18,7 @@ using namespace vex;
 competition Competition;
 
 // use heading(), data range [0, 360]. so calibrate to 0 means the initial reading can be 365.5 !
-
+auto ss0 = ScrollingScreen<int>(0, 3);
 auto ss = ScrollingScreen<int>(3, 5);
 
 
@@ -166,16 +166,15 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
     }
     
     // compute "effective" speed depending on movement phases
-    // 1) start (ramp-up) phase
+    // start (ramp-up) phase
     if (leftRot < 360) {
       speed = std::max(minStartSpeed, baseSpeed * leftRot / 360.0);
     }
-
-    // 2) normal phase
-
-    // 3) end (approaching) phase
-    if (rotationsToGo * 360 - leftRot < 360) {
+    else if (rotationsToGo * 360 - leftRot < 360) { // end (approaching) ramp down phase
       speed = std::max(minEndSpeed, baseSpeed * (rotationsToGo * 360 - leftRot < 360)/360.0);
+    }
+    else { // normal  phase
+      speed = baseSpeed;
     }
 
     // drive the motors using equal+adj speeds in same direction
@@ -191,7 +190,7 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
     backrightdrive.spin(directionType::fwd);
     frontrightdrive.spin(directionType::fwd);
     ss.print("Rot: %.1f / %.1f; Spd: %.1f; adj %.1f, err: %.1f", leftRot, rightRot, speed, speed * err * kp, err);
-    vex::task::sleep(10);
+    vex::task::sleep(50);
   }
 
   // FINALE
@@ -275,13 +274,30 @@ void autonomous( void ) {
   double dist = 1.0;
   ss.print("Go straight ahead for %4.1f inches, PID kp=%4.1f\n", dist, kp);
 
-  goStraight(computeRotationsFromDistance(dist), 50, 20, 20, 0.0);
+  goStraight(1, 50, 20, 20, 0.0);
   
   vex::task::sleep(2000);
+
+  
+  goStraight(3, 50, 20, 20, 0.0);
+  
+  vex::task::sleep(2000);
+
+  
+  goStraight(10, 50, 20, 20, 0.0);
+  
+  vex::task::sleep(2000);
+
+
+  
+  // goStraight(20, 50, 20, 20, 0.0);
+  
+  // vex::task::sleep(2000);
   
   ss.print("Make left turn");
   makeTurn(50, 10, 1.1, 10, 1.1, true);
   ss.print("DONE");
+  ss.print("dist for one rot: %.f", computeDistanceForOneRotation());
 }
 
 

@@ -26,9 +26,8 @@ double computeDistanceForOneRotation() {
   // return the wheel travel distance (in inch) when motor spins one rotation
   double wheelDiameter = 4.0; // omni "green" wheel
   double wheelToDriveGearRatio = 1.0;
-  double motorGearRatio = 18.0; // standard gear in-use, 200 rpm
   
-  return 3.14159265 * wheelDiameter / wheelToDriveGearRatio / motorGearRatio;
+  return 3.14159265 * wheelDiameter / wheelToDriveGearRatio;
 }
 
 
@@ -55,7 +54,7 @@ void stopDriveTrain() {
 }
 
 
-void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpeed, double minEndSpeed, double multiplierEndSpeed, bool turnLeft) {
+void makeTurn(double baseSpeed, double minStartSpeed, double minEndSpeed, bool turnLeft) {
   // auto rotation using simplied PID (P-only) with help from inertial sensor
   // recommended baseSpeed is 50 (normal), 10 (slow)
   // requirement:
@@ -79,7 +78,7 @@ void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpee
 
   double speed = 0.0;
 
-  ss.print("Initial: %.1f \n", inertialSensor.rotation());
+  ss.print("Initial: %.1f", inertialSensor.rotation());
 
   // MOVEMENT LOOP
   while ((inertialSensor.heading() < 90.0) || (inertialSensor.heading() > 180)) {
@@ -93,7 +92,7 @@ void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpee
     //  -- it made 90 deg LEFT if turnLeft=True; 
     //  -- it made 90 deg RIGHT if turnLeft=False.
 
-    double r = 360 - inertialSensor.heading(); 
+    double r = turnLeft ? (360 - inertialSensor.heading()): inertialSensor.heading(); 
 
     if (r > 180) {
       r = r - 360;
@@ -102,14 +101,23 @@ void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpee
     // compute "effective" speed depending on movement phases
     // 1) start (ramp-up) phase
     if (r < 10.0) {
-      speed = std::max(minStartSpeed, baseSpeed * multiplierStartSpeed * (r / 10.0));
+      speed = std::max(minStartSpeed, baseSpeed * (r / 10.0));
     }
 
     // 2) normal phase
 
     // 3) end (approaching) phase
+    directionType diLeftWheels = turnLeft ? directionType::rev : directionType::fwd;
+    directionType diRightWheels = turnLeft ? directionType::fwd : directionType::rev;
+
     if (r > 80.0) {
-      speed = std::max(minEndSpeed, baseSpeed * multiplierEndSpeed * (1.0 - (r - 80.0)/ 10.0));
+      speed = std::max(minEndSpeed, baseSpeed * (1.0 - (r - 80.0)/ 10.0));
+    }
+    else if (r > 90.0) {
+      speed = std::max(minEndSpeed, baseSpeed * (r-90) / 10.0);
+      // flip
+      diLeftWheels = (diLeftWheels == directionType::fwd) ? directionType::rev : directionType::fwd;
+      diRightWheels = (diRightWheels == directionType::fwd) ? directionType::rev : directionType::fwd;
     }
 
     // drive the motors using equal speeds but opposite direction to turn
@@ -119,13 +127,13 @@ void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpee
     backrightdrive.setVelocity(speed, vex::percentUnits::pct);
     frontrightdrive.setVelocity(speed, vex::percentUnits::pct);
 
-    backleftdrive.spin(directionType::rev);
-    frontleftdrive.spin(directionType::rev);
+    backleftdrive.spin(diLeftWheels);
+    frontleftdrive.spin(diLeftWheels);
     
-    backrightdrive.spin(directionType::fwd);
-    frontrightdrive.spin(directionType::fwd);
+    backrightdrive.spin(diRightWheels);
+    frontrightdrive.spin(diRightWheels);
 
-    ss.print("Rotate %4.1f , %4.1f\n", r, speed);
+    ss.print("Rotate %.1f , %.1f", r, speed);
     vex::task::sleep(10);
   } // while
 
@@ -136,7 +144,7 @@ void makeTurn(double baseSpeed, double minStartSpeed, double multiplierStartSpee
 }
 
 
-void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, double minEndSpeed, double kp) {
+void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, double minEndSpeed, double kp, bool goReverse=false, bool useGyro=false) {
   // auto rotation using simplied PID (P-only) without help from inertial sensor
   // recommended baseSpeed is 30 (normal), 10 (slow)
   // kp = 0 (no P-adj), kp = 0.005 (small), kp = 0.1 (extremely large, ONLY for demo purpose)
@@ -184,11 +192,13 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
     backrightdrive.setVelocity(speed + speed * err * kp, vex::percentUnits::pct);
     frontrightdrive.setVelocity(speed + speed * err * kp, vex::percentUnits::pct);
 
-    backleftdrive.spin(directionType::fwd);
-    frontleftdrive.spin(directionType::fwd);
+    directionType di = goReverse ? directionType::rev : directionType::fwd;
+
+    backleftdrive.spin(di);
+    frontleftdrive.spin(di);
     
-    backrightdrive.spin(directionType::fwd);
-    frontrightdrive.spin(directionType::fwd);
+    backrightdrive.spin(di);
+    frontrightdrive.spin(di);
     ss.print("Rot: %.1f / %.1f; Spd: %.1f; adj %.1f, err: %.1f", leftRot, rightRot, speed, speed * err * kp, err);
     vex::task::sleep(50);
   }
@@ -271,31 +281,60 @@ void pre_auton( void ) {
 
 void autonomous( void ) {
   double kp = 0.0;
-  double dist = 1.0;
+  double dist = 48;
+  double backoutDist = 24;
+  double dist2 = 12;
   ss.print("Go straight ahead for %4.1f inches, PID kp=%4.1f\n", dist, kp);
 
-  goStraight(1, 50, 20, 20, 0.0);
-  
-  vex::task::sleep(2000);
+  double intakeSpeed = 50;
 
-  
-  goStraight(3, 50, 20, 20, 0.0);
-  
-  vex::task::sleep(2000);
+  leftintake.setVelocity(intakeSpeed, percentUnits::pct);
+  rightintake.setVelocity(intakeSpeed, percentUnits::pct);
 
+  leftintake.spin(directionType::fwd);
+  rightintake.spin(directionType::fwd);
+  goStraight(computeRotationsFromDistance(dist), 40, 10, 10, 0.0);
   
-  goStraight(10, 50, 20, 20, 0.0);
-  
-  vex::task::sleep(2000);
+  vex::task::sleep(500);
 
+  leftintake.setBrake(brakeType::hold);
+  rightintake.setBrake(brakeType::hold);
 
-  
-  // goStraight(20, 50, 20, 20, 0.0);
-  
-  // vex::task::sleep(2000);
-  
+  ss.print("Go reverse");
+  goStraight(computeRotationsFromDistance(backoutDist), 40, 10, 10, kp, true /*reverse*/);
+  vex::task::sleep(500);
+
   ss.print("Make left turn");
-  makeTurn(50, 10, 1.1, 10, 1.1, true);
+  makeTurn(50, 10, 5, true);
+  vex::task::sleep(500);
+
+  // 2nd stage go straight (to left)
+  ss.print("Go straight (to left)");
+  goStraight(computeRotationsFromDistance(dist2), 40, 10, 10, 0.0);
+
+  leftintake.spin(directionType::fwd);
+  rightintake.spin(directionType::fwd);
+
+  vex::task::sleep(1000);
+  
+  leftintake.setBrake(brakeType::hold);
+  rightintake.setBrake(brakeType::hold);
+
+  // back off
+  goStraight(computeRotationsFromDistance(dist2), 40, 10, 10, kp, true /*reverse*/);
+
+  // 180 degree turn as two 90 left turns
+  makeTurn(50, 10, 5, true); 
+  makeTurn(50, 10, 5, true);
+
+  // push balls out
+  leftintake.spin(directionType::rev);
+  rightintake.spin(directionType::rev);
+  vex::task::sleep(1000);
+
+  leftintake.setBrake(brakeType::hold);
+  rightintake.setBrake(brakeType::hold);
+
   ss.print("DONE");
   ss.print("dist for one rot: %.f", computeDistanceForOneRotation());
 }

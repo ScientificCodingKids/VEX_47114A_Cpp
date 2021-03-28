@@ -292,18 +292,18 @@ void pre_auton( void ) {
 void autonomous( void ) {
   double kp = 0.0;
   double dist = 4 * 24;
-  double backoutDist = 1.35 * 24;
+  double backoutDist = 1.45 * 24;
   double dist2 = 0.5 * 24;
   ss.print("Go straight ahead for %4.1f inches, PID kp=%4.1f\n", dist, kp);
 
   double intakeSpeed = 60;
-/*
+
   leftintake.setVelocity(intakeSpeed, percentUnits::pct);
   rightintake.setVelocity(intakeSpeed, percentUnits::pct);
 
   leftintake.spin(directionType::rev);
   rightintake.spin(directionType::rev);
-  goStraight(computeRotationsFromDistance(dist), 40, 10, 10, 0.0);
+  goStraight(computeRotationsFromDistance(dist), 40, 10, 10, kp);
   
   vex::task::sleep(500);
 
@@ -312,53 +312,52 @@ void autonomous( void ) {
 
   ss.print("Go reverse");
   goStraight(computeRotationsFromDistance(backoutDist), 40, 10, 10, kp, true);
-  vex::task::sleep(500);*/
+  //vex::task::sleep(500);
 
   ss0.print("Make left turn");
-  makeTurn(15, 5, 0, true);
-  vex::task::sleep(500);
+  makeTurn(20, 5, 0, true);
+  //vex::task::sleep(500);
 
-  ss0.print("Make right turn");
-  makeTurn(15, 5, 0, false);
-  vex::task::sleep(1000);
+  // ss0.print("Make right turn");
+  // makeTurn(15, 5, 0, false);
+  // vex::task::sleep(1000);
 
-  ss0.print("Make 2nd left turn");
-    makeTurn(15, 5, 0, true);
-  vex::task::sleep(500);
+  // ss0.print("Make 2nd left turn");
+  //   makeTurn(15, 5, 0, true);
+  // vex::task::sleep(500);
 
-  ss0.print("Make 2nd right turn");
-  makeTurn(15, 5, 0, false);
-  vex::task::sleep(1000);
+  // ss0.print("Make 2nd right turn");
+  // makeTurn(15, 5, 0, false);
+  // vex::task::sleep(1000);
 
-
-  if (false) {
   // 2nd stage go straight (to left)
   ss.print("Go straight (to left)");
   goStraight(computeRotationsFromDistance(dist2), 40, 10, 10, 0.0);
 
   leftintake.spin(directionType::rev);
   rightintake.spin(directionType::rev);
-
-  vex::task::sleep(1000);
   
+  vex::task::sleep(300);
+
   leftintake.setBrake(brakeType::hold);
   rightintake.setBrake(brakeType::hold);
+  ss.print("START: lift up");
+  lift.spinFor(vex::directionType::fwd, 0.75, vex::rotationUnits::rev);
+  vex::task::sleep(1000);
 
   // back off
+  ss.print("START: go back again");
   goStraight(computeRotationsFromDistance(dist2), 40, 10, 10, kp, true /*reverse*/);
+  ss.print("END: go back again");
 
   // 180 degree turn as two 90 left turns
-  makeTurn(50, 10, 5, true); 
-  makeTurn(50, 10, 5, true);
+  makeTurn(20, 5, 0, true); 
+  makeTurn(20, 5, 0, true);
 
-  lift.spinFor(vex::directionType::fwd, 5, vex::rotationUnits::rev);
 
   // push balls out
   leftintake.spin(directionType::fwd);
   rightintake.spin(directionType::fwd);
-  vex::task::sleep(1000); 
-
-  }
 
   leftintake.setBrake(brakeType::hold);
   rightintake.setBrake(brakeType::hold);

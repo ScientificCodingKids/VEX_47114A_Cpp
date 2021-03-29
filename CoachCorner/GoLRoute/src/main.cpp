@@ -167,6 +167,18 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
   // the deviation in forward direction is computed as the diffence of rotations between left and right motors
   // P-only algorithm modifies the speed on both motors to suppress above deviation so that robot goes straight forward
 
+  double GyroAdjust = 0;
+
+  // CALIBRATE GYRO
+
+  inertialSensor.calibrate();
+
+  while (inertialSensor.isCalibrating()) {
+    vex::wait(50, timeUnits::msec);
+  }
+
+  inertialSensor.resetRotation();
+
   // INITIALIZATION
   resetDriveTrainRotation();
 
@@ -182,7 +194,6 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
     // if (err > 180.0) {
     //   err = 360.0 - err;
     // }
-    
     // compute "effective" speed depending on movement phases
     // start (ramp-up) phase
     if (leftRot < 360) {
@@ -210,6 +221,28 @@ void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, do
     backrightdrive.spin(di);
     frontrightdrive.spin(di);
     ss.print("Rot: %.1f (%.1f)/ %.1f; Spd: %.1f; adj %.1f, err: %.1f", leftRot, backleftdrive.rotation(rotationUnits::deg), rightRot, speed, speed * err * kp, err);
+
+    // GyroAdjust
+    if (useGyro) {
+      GyroAdjust = inertialSensor.rotation();
+    }
+    else {
+      GyroAdjust = 0;
+    }
+
+    if (std::abs(GyroAdjust) > 0.5) {
+      backrightdrive.setVelocity(speed + 1/2 * GyroAdjust, vex::percentUnits::pct);
+      frontrightdrive.setVelocity(speed + 1/2 * GyroAdjust, vex::percentUnits::pct);
+
+      backleftdrive.setVelocity(speed - 1/2 * GyroAdjust, vex::percentUnits::pct);
+      frontleftdrive.setVelocity(speed - 1/2 * GyroAdjust, vex::percentUnits::pct);
+
+      backrightdrive.spin(di);
+      backleftdrive.spin(di);
+      frontrightdrive.spin(di);
+      frontleftdrive.spin(di);
+    }
+
     vex::task::sleep(50);
   }
 
@@ -303,7 +336,7 @@ void autonomous( void ) {
 
   leftintake.spin(directionType::rev);
   rightintake.spin(directionType::rev);
-  goStraight(computeRotationsFromDistance(dist), 40, 10, 10, kp);
+  goStraight(computeRotationsFromDistance(dist), 40, 10, 10, kp, false, true);
   
   vex::task::sleep(500);
 
@@ -311,7 +344,7 @@ void autonomous( void ) {
   rightintake.stop(brakeType::hold);
 
   ss.print("Go reverse");
-  goStraight(computeRotationsFromDistance(backoutDist), 40, 10, 10, kp, true);
+  goStraight(computeRotationsFromDistance(backoutDist), 40, 10, 10, kp, true, true);
   //vex::task::sleep(500);
 
   ss0.print("Make left turn");
@@ -332,7 +365,7 @@ void autonomous( void ) {
 
   // 2nd stage go straight (to left)
   ss.print("Go straight (to left)");
-  goStraight(computeRotationsFromDistance(dist2), 40, 10, 10, 0.0);
+  goStraight(computeRotationsFromDistance(dist2), 40, 10, 10, 0.0, false, true);
 
   leftintake.spin(directionType::rev);
   rightintake.spin(directionType::rev);
@@ -347,7 +380,7 @@ void autonomous( void ) {
 
   // back off
   ss.print("START: go back again");
-  goStraight(computeRotationsFromDistance(dist2), 40, 10, 10, kp, true /*reverse*/);
+  goStraight(computeRotationsFromDistance(dist2), 40, 10, 10, kp, true /*reverse*/, true);
   ss.print("END: go back again");
 
   // 180 degree turn as two 90 left turns

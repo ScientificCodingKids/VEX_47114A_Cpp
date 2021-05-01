@@ -2,15 +2,19 @@
 #include <cstdio>
 #include <cstdarg>
 
+#include "v5.h"
+#include "v5_vcs.h"
+
 template<class T>
 class ScrollingScreen {
   public:
-    ScrollingScreen(int firstRow=1, int maxRows=12): 
-      _firstRow(firstRow), _maxRows(maxRows), _rows() {;}
+    ScrollingScreen(vex::brain& aBrain, int firstRow=1, int maxRows=12): 
+      _brain(aBrain), _firstRow(firstRow), _maxRows(maxRows), _rows() {;}
     // LCD screen row is indexed from 1, not 0
 
     void print(const char* s...);
   private:
+    vex::brain& _brain;
     int _firstRow;
     int _maxRows;
     std::vector<std::string> _rows;
@@ -39,12 +43,12 @@ void ScrollingScreen<T>::print(const char* fmt...) {
 
   if (m > K) m = K;
 
-  Brain.Screen.clearScreen();
+  _brain.Screen.clearScreen();
 
   for (unsigned int i=0; i<m; ++i) {
-    Brain.Screen.setCursor(this->_firstRow + i, 1);
-    Brain.Screen.print( _rows[n+i].c_str() );
-    Brain.Screen.newLine();
+    _brain.Screen.setCursor(this->_firstRow + i, 1);
+    _brain.Screen.print( _rows[n+i].c_str() );
+    _brain.Screen.newLine();
   }
 
   va_end(args);

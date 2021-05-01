@@ -22,10 +22,10 @@ using namespace vex;
 competition Competition;
 
 // use heading(), data range [0, 360]. so calibrate to 0 means the initial reading can be 365.5 !
-auto ss0 = ScrollingScreen<int>(1, 2);
-auto ss = ScrollingScreen<int>(3, 10);
+auto ss0 = ScrollingScreen<int>(Brain, 1, 2);
+auto ss = ScrollingScreen<int>(Brain, 3, 10);
 
-auto db = DriveBase(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, ss);
+auto db = DriveBase(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, ss, inertialSensor);
 
 double computeDistanceForOneRotation() {
   // return the wheel travel distance (in inch) when motor spins one rotation

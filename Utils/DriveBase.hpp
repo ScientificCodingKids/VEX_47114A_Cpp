@@ -1,4 +1,6 @@
-#include "vex.h"
+
+#include "v5.h"
+#include "v5_vcs.h"
 
 class DriveBase {
 private:
@@ -6,9 +8,11 @@ private:
     vex::motor& _backrightdrive;
     vex::motor& _frontleftdrive;
     vex::motor& _frontrightdrive;
-    ScrollingScreen<int>& _ss;
+    vex::inertial& _inertialSensor; 
+    ScrollingScreen<int>& _ss;  // reference cannot be assigned, only to be initialized
 public:
-    DriveBase(vex::motor& backleftdrive, vex::motor& backrightdrive, vex::motor& frontleftdrive, vex::motor& frontrightdrive, ScrollingScreen<int>& ss);
+    DriveBase(vex::motor& backleftdrive, vex::motor& backrightdrive, vex::motor& frontleftdrive, \
+      vex::motor& frontrightdrive, ScrollingScreen<int>& ss, vex::inertial& _inertialSensor);
     void resetDriveTrainRotation();
     void stopDriveTrain();
     void makeTurn(double baseSpeed, double minStartSpeed, double minEndSpeed, bool turnLeft);
@@ -16,9 +20,12 @@ public:
     // void goStraightWithGyro(double rotationsToGo, double baseSpeed, double minStartSpeed, double minEndSpeed, double kp);
 }; // class Drivebase
 
-DriveBase::DriveBase(vex::motor& backleftdrive, vex::motor& backrightdrive, 
-    vex::motor& frontleftdrive, vex::motor& frontrightdrive, 
-    ScrollingScreen<int>& ss):_backleftdrive(backleftdrive), _backrightdrive(backrightdrive), _frontleftdrive(frontleftdrive), _frontrightdrive(frontrightdrive), _ss(ss) {
+DriveBase::DriveBase(vex::motor& _backleftdrive, vex::motor& _backrightdrive, 
+    vex::motor& _frontleftdrive, vex::motor& _frontrightdrive,
+    ScrollingScreen<int>& ss, vex::inertial& _inertialSensor):
+    _backleftdrive(backleftdrive), _backrightdrive(backrightdrive),
+    _frontleftdrive(frontleftdrive), _frontrightdrive(frontrightdrive),
+    _ss(ss), _inertialSensor(inertialSensor) {
 }
 
 void DriveBase::resetDriveTrainRotation() {
@@ -27,6 +34,8 @@ void DriveBase::resetDriveTrainRotation() {
 
   this->_backrightdrive.resetPosition();
   this->_frontrightdrive.resetPosition();
+
+  this->_inertialSensor.calibrate();
 }
 
 void DriveBase::stopDriveTrain() {
@@ -35,6 +44,8 @@ void DriveBase::stopDriveTrain() {
 
   this->_backrightdrive.stop();
   this->_frontrightdrive.stop();
+
+  this->_inertialSensor.calibrate();
 }
 
 void DriveBase::makeTurn(double baseSpeed, double minStartSpeed, double minEndSpeed, bool turnLeft) {
@@ -49,21 +60,22 @@ void DriveBase::makeTurn(double baseSpeed, double minStartSpeed, double minEndSp
   // the approaching speed is computed from the approaching error (when within 10 degrees)
 
   // INITIALIZATION
-  inertialSensor.calibrate();
+  using namespace vex;
+  _inertialSensor.calibrate();
 
   bool is_done = false;
 
-  while (inertialSensor.isCalibrating()) {
+  while (_inertialSensor.isCalibrating()) {
     vex::wait(50, timeUnits::msec);
   }
 
-  inertialSensor.resetRotation();
+  _inertialSensor.resetRotation();
 
   resetDriveTrainRotation();
 
   double speed = 0.0;
 
-  this->_ss.print("Initial: %.1f", inertialSensor.rotation());
+  this->_ss.print("Initial: %.1f", _inertialSensor.rotation());
 
   // MOVEMENT LOOP
   // while (((inertialSensor.heading() < 95.0) || (inertialSensor.heading() > 265)) && ~is_done) {
@@ -79,7 +91,7 @@ void DriveBase::makeTurn(double baseSpeed, double minStartSpeed, double minEndSp
     //  -- it made 90 deg LEFT if turnLeft=True; 
     //  -- it made 90 deg RIGHT if turnLeft=False.
 
-    double r = turnLeft ? (360 - inertialSensor.rotation()): inertialSensor.rotation(); 
+    double r = turnLeft ? (360 - _inertialSensor.rotation()): _inertialSensor.rotation(); 
 
     if (r > 180) {
       r = r - 360;
@@ -147,6 +159,7 @@ void DriveBase::goStraight(double rotationsToGo, double baseSpeed, double minSta
   // the deviation in forward direction is computed as the diffence of rotations between left and right motors
   // P-only algorithm modifies the speed on both motors to suppress above deviation so that robot goes straight forward
 
+  using namespace vex;
   double GyroAdjust = 0;
 
   // CALIBRATE GYRO

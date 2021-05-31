@@ -1,3 +1,6 @@
+#ifndef _nutils_hpp_
+#define _nutils_hpp_
+
 #include <vector>
 #include <cstdio>
 #include <cstdarg>
@@ -53,3 +56,5 @@ void ScrollingScreen<T>::print(const char* fmt...) {
 
   va_end(args);
 }
+
+#endif // _nutils_hpp_

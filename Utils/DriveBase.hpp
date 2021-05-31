@@ -1,7 +1,10 @@
+#ifndef _DriveBase_hpp_
+#define _DriveBase_hpp_
 
 #include "v5.h"
 #include "v5_vcs.h"
 
+#include "nutils.hpp"
 class DriveBase {
 private:
     vex::motor& _backleftdrive;
@@ -306,3 +309,5 @@ void goStraightWithGyro(double rotationsToGo, double baseSpeed, double minStartS
 
 }
 */
+
+#endif // _DriveBase_hpp

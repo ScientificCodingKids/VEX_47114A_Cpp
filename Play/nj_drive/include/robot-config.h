@@ -10,6 +10,10 @@ extern vex::motor frontrightdrive;
 extern vex::motor leftlift;
 extern vex::motor rightlift;
 
+extern vex::motor intake;
+
+extern vex::motor mogo;
+
 extern vex::motor_group lift;
 
 extern vex::motor_group dt;

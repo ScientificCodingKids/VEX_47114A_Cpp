@@ -17,18 +17,27 @@ using namespace vex;
 
 competition Competition;
 
-auto ss = ScrollingScreen<int>();
+// auto ss = ScrollingScreen<int>();
 
 void pre_auton( void ) {
 }
 
 
 void autonomous( void ) {
- 
+ lift.spinFor(vex::directionType::rev, 40, vex::rotationUnits::deg);
+ dt.driveFor(vex::directionType::fwd, 35, vex::distanceUnits::in, 100, vex::velocityUnits::pct);
+ dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
+ leftintake.setVelocity(40, vex::percentUnits::pct);
+ leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
+ lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+ dt.driveFor(vex::directionType::rev, 20, vex::distanceUnits::in);
+ dt.turnFor(180, vex::rotationUnits::deg, 50, vex::velocityUnits::pct);
+ leftintake.spinFor(vex::directionType::fwd, 0.3, vex::rotationUnits::rev);
+ dt.driveFor(vex::directionType::rev, 5, vex::distanceUnits::in);
   }
 
 void usercontrol( void ) {
-  int spin = 0;
+  // int spin = 0;
 
   while (1) {
 
@@ -43,8 +52,8 @@ void usercontrol( void ) {
       lift.stop(vex::brakeType::hold);
     }
 
-    double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.5;
-    double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.5;
+    double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.7;
+    double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.7;
 
     if (fabs(leftMotorSpeed) > 5.0) {
       backleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
@@ -69,67 +78,35 @@ void usercontrol( void ) {
     }
 
     if (rc.ButtonL2.pressing()) {
-      // leftintake.setVelocity(30, vex::percentUnits::pct);
-      // rightintake.setVelocity(30, vex::percentUnits::pct);
+      leftintake.setVelocity(10, vex::percentUnits::pct);
 
-      // //intake.setVelocity(30, vex::percentUnits::pct);
-      // leftintake.spin(vex::directionType::fwd);
-      // rightintake.spin(vex::directionType::fwd);
-      if (spin == 0 or spin == -1) {
-        // aiden is so annoying.
-        spin = 1;
-        leftintake.setVelocity(70, vex::percentUnits::pct);
-        rightintake.setVelocity(70, vex::percentUnits::pct);
-
-        leftintake.spin(vex::directionType::fwd);
-        rightintake.spin(vex::directionType::fwd);
-      }
-
-      else if (spin == 1) {
-        spin = 0;
-        leftintake.stop(vex::brakeType::hold);
-        rightintake.stop(vex::brakeType::hold);
-      }
+      //intake.setVelocity(30, vex::percentUnits::pct);
+      leftintake.spin(vex::directionType::fwd);
     }
 
     else if (rc.ButtonL1.pressing()) {
-      //intake.setVelocity(30, vex::percentUnits::pct);
-      //intake.spin(vex::directionType::rev);
       
-    //   leftintake.setVelocity(30, vex::percentUnits::pct);
-    //   rightintake.setVelocity(30, vex::percentUnits::pct);
-
-    //   //intake.setVelocity(30, vex::percentUnits::pct);
-    //   leftintake.spin(vex::directionType::rev);
-    //   rightintake.spin(vex::directionType::rev);
-    // }
-
-    // else {
-    //   leftintake.stop(vex::brakeType::hold);
-    //   rightintake.stop(vex::brakeType::hold);
-    
-    if (spin == 0 or spin == 1) {
-        spin = -1;
-        leftintake.setVelocity(70, vex::percentUnits::pct);
-        rightintake.setVelocity(70, vex::percentUnits::pct);
-
-        leftintake.spin(vex::directionType::rev);
-        rightintake.spin(vex::directionType::rev);
-      }
-
-      else if (spin == -1) {
-        spin = 0;
-        leftintake.stop(vex::brakeType::hold);
-        rightintake.stop(vex::brakeType::hold);
-      }
+      leftintake.setVelocity(10, vex::percentUnits::pct);
+      leftintake.spin(vex::directionType::rev);
 
     }
 
-    // else {
-    //   intake.stop(vex::brakeType::hold);
-    // }
+    else {
+      leftintake.stop(vex::brakeType::hold);
 
-    ss.print("Speed: %4.1f, %4.1f \n", leftMotorSpeed, rightMotorSpeed);
+    }
+
+    if (rc.ButtonA.pressing()) {
+      rightintake.setVelocity(10, vex::percentUnits::pct);
+      rightintake.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonB.pressing()) {
+      rightintake.setVelocity(10, vex::percentUnits::pct);
+      rightintake.spin(vex::directionType::rev);
+    }
+    else {
+      rightintake.stop(vex::brakeType::hold);
+    }
 
     vex::task::sleep(50);
   }

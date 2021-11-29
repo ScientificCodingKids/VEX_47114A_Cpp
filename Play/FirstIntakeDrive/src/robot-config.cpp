@@ -10,6 +10,11 @@ vex::motor backrightdrive = vex::motor(PORT1);
 vex::motor frontleftdrive = vex::motor(PORT16, true);
 vex::motor frontrightdrive = vex::motor(PORT15);
 
+vex::motor_group leftdrive = vex::motor_group(backleftdrive, frontleftdrive);
+vex::motor_group rightdrive = vex::motor_group(backrightdrive, frontrightdrive);
+
+vex::drivetrain dt = vex::drivetrain(leftdrive, rightdrive);
+
 vex::motor rightlift = vex::motor(PORT4, true);
 vex::motor leftlift = vex::motor(PORT9);
 

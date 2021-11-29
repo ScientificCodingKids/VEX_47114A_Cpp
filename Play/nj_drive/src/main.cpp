@@ -32,6 +32,8 @@ void usercontrol ( void ) {
   auto liftspeed = 20;
       
   lift.setVelocity(liftspeed, vex::velocityUnits::pct);
+  intake.setVelocity(50, vex::velocityUnits::pct);
+  mogo.setVelocity(20, vex::velocityUnits::pct);
   
   while (1) {
     double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.5;
@@ -65,10 +67,30 @@ void usercontrol ( void ) {
     else if (rc.ButtonR2.pressing()) {
       lift.spin(vex::directionType::rev);
     }
-
     else {
       lift.stop(vex::brakeType::hold);
     }
+
+    if (rc.ButtonL1.pressing()) {
+      intake.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonL2.pressing()) {
+      intake.spin(vex::directionType::rev);
+    }
+    else {
+      intake.stop(vex::brakeType::hold);
+    }
+
+    if (rc.ButtonA.pressing()) {
+      mogo.spin(vex::directionType::fwd);
+    }
+    else if (rc.ButtonB.pressing()) {
+      mogo.spin(vex::directionType::rev);
+    }
+    else {
+      mogo.stop(vex::brakeType::hold);
+    }
+
 
     vex::task::sleep(50);
   } // while loop

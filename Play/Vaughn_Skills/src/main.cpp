@@ -26,19 +26,101 @@ competition Competition;
 // auto ss = ScrollingScreen<int>();
 
 void pre_auton( void ) {
+  //inertial_sensor.calibrate();
 }
 
 
 void autonomous( void ) {
-  dt.driveFor(vex::directionType::rev, 78, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 70, vex::distanceUnits::in, 70, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 10, vex::distanceUnits::in, 40, vex::velocityUnits::pct);
-  dt.turnFor(vex::turnType::right, 42, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  lift.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg);
-  dt.driveFor(vex::directionType::rev, 45, vex::distanceUnits::in, 50, vex::velocityUnits::pct);
-  //12 over
-  dt.driveFor(vex::directionType::rev, 10, vex::distanceUnits::in, 25, vex::velocityUnits::pct);
-  lift.spinFor(vex::directionType::rev, 60, vex::rotationUnits::deg);
+  inertial_sensor.calibrate();
+  vex::task::sleep(2000); 
+
+  lift.rotateFor(vex::directionType::rev, 50, vex::rotationUnits::deg);
+
+  for (int i = 0; i< 7; ++i) {
+    sdrive.driveFor(vex::directionType::fwd, 3.5 * 24 / 7 + 0.5, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+    sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+
+  }
+  // sdrive.driveFor(vex::directionType::fwd, 3.5 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+
+  vex::task::sleep(500);
+  sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  vex::task::sleep(500);
+
+  sdrive.driveFor(vex::directionType::fwd, 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+    
+  vex::task::sleep(500);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  vex::task::sleep(500);
+
+  
+  // push neutral mobile goal 1
+  sdrive.driveFor(vex::directionType::fwd, 2.5 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  
+  vex::task::sleep(500);
+  sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  vex::task::sleep(500);
+
+  sdrive.driveFor(vex::directionType::fwd, 36, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+
+  sdrive.driveFor(vex::directionType::fwd, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::fwd, 36, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+
+  sdrive.driveFor(vex::directionType::fwd, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 24, vex::distanceUnits::in);
+
+
+  // vex::task::sleep(2000);
+  // // alliance mobile goal
+  // sdrive.driveFor(vex::directionType::rev, 8, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+
+  // for (int i = 0; i< 8; ++i) {
+  //   sdrive.driveFor(vex::directionType::rev, 9 + 1, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  //   sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+
+  // }
+  // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+
+  // vex::task::sleep(2000);
+
+  // sdrive.driveFor(vex::directionType::fwd, 43, vex::distanceUnits::in, 70, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // sdrive.driveFor(vex::directionType::rev, 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // // neutral 1
+  // sdrive.driveFor(vex::directionType::rev, 55, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // sdrive.driveFor(vex::directionType::fwd, 40, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // sdrive.driveFor(vex::directionType::rev, 36, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // // neutral 2
+  // sdrive.driveFor(vex::directionType::rev, 30, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // sdrive.driveFor(vex::directionType::rev, 30, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // sdrive.driveFor(vex::directionType::fwd, 45, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // sdrive.driveFor(vex::directionType::rev, 33, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // // neutral 3
+  // sdrive.driveFor(vex::directionType::rev, 60, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // sdrive.driveFor(vex::directionType::fwd, 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  // // grabbing
+  // lift.rotateFor(vex::directionType::rev, 70, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  // sdrive.turnToHeading(150, vex::rotationUnits::deg);
+  // sdrive.driveFor(vex::directionType::fwd, 1.4 * 24, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
+  // leftintake.rotateFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
+  // sdrive.driveFor(vex::directionType::rev, 10, vex::distanceUnits::in);
   }
 
   // before, 45 then 17

@@ -20,6 +20,7 @@ competition Competition;
 // auto ss = ScrollingScreen<int>();
 
 void pre_auton( void ) {
+
 }
 
 
@@ -31,9 +32,18 @@ void autonomous( void ) {
  leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
  dt.driveFor(vex::directionType::rev, 20, vex::distanceUnits::in);
- dt.turnFor(180, vex::rotationUnits::deg, 50, vex::velocityUnits::pct);
+ dt.turnFor(vex::turnType::right, 90, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
  leftintake.spinFor(vex::directionType::fwd, 0.3, vex::rotationUnits::rev);
  dt.driveFor(vex::directionType::rev, 5, vex::distanceUnits::in);
+ dt.turnFor(vex::turnType::left, 65, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+ dt.driveFor(vex::directionType::fwd, 35, vex::distanceUnits::in, 100, vex::velocityUnits::pct);
+ dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
+ lift.spinFor(vex::directionType::rev, 150, vex::rotationUnits::deg);
+ leftintake.spinFor(vex::directionType::rev, 0.35, vex::rotationUnits::rev);
+ lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+ dt.driveFor(vex::directionType::rev, 30, vex::distanceUnits::in);
+ dt.turnFor(vex::turnType::right, 45, vex::rotationUnits::deg);
+ leftintake.spinFor(vex::directionType::fwd, 0.4, vex::rotationUnits::rev);
   }
 
 void usercontrol( void ) {

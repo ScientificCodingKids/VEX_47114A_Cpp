@@ -17,25 +17,35 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
-#include "../../../Utils/nutils.hpp"
 
 using namespace vex;
 
 competition Competition;
 
-// auto ss = ScrollingScreen<int>();
 
 void pre_auton( void ) {
   //inertial_sensor.calibrate();
 }
 
-void turnToHeadingWithSleep(vex::smartdrive& sd, double tgt, vex::rotationUnits ru, double speed, vex::velocityUnits)
+void turnToHeadingWithSleep(vex::smartdrive& sd, double tgt, vex::rotationUnits ru, double speed, vex::velocityUnits vu)
 {
   double nap = 400;
 
   vex::task::sleep(nap);
-  sd.turnToHeading(tgt, vex::rotationUnits::deg, speed, vex::velocityUnits::pct);
+  sd.turnToHeading(tgt, vex::rotationUnits::deg, speed, vu);
   vex::task::sleep(nap);
+}
+
+void goStraightWithGyro(vex::directionType dt, vex::smartdrive& sd, double dist, vex::distanceUnits du, int nSteps, double speed, vex::velocityUnits vu, double tgtHeading, double extraDist)
+{
+  // go as far as dist by nSteps equal steps
+  // need a small extra distance per *step* to compensate the stop-and-go loss
+  // go "straight" by maintaining the heading at value tgtHeading
+
+  for (int i = 0; i < 7; ++i) {
+    sd.driveFor(dt, dist/i + extraDist, du, speed, vu);
+    sd.turnToHeading(tgtHeading, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  }
 }
 
 void autonomous( void ) {
@@ -43,14 +53,10 @@ void autonomous( void ) {
   vex::task::sleep(2000); 
 
   double push_speed = 50;
-
   lift.rotateFor(vex::directionType::rev, 50, vex::rotationUnits::deg);
 
-  for (int i = 0; i< 7; ++i) {
-    sdrive.driveFor(vex::directionType::fwd, 3.5 * 24 / 7 - 0.4, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
-    sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-
-  }
+  goStraightWithGyro(vex::directionType::fwd, sdrive, 3.5 * 24, vex::distanceUnits::in, 7, push_speed, vex::velocityUnits::pct, 0, -0.4);
+  
   // sdrive.driveFor(vex::directionType::fwd, 3.5 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
   sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
   sdrive.driveFor(vex::directionType::rev, 24, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);

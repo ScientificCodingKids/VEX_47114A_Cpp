@@ -29,54 +29,77 @@ void pre_auton( void ) {
   //inertial_sensor.calibrate();
 }
 
+void turnToHeadingWithSleep(vex::smartdrive& sd, double tgt, vex::rotationUnits ru, double speed, vex::velocityUnits)
+{
+  double nap = 400;
+
+  vex::task::sleep(nap);
+  sd.turnToHeading(tgt, vex::rotationUnits::deg, speed, vex::velocityUnits::pct);
+  vex::task::sleep(nap);
+}
 
 void autonomous( void ) {
   inertial_sensor.calibrate();
   vex::task::sleep(2000); 
 
+  double push_speed = 50;
+
   lift.rotateFor(vex::directionType::rev, 50, vex::rotationUnits::deg);
 
   for (int i = 0; i< 7; ++i) {
-    sdrive.driveFor(vex::directionType::fwd, 3.5 * 24 / 7 + 0.5, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+    sdrive.driveFor(vex::directionType::fwd, 3.5 * 24 / 7 - 0.4, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
     sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
 
   }
   // sdrive.driveFor(vex::directionType::fwd, 3.5 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
   sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  sdrive.driveFor(vex::directionType::rev, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 24, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg);
+  sdrive.driveFor(vex::directionType::rev, 24, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
 
-  vex::task::sleep(500);
-  sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  vex::task::sleep(500);
+  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, push_speed, vex::velocityUnits::pct);
 
-  sdrive.driveFor(vex::directionType::fwd, 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::fwd, 22, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
     
-  vex::task::sleep(500);
-  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  vex::task::sleep(500);
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
 
   
   // push neutral mobile goal 1
-  sdrive.driveFor(vex::directionType::fwd, 2.5 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
-  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  sdrive.driveFor(vex::directionType::rev, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::fwd, 2 * 24, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 2 * 24, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
   
-  vex::task::sleep(500);
-  sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  vex::task::sleep(500);
+  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
 
-  sdrive.driveFor(vex::directionType::fwd, 36, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::fwd, 36, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
   sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
 
-  sdrive.driveFor(vex::directionType::fwd, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
-  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  sdrive.driveFor(vex::directionType::rev, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
-  sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  sdrive.driveFor(vex::directionType::fwd, 36, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
-  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::fwd, 2 * 24, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
+    
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
 
-  sdrive.driveFor(vex::directionType::fwd, 2 * 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
-  sdrive.driveFor(vex::directionType::rev, 24, vex::distanceUnits::in);
+  sdrive.driveFor(vex::directionType::rev, 2 * 24, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
+
+  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+
+  sdrive.driveFor(vex::directionType::fwd, 35, vex::distanceUnits::in, push_speed, vex::velocityUnits::pct);
+
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+
+  sdrive.driveFor(vex::directionType::fwd, 2*24, vex::distanceUnits::in, 50, vex::velocityUnits::pct);
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 26, vex::distanceUnits::in, 50, vex::velocityUnits::pct);
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 22, vex::distanceUnits::in, 50, vex::velocityUnits::pct);
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 24, vex::distanceUnits::in, 50, vex::velocityUnits::pct);
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::fwd, 14, vex::distanceUnits::in, 50, vex::velocityUnits::pct);
+  turnToHeadingWithSleep(sdrive, 90, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  lift.rotateFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  sdrive.driveFor(vex::directionType::fwd, 1*24, vex::distanceUnits::in, 70, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::fwd, 0.5*24, vex::distanceUnits::in, 20, vex::velocityUnits::pct);
+
 
 
   // vex::task::sleep(2000);
@@ -96,7 +119,7 @@ void autonomous( void ) {
   // sdrive.turnToHeading(270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
   // sdrive.driveFor(vex::directionType::rev, 24, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
   // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  // // neutral 1
+  // // neutral 
   // sdrive.driveFor(vex::directionType::rev, 55, vex::distanceUnits::in, 60, vex::velocityUnits::pct);
   // sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
   // sdrive.driveFor(vex::directionType::fwd, 40, vex::distanceUnits::in, 60, vex::velocityUnits::pct);

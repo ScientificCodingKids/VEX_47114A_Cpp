@@ -16,7 +16,7 @@ vex::motor_group rightdrive = vex::motor_group(backrightdrive, frontrightdrive);
 vex::inertial inertial_sensor = vex::inertial(PORT12);
 
 vex::drivetrain dt = vex::drivetrain(leftdrive, rightdrive, 320, 260, 280);
-vex::smartdrive smartdrive = vex::smartdrive(backleftdrive, backrightdrive, inertial_sensor, 320, 260, 280);
+vex::smartdrive sdrive = vex::smartdrive(backleftdrive, backrightdrive, inertial_sensor, 320, 260, 280);
 
 vex::motor rightlift = vex::motor(PORT4, true);
 vex::motor leftlift = vex::motor(PORT9);

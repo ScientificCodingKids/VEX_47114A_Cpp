@@ -13,7 +13,7 @@ extern vex::motor_group rightdrive;
 extern vex::inertial inertial_sensor;
 
 extern vex::drivetrain dt;
-extern vex::smartdrive smartdrive;
+extern vex::smartdrive sdrive;
 
 extern vex::motor rightlift;
 extern vex::motor leftlift;

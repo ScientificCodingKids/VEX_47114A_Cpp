@@ -12,6 +12,7 @@
 
 #include "vex.h"
 #include "../../../Utils/nutils.hpp"
+#include <cmath>
 
 using namespace vex;
 
@@ -25,26 +26,28 @@ void pre_auton( void ) {
 
 
 void autonomous( void ) {
- lift.spinFor(vex::directionType::rev, 40, vex::rotationUnits::deg);
- dt.driveFor(vex::directionType::fwd, 35, vex::distanceUnits::in, 100, vex::velocityUnits::pct);
- dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
- leftintake.setVelocity(40, vex::percentUnits::pct);
- leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
- lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
- dt.driveFor(vex::directionType::rev, 20, vex::distanceUnits::in);
- dt.turnFor(vex::turnType::right, 90, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
- leftintake.spinFor(vex::directionType::fwd, 0.3, vex::rotationUnits::rev);
- dt.driveFor(vex::directionType::rev, 5, vex::distanceUnits::in);
- dt.turnFor(vex::turnType::left, 65, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
- dt.driveFor(vex::directionType::fwd, 35, vex::distanceUnits::in, 100, vex::velocityUnits::pct);
- dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
- lift.spinFor(vex::directionType::rev, 150, vex::rotationUnits::deg);
- leftintake.spinFor(vex::directionType::rev, 0.35, vex::rotationUnits::rev);
- lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
- dt.driveFor(vex::directionType::rev, 30, vex::distanceUnits::in);
- dt.turnFor(vex::turnType::right, 45, vex::rotationUnits::deg);
- leftintake.spinFor(vex::directionType::fwd, 0.4, vex::rotationUnits::rev);
-  }
+  inertial_sensor.calibrate();
+
+  lift.spinFor(vex::directionType::rev, 40, vex::rotationUnits::deg);
+  sdrive.driveFor(vex::directionType::fwd, 35, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
+  dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in, 20, vex::velocityUnits::pct, false);
+  vex::task::sleep(2000);
+  leftintake.setVelocity(40, vex::percentUnits::pct);
+  leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
+  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg);
+  sdrive.driveFor(vex::directionType::rev, 23, vex::distanceUnits::in);
+
+  sdrive.turnToHeading(180, vex::rotationUnits::deg);
+  lift.spinFor(vex::directionType::rev, 150, vex::rotationUnits::deg);
+  leftintake.spinFor(vex::directionType::fwd, 0.3, vex::rotationUnits::rev);
+  sdrive.turnToHeading(360-std::atan(1), vex::rotationUnits::deg);
+  dt.driveFor(vex::directionType::fwd, std::sqrt(2)*35, vex::distanceUnits::in, 100, vex::velocityUnits::pct);
+  dt.driveFor(vex::directionType::fwd, std::sqrt(2)*8, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
+  leftintake.spinFor(vex::directionType::rev, 0.35, vex::rotationUnits::rev);
+  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  dt.driveFor(vex::directionType::rev, 30, vex::distanceUnits::in);
+    }
 
 void usercontrol( void ) {
   // int spin = 0;

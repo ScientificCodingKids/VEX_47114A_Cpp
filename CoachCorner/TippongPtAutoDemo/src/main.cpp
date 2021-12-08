@@ -7,6 +7,7 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
+
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
@@ -66,9 +67,8 @@ DriveBase::DriveBase(vex::motor_group& _leftdrive, vex::motor_group& _rightdrive
 void DriveBase::resetDriveTrainRotation() {
   this->_leftdrive.resetRotation();
 
-  this->_rightdrive.resetPosition();
+  this->_rightdrive.resetRotation();
 
-  this->_inertialSensor.calibrate();
 }
 
 void DriveBase::stopDriveTrain() {
@@ -76,11 +76,43 @@ void DriveBase::stopDriveTrain() {
   this->_rightdrive.stop();
 }
 
-void DriveBase::goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp)
-{
+void goStraight(vex::motor_group& leftdrive, vex::motor_group& rightdrive, double dist, vex::directionType dt, double tgtHeading, double speed, double kp = 0.01) {
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
   double distToGo = dist;
 
-  while (distToGo < dist) {
+  while (distToGo > 0) {
+    double headingError = inertial_sensor.heading() - tgtHeading;
+    if (headingError < -270) headingError = headingError + 360;
+    if (headingError > 270) headingError = headingError - 360;
+
+    if (headingError < -5) headingError = -5;
+    if (headingError > 5) headingError = 5;
+
+    if (dt == vex::directionType::fwd) {
+      leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+    } else {
+      leftdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+    }
+    leftdrive.spin(dt);
+    rightdrive.spin(dt);
+
+    vex::task::sleep(10);
+
+    distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+  }
+  leftdrive.stop();
+  rightdrive.stop();
+}
+void DriveBase::goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp)
+{
+  this->resetDriveTrainRotation();
+  double distToGo = dist;
+
+  while (distToGo > 0) {
     double headingError = tgtHeading - this->_inertialSensor.heading();
     if (headingError < -270) headingError = headingError + 360;
     if (headingError > 270) headingError = headingError - 360;
@@ -93,16 +125,22 @@ void DriveBase::goStraight(double dist, vex::directionType dt, double tgtHeading
     // positive headingError means current heading is "to the left" of target heading, robot need make a right turn adj
     // this means we should increase speed of left motors and decrease speed of right motors
     // but, do not make speed adjustment too big or the robot will zig-zag
+    if (dt == vex::directionType::fwd) {
     this->_leftdrive.setVelocity(speed * ( 1 + kp * headingError), vex::percentUnits::pct);
     this->_rightdrive.setVelocity(speed * (1 - kp * headingError), vex::velocityUnits::pct);
-
+    } else {
+      this->_leftdrive.setVelocity(speed * ( 1 - kp * headingError), vex::percentUnits::pct);
+      this->_rightdrive.setVelocity(speed * (1 + kp * headingError), vex::velocityUnits::pct);
+    }
     this->_leftdrive.spin(dt);
     this->_rightdrive.spin(dt);
 
-    vex::task::sleep(50);
+    vex::task::sleep(10);
     
-    distToGo = dist - this->_leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.14159265); // omni wheel is 4 in diameter
+    distToGo = dist - fabs(this->_leftdrive.rotation(vex::rotationUnits::deg)) / 360 * (4.0 * 3.14159265); // omni wheel is 4 in diameter
   }
+
+  this->stopDriveTrain();
 }
 
 DriveBase db(leftdrive, rightdrive, inertial_sensor);
@@ -113,50 +151,62 @@ void autonomous( void ) {
   vex::task::sleep(2000); 
 
   double push_speed = 50;
+  double tileSize = 23.5;
+
   lift.rotateFor(vex::directionType::rev, 50, vex::rotationUnits::deg);
 
   // push near red mobile goal to opposite zone
-  db.goStraight(3.2 * 24, vex::directionType::fwd, 0, push_speed);
-  db.goStraight(1.8 * 24, vex::directionType::rev, 0, push_speed);
+  db.goStraight(3.2 * tileSize, vex::directionType::fwd, 0, push_speed);
+  db.goStraight(1.6 * tileSize, vex::directionType::rev, 0, push_speed);
 
   turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, push_speed, vex::velocityUnits::pct);
 
-  db.goStraight(22.0, vex::directionType::fwd, 270.0, push_speed);
-    
+  vex::task::sleep(5000); // just to see if 270 is correct
+  db.goStraight(22.0, vex::directionType::fwd, 270.0, push_speed/2);
+  
   turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
 
   
   // push neutral mobile goal 1
-  db.goStraight(2.0 * 24, vex::directionType::fwd, 0, push_speed);
-  db.goStraight(2.0 * 24, vex::directionType::rev, 0, push_speed);
+  db.goStraight(2.0 * tileSize, vex::directionType::fwd, 0, push_speed);
+  vex::task::sleep(500);
+  db.goStraight(2.0 * tileSize, vex::directionType::rev, 0, push_speed);
   
   // move to next goal
-  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, push_speed, vex::velocityUnits::pct);
+  vex::task::sleep(5000); // just to see if 270 is correct
 
-  db.goStraight(1.5 * 24, vex::directionType::fwd, 270.0, push_speed);
-  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  db.goStraight(1.4 * tileSize, vex::directionType::fwd, 270.0, push_speed/2);
+  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, push_speed, vex::velocityUnits::pct);
 
   // push middle neutral mobile goal
-  db.goStraight(1.5 * 24, vex::directionType::fwd, 270.0, push_speed);
-  db.goStraight(1.5 * 24, vex::directionType::rev, 270.0, push_speed);
+  db.goStraight(1.6 * tileSize, vex::directionType::fwd, 0.0, push_speed);
+  vex::task::sleep(500);
+  db.goStraight(1.6 * tileSize, vex::directionType::rev, 0.0, push_speed);
 
   // move to next goal
-  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, push_speed, vex::velocityUnits::pct);
 
-  db.goStraight(1.5 * 24, vex::directionType::fwd, 270.0, push_speed);
-  sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+  db.goStraight(1.5 * tileSize, vex::directionType::fwd, 270.0, push_speed);
+    turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
+
   
-  // push neutral mobile goal 3
-  db.goStraight(2.0 * 24, vex::directionType::fwd, 0, push_speed);
-  db.goStraight(2.0 * 24, vex::directionType::rev, 0, push_speed);
+  // push mobile goal 3
+
+  db.goStraight(1.6 * tileSize, vex::directionType::fwd, 0, push_speed);
+  vex::task::sleep(500);
+  db.goStraight(1.6 * tileSize, vex::directionType::rev, 0, push_speed);
 
   // back off and climb up  
-  db.goStraight(1.5 * 24, vex::directionType::rev, 0, push_speed);
 
+  turnToHeadingWithSleep(sdrive, 45, vex::rotationUnits::deg, 30, vex::velocityUnits::pct); // face the platform
+  db.goStraight(1.6 * tileSize, vex::directionType::rev, 0, push_speed);
   turnToHeadingWithSleep(sdrive, 90, vex::rotationUnits::deg, 30, vex::velocityUnits::pct); // face the platform
+
   lift.rotateFor(vex::directionType::fwd, 150, vex::rotationUnits::deg); // lift up (why need this?)
-  sdrive.driveFor(vex::directionType::fwd, 1*24, vex::distanceUnits::in, 70, vex::velocityUnits::pct); // move fast to climb
-  sdrive.driveFor(vex::directionType::fwd, 0.5*24, vex::distanceUnits::in, 20, vex::velocityUnits::pct);  // slow down to stay balanced
+
+  db.goStraight(1. * tileSize, vex::directionType::fwd, 90.0, 70);  // move fast to climb up to the platform
+  db.goStraight(0.5 * tileSize, vex::directionType::fwd, 90.0, 20);  // slow down to stay balanced
 
 
 }

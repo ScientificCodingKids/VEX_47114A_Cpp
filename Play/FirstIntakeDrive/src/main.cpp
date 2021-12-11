@@ -24,30 +24,119 @@ void pre_auton( void ) {
 
 }
 
+void goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp = 0.01) {
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
+  double distToGo = dist;
+
+  while (distToGo > 0) {
+    double headingError = inertial_sensor.heading() - tgtHeading;
+    if (headingError < -270) headingError = headingError + 360;
+    if (headingError > 270) headingError = headingError - 360;
+
+    if (headingError < -15) headingError = -15;
+    if (headingError > 15) headingError = 15;
+
+    if (dt == vex::directionType::fwd) {
+      leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+    } else {
+      leftdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+    }
+    leftdrive.spin(dt);
+    rightdrive.spin(dt);
+
+    vex::task::sleep(10);
+
+    distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+  }
+  leftdrive.stop();
+  rightdrive.stop();
+}
 
 void autonomous( void ) {
-  inertial_sensor.calibrate();
+  double tileSize = 23.5;
+  double rotationSpeed = 80;
 
+  leftintake.spinFor(vex::directionType::rev, 0.2, vex::rotationUnits::rev);
   lift.spinFor(vex::directionType::rev, 40, vex::rotationUnits::deg);
-  sdrive.driveFor(vex::directionType::fwd, 35, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 8, vex::distanceUnits::in, 20, vex::velocityUnits::pct, false);
-  vex::task::sleep(2000);
-  leftintake.setVelocity(40, vex::percentUnits::pct);
-  leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
-  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
-  sdrive.turnToHeading(0, vex::rotationUnits::deg);
-  sdrive.driveFor(vex::directionType::rev, 23, vex::distanceUnits::in);
 
-  sdrive.turnToHeading(180, vex::rotationUnits::deg);
+  sdrive.driveFor(2.0 * tileSize, vex::distanceUnits::in, 90, vex::velocityUnits::pct);
+  sdrive.driveFor(3, vex::distanceUnits::in, 40, vex::velocityUnits::pct, false);
+  vex::task::sleep(200); //wait for the slow walk to complete, but don't wait for too long!!!
+
+
+  // grab the 1st neutral mogo
+  leftintake.setVelocity(60, vex::percentUnits::pct);
+  leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev, false);
+  vex::task::sleep(500);
+
+  // back off with 1st neutral mogo
+  lift.spinFor(vex::directionType::fwd, 200, vex::rotationUnits::deg, 70, vex::velocityUnits::pct);
+  dt.driveFor(vex::directionType::rev, 40, vex::distanceUnits::in);
+  // sdrive.driveFor(vex::directionType::rev, 40, vex::distanceUnits::in, 85, vex::velocityUnits::pct);
+
+  
+  // drop off the 1st mogo
+  //inertial_sensor.calibrate();
+
+  dt.turnFor(100, vex::rotationUnits::deg);
+  lift.spinFor(vex::directionType::rev, 90, vex::rotationUnits::deg);
+  leftintake.spinFor(vex::directionType::fwd, 0.3, vex::rotationUnits::rev);
+}
+
+void autonomous_old( void ) {
+  double tileSize = 23.5;
+  double rotationSpeed = 80;
+
+  inertial_sensor.calibrate();
+  vex::task::sleep(500);
+
+  leftintake.spinFor(vex::directionType::rev, 0.2, vex::rotationUnits::rev);
+  lift.spinFor(vex::directionType::rev, 40, vex::rotationUnits::deg);
+
+  // aim at the 1st neutral mogo
+  sdrive.turnToHeading(20, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+
+  // go to the 1st neutral mogo
+  goStraight(40, vex::directionType::fwd, 20, 90);
+  sdrive.driveFor(3, vex::distanceUnits::in, 15, vex::velocityUnits::pct, false);
+  vex::task::sleep(500); //wait for the slow walk to complete, but don't wait for too long!!!
+
+  // grab the 1st neutral mogo
+  leftintake.setVelocity(60, vex::percentUnits::pct);
+  leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev, false);
+  vex::task::sleep(500);
+
+  // back off with 1st neutral mogo
+  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  sdrive.turnToHeading(0, vex::rotationUnits::deg, 50, vex::velocityUnits::pct);
+  sdrive.driveFor(vex::directionType::rev, 23.5, vex::distanceUnits::in, 85, vex::velocityUnits::pct);
+
+  // drop off the 1st mogo
+  sdrive.turnToHeading(270, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
   lift.spinFor(vex::directionType::rev, 150, vex::rotationUnits::deg);
   leftintake.spinFor(vex::directionType::fwd, 0.3, vex::rotationUnits::rev);
-  sdrive.turnToHeading(360-std::atan(1), vex::rotationUnits::deg);
-  dt.driveFor(vex::directionType::fwd, std::sqrt(2)*35, vex::distanceUnits::in, 100, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, std::sqrt(2)*8, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
-  leftintake.spinFor(vex::directionType::rev, 0.35, vex::rotationUnits::rev);
+
+  // aim the center mogo
+  sdrive.turnToHeading(45, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+
+  // go to the central mogo
+  goStraight(std::sqrt(2)*tileSize + 3, vex::directionType::fwd, 45, 90);  // fast
+  sdrive.driveFor(2, vex::distanceUnits::in, 15, vex::velocityUnits::pct, false);
+  vex::task::sleep(500); //wait for the slow walk to complete, but don't wait for too long!!!
+
+  //grab the central mogo
+  leftintake.spinFor(vex::directionType::rev, 0.35, vex::rotationUnits::rev, false);
+  vex::task::sleep(500);
+
   lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
-  dt.driveFor(vex::directionType::rev, 30, vex::distanceUnits::in);
-    }
+  //sdrive.turnToHeading(0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  //goStraight(30, vex::directionType::rev, 0, 50);
+  sdrive.driveFor(vex::directionType::rev, 2 * tileSize, vex::distanceUnits::in, 85, vex::velocityUnits::pct, false);
+}
 
 void usercontrol( void ) {
   // int spin = 0;

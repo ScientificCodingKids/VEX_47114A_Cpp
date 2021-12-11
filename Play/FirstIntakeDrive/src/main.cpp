@@ -75,14 +75,14 @@ void autonomous( void ) {
 
   // back off with 1st neutral mogo
   lift.spinFor(vex::directionType::fwd, 200, vex::rotationUnits::deg, 70, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::rev, 40, vex::distanceUnits::in);
+  dt.driveFor(vex::directionType::rev, 40, vex::distanceUnits::in, 55, vex::velocityUnits::pct);
   // sdrive.driveFor(vex::directionType::rev, 40, vex::distanceUnits::in, 85, vex::velocityUnits::pct);
 
   
   // drop off the 1st mogo
   //inertial_sensor.calibrate();
 
-  dt.turnFor(100, vex::rotationUnits::deg);
+  dt.turnFor(vex::turnType::right, 60, vex::rotationUnits::deg);
   lift.spinFor(vex::directionType::rev, 90, vex::rotationUnits::deg);
   leftintake.spinFor(vex::directionType::fwd, 0.3, vex::rotationUnits::rev);
 }

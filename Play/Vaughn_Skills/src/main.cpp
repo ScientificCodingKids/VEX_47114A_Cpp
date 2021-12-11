@@ -94,7 +94,7 @@ void autonomous( void ) {
   // push first alliance mogo
   leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
   leftintake.spinFor(vex::directionType::fwd, 0.1, vex::rotationUnits::rev);
-  lift.rotateFor(vex::directionType::rev, 90, vex::rotationUnits::deg);
+  lift.rotateFor(vex::directionType::rev, 80, vex::rotationUnits::deg);
   goStraight(3.25 * tileSize, vex::directionType::fwd, 0, pushSpeed);
   //sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
 
@@ -129,9 +129,9 @@ void autonomous( void ) {
   turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
 
   // pushing third neutral mogo
-  goStraight(3.4 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+  goStraight(3.1 * tileSize, vex::directionType::fwd, 0, pushSpeed);
   vex::task::sleep(100);
-  goStraight(0.5 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  goStraight(0.15 * tileSize, vex::directionType::rev, 0, pushSpeed);
   
   // grab the blue mogo and bring it back to red zone
   turnToHeadingWithSleep(sdrive, 280, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);

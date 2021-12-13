@@ -63,8 +63,10 @@ void autonomous( void ) {
   leftintake.spinFor(vex::directionType::rev, 0.2, vex::rotationUnits::rev);
   lift.spinFor(vex::directionType::rev, 40, vex::rotationUnits::deg);
 
-  sdrive.driveFor(2.0 * tileSize, vex::distanceUnits::in, 90, vex::velocityUnits::pct);
-  sdrive.driveFor(3, vex::distanceUnits::in, 40, vex::velocityUnits::pct, false);
+  dt.driveFor(2.0*tileSize, vex::distanceUnits::in, 90, vex::velocityUnits::pct);
+  dt.driveFor(3, vex::distanceUnits::in, 40, vex::velocityUnits::pct, false);
+  // sdrive.driveFor(2.0 * tileSize, vex::distanceUnits::in, 90, vex::velocityUnits::pct);
+  // sdrive.driveFor(3, vex::distanceUnits::in, 40, vex::velocityUnits::pct, false);
   vex::task::sleep(200); //wait for the slow walk to complete, but don't wait for too long!!!
 
 

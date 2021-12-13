@@ -136,10 +136,12 @@ void autonomous( void ) {
   // grab the blue mogo and bring it back to red zone
   turnToHeadingWithSleep(sdrive, 280, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
   turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
-  goStraight(0.55 * tileSize + 4, vex::directionType::fwd, 270, 30);
+  goStraight(0.55 * tileSize + 2, vex::directionType::fwd, 270, 30, false);
+  vex::task::sleep(1000);
 
   leftintake.rotateFor(vex::directionType::rev, 0.2, vex::rotationUnits::rev, false);
-  vex::task::sleep(1000);
+  vex::task::sleep(500);
+  lift.rotateFor(vex::directionType::fwd, 10, vex::rotationUnits::deg);
   goStraight(10, vex::directionType::rev, 270, 70);
   lift.rotateFor(vex::directionType::fwd, 40, vex::rotationUnits::deg);
   turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);

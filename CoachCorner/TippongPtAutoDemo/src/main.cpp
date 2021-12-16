@@ -12,8 +12,10 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
+#include <iostream>
 
 using namespace vex;
+using namespace std;
 
 competition Competition;
 
@@ -74,6 +76,50 @@ void DriveBase::resetDriveTrainRotation() {
 void DriveBase::stopDriveTrain() {
   this->_leftdrive.stop();
   this->_rightdrive.stop();
+}
+
+void balanceOnPlatform(vex::motor_group& leftdrive, vex::motor_group& rightdrive, double baseSpeed = 50, double kp = 0.1)
+{
+  // assume inertial sensor already calibrated on flat surface before calling this function
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
+  cout << "pitch=" << inertial_sensor.pitch() << endl;
+  Brain.Screen.print("pitch=%f", inertial_sensor.pitch());
+
+  task::sleep(2000);
+
+  double pitchErr = inertial_sensor.pitch();
+
+  while (fabs(pitchErr) > 2.0) {
+      // if (pitchErr < -10) pitchErr = -10;
+      // if (pitchErr > 10) pitchErr = 10;
+
+      double speed = baseSpeed * kp * pitchErr;
+
+      if (speed > 50) speed = 50;
+
+      cout << "pitchErr=" << pitchErr << ", speed=" << speed << endl;
+      Brain.Screen.print("pitch=%f, speed=%f", inertial_sensor.pitch(), speed);
+
+      leftdrive.setVelocity(speed, vex::percentUnits::pct);
+      rightdrive.setVelocity(speed, vex::percentUnits::pct);
+
+      if (pitchErr > 0) {
+        leftdrive.spin(vex::directionType::rev);
+        rightdrive.spin(vex::directionType::rev);
+      }
+      else {
+        leftdrive.spin(vex::directionType::fwd);
+        rightdrive.spin(vex::directionType::fwd);
+      }
+
+      vex::task::sleep(10);
+
+      pitchErr = inertial_sensor.pitch();
+  }
+  leftdrive.stop();
+  rightdrive.stop();
 }
 
 void goStraight(vex::motor_group& leftdrive, vex::motor_group& rightdrive, double dist, vex::directionType dt, double tgtHeading, double speed, double kp = 0.01) {
@@ -147,6 +193,13 @@ DriveBase db(leftdrive, rightdrive, inertial_sensor);
 
 
 void autonomous( void ) {
+  inertial_sensor.calibrate();
+  vex::task::sleep(2000); 
+
+  balanceOnPlatform(leftdrive, rightdrive, 50, 0.1);
+}
+
+void autonomous1( void ) {
   inertial_sensor.calibrate();
   vex::task::sleep(2000); 
 

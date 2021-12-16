@@ -26,8 +26,6 @@ vex::motor_group lift = vex::motor_group(rightlift, leftlift);
 vex::motor rightintake = vex::motor(PORT20, true);
 vex::motor leftintake = vex::motor(PORT18);
 
-vex::inertial inertialSensor = vex::inertial(vex::PORT11);
-
 vex::controller rc = vex::controller();
 
 /**

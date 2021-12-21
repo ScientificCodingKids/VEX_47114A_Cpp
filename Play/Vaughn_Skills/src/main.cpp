@@ -24,7 +24,6 @@ competition Competition;
 
 
 void pre_auton( void ) {
-  //inertial_sensor.calibrate();
 }
 
 void turnToHeadingWithSleep(vex::smartdrive& sd, double tgt, vex::rotationUnits ru, double speed, vex::velocityUnits vu)
@@ -36,18 +35,6 @@ void turnToHeadingWithSleep(vex::smartdrive& sd, double tgt, vex::rotationUnits 
   vex::task::sleep(nap);
 }
 
-void goStraightWithGyro(vex::directionType dt, vex::smartdrive& sd, double dist, vex::distanceUnits du, int nSteps, double speed, vex::velocityUnits vu, double tgtHeading, double extraDist)
-{
-  // go as far as dist by nSteps equal steps
-  // need a small extra distance per *step* to compensate the stop-and-go loss
-  // go "straight" by maintaining the heading at value tgtHeading
-
-  for (int i = 0; i < 7; ++i) {
-    sd.driveFor(dt, dist/i + extraDist, du, speed, vu);
-    sd.turnToHeading(tgtHeading, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-  }
-}
-
 void goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp = 0.01) {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -55,7 +42,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double sp
   double distToGo = dist;
 
   while (distToGo > 0) {
-    double headingError = inertial_sensor.heading() - tgtHeading;
+    double headingError = inertialSensor.heading() - tgtHeading;
     if (headingError < -270) headingError = headingError + 360;
     if (headingError > 270) headingError = headingError - 360;
 
@@ -83,7 +70,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double sp
 void autonomous( void ) {
 
   // calibrate
-  inertial_sensor.calibrate();
+  inertialSensor.calibrate();
   vex::task::sleep(1000); 
 
   // set up variables
@@ -192,8 +179,6 @@ void usercontrol( void ) {
 
     if (rc.ButtonL2.pressing()) {
       leftintake.setVelocity(10, vex::percentUnits::pct);
-
-      //intake.setVelocity(30, vex::percentUnits::pct);
       leftintake.spin(vex::directionType::fwd);
     }
 

@@ -59,6 +59,8 @@ public:
     //void makeTurn(double baseSpeed, double minStartSpeed, double minEndSpeed, bool turnLeft);
     void goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp = 0.01); // P(ID) on heading!
     // void goStraightWithGyro(double rotationsToGo, double baseSpeed, double minStartSpeed, double minEndSpeed, double kp);
+
+    void makeTurn(double tgtHeading, bool turnLeft, double speed, double kp = 0.01, double kd = 0.001, double tol=0.5); // P(I)D on heading
 }; // class Drivebase
 
 DriveBase::DriveBase(vex::motor_group& _leftdrive, vex::motor_group& _rightdrive, vex::inertial& inertialSensor):
@@ -153,6 +155,7 @@ void goStraight(vex::motor_group& leftdrive, vex::motor_group& rightdrive, doubl
   leftdrive.stop();
   rightdrive.stop();
 }
+
 void DriveBase::goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp)
 {
   this->resetDriveTrainRotation();
@@ -188,6 +191,61 @@ void DriveBase::goStraight(double dist, vex::directionType dt, double tgtHeading
 
   this->stopDriveTrain();
 }
+
+
+void DriveBase::makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, double kd, double tol)
+{
+  this->resetDriveTrainRotation();
+
+  double degreeToGo = tgtHeading - this->_inertialSensor.heading();
+  
+  if (turnClockwise) { // 0 -> 90; 0 -> 270, 270 -> 90
+    if (degreeToGo < 0) {
+      degreeToGo = degreeToGo + 360.0;
+    }
+  }
+  else  {  //counter clockwise 0 -> 90; 0 -> 270, 270 -> 90
+    // FIX ME
+    if (degreeToGo < 0) {
+      degreeToGo = degreeToGo + 360.0;
+    }
+  }
+
+  while (fabs(degreeToGo) > tol) {
+    double headingError = degreeToGo;
+
+    if (headingError > 15) {
+      headingError = 15;
+    }
+
+    if (headingError < -15) {
+      headingError = -15;
+    }
+
+    double currentSpeed = speed * (1 - kp * headingError); // when close to target heading, the speed should be low (but not 0)
+
+    this->_leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
+    this->_rightdrive.setVelocity(currentSpeed, vex::velocityUnits::pct);
+    
+    if (turnClockwise) {
+      this->_leftdrive.spin(vex::directionType::fwd);
+      this->_rightdrive.spin(vex::directionType::rev);
+    }
+    else {
+      // FIX ME
+    }
+
+    vex::task::sleep(10);
+    
+    degreeToGo = tgtHeading - this->_inertialSensor.heading(); 
+    //FIX ME
+
+    // warning: when current heading is very close to target heading, the turn direction is always the "quickest" turn direction to hit target -- not necessary to match the input turnClockwise
+  }
+
+  this->stopDriveTrain();
+}
+
 
 DriveBase db(leftdrive, rightdrive, inertial_sensor);
 

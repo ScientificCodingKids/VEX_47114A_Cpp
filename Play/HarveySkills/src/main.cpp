@@ -17,8 +17,10 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
+#include <iostream>
 
 using namespace vex;
+using namespace std;
 
 competition Competition;
 
@@ -67,26 +69,102 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double sp
   rightdrive.stop();
 }
 
-void makeTurn(vex::directionType dt, double tgtHeading, double speed, double kp = 0.01) {
+void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, double kd, double tol)
+{
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
-  while (inertialSensor.heading() != tgtHeading) {
-    double headingError = inertialSensor.heading() - tgtHeading;
-    if (headingError < -270) headingError = headingError + 360;
-    if (headingError > 270) headingError = headingError - 360;
+  double degreeToGo = tgtHeading - inertialSensor.heading();
+
+  if (degreeToGo < 0) {
+    degreeToGo = degreeToGo + 360.0;
+  }
+
+  double CWDegreeToGo = degreeToGo;
+  double CCWDegreeToGo = 360 - degreeToGo;
 
 
-    leftdrive.setVelocity(speed * (1 - 0), vex::percentUnits::pct);
-    rightdrive.setVelocity(-speed + speed * headingError * kp, vex::percentUnits::pct);
+  while (degreeToGo > tol) {
+    
 
-    leftdrive.spin(dt);
-    rightdrive.spin(dt);
+    //1. compute cw, ccw degreeToGo
+    CWDegreeToGo = tgtHeading - inertialSensor.heading();
+    CCWDegreeToGo = 360 - CWDegreeToGo;
+    
+    if (CWDegreeToGo < 0) {
+      CWDegreeToGo = CWDegreeToGo + 360;
+      CCWDegreeToGo = 360 - CWDegreeToGo;
+    }
+
+    //2. determine rotation direction and degreeToGo
+    if (CWDegreeToGo < CCWDegreeToGo) {
+      degreeToGo = CWDegreeToGo;
+    }
+    else {
+      degreeToGo = CCWDegreeToGo;
+    }
+    
+    double headingError = degreeToGo;
+
+    double currentSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
+
+    bool isClose = false;
+
+    if (headingError > 15) {
+      headingError = 15;
+      currentSpeed = speed;
+      isClose = true;
+    }
+
+    if (headingError < -15) {
+      headingError = -15;
+      currentSpeed = speed;
+      isClose = true;
+    }
+    
+    bool currentTurnClockwise = turnClockwise;
+
+    if (isClose == true) {
+      if (CWDegreeToGo < CCWDegreeToGo) {
+        currentTurnClockwise = true; 
+        degreeToGo = CWDegreeToGo;
+      }
+      else {
+        currentTurnClockwise = false; 
+        degreeToGo = CCWDegreeToGo;
+      }
+    }
+
+    // 3. set motor speed and direction
+    Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
+    cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
+
+   
+    leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
+    rightdrive.setVelocity(currentSpeed, vex::velocityUnits::pct);
+
+    if (currentTurnClockwise) {
+      leftdrive.spin(vex::directionType::fwd);
+      rightdrive.spin(vex::directionType::rev);
+    }
+    else {
+      leftdrive.spin(vex::directionType::rev);
+      rightdrive.spin(vex::directionType::fwd);
+    }
 
     vex::task::sleep(10);
   }
+  
+    //FIX ME
+
+    // warning: when current heading is very close to target heading, the turn direction is always the "quickest" turn direction to hit target -- not necessary to match the input turnClockwise
+  
   leftdrive.stop();
   rightdrive.stop();
+  Brain.Screen.print("done");
+
+  vex::task::sleep(2000);
+ 
 }
 
 void goSquare(int N, double a, double speed, double kp) {
@@ -106,14 +184,47 @@ void goSquare(int N, double a, double speed, double kp) {
   }
 }
 
+void goSquare2(int N, double a, double speed, double kp) { // clockwise
+  for (int i = 0; i < N; ++i) {
+      goStraight(a, vex::directionType::fwd, 0, speed, kp);
+      makeTurn(90, true, 15, 0.05, 0, 0.5);
+
+      goStraight(a, vex::directionType::fwd, 90, speed, kp);
+      makeTurn(180, true, 15, 0.05, 0, 0.5);
+ 
+      goStraight(a, vex::directionType::fwd, 180, speed, kp);
+      makeTurn(270, true, 15, 0.05, 0, 0.5);
+
+      goStraight(a, vex::directionType::fwd, 270, speed, kp);
+      makeTurn(0, true, 15, 0.05, 0, 0.5);
+
+  }
+}
+
+void goSquare3(int N, double a, double speed, double kp) { // counterclockwise
+  for (int i = 0; i < N; ++i) {
+      goStraight(a, vex::directionType::fwd, 0, speed, kp);
+      makeTurn(270, false, 15, 0.05, 0, 0.5);
+
+      goStraight(a, vex::directionType::fwd, 270, speed, kp);
+      makeTurn(180, false, 15, 0.05, 0, 0.5);
+ 
+      goStraight(a, vex::directionType::fwd, 180, speed, kp);
+      makeTurn(90, false, 15, 0.05, 0, 0.5);
+
+      goStraight(a, vex::directionType::fwd, 90, speed, kp);
+      makeTurn(0, false, 15, 0.05, 0, 0.5);
+
+  }
+}
+
 void autonomous( void ) {
 
   // calibrate
   inertialSensor.calibrate();
   vex::task::sleep(2000);
 
-  goSquare(5, 40, 50, 0.0);  
-
+  goSquare3(2, 20, 40, 0.01);
 }
 
 

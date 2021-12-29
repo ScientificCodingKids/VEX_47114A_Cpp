@@ -18,6 +18,7 @@
 
 #include "vex.h"
 
+
 using namespace vex;
 
 competition Competition;
@@ -67,6 +68,109 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double sp
   rightdrive.stop();
 }
 
+void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.05, double kd=0, double tol=0.5)
+{
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
+  double degreeToGo = tgtHeading - inertialSensor.heading();
+
+  if (degreeToGo < 0) {
+    degreeToGo = degreeToGo + 360.0;
+  }
+
+  double CWDegreeToGo = degreeToGo;
+  double CCWDegreeToGo = 360 - degreeToGo;
+
+
+  while (degreeToGo > tol) {
+    
+
+    //1. compute cw, ccw degreeToGo
+    CWDegreeToGo = tgtHeading - inertialSensor.heading();
+    CCWDegreeToGo = 360 - CWDegreeToGo;
+    
+    if (CWDegreeToGo < 0) {
+      CWDegreeToGo = CWDegreeToGo + 360;
+      CCWDegreeToGo = 360 - CWDegreeToGo;
+    }
+
+    //2. determine rotation direction and degreeToGo
+    if (CWDegreeToGo < CCWDegreeToGo) {
+      degreeToGo = CWDegreeToGo;
+    }
+    else {
+      degreeToGo = CCWDegreeToGo;
+    }
+    
+    double headingError = degreeToGo;
+
+    double currentSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
+
+    bool isClose = false;
+
+    if (headingError > 15) {
+      headingError = 15;
+      currentSpeed = speed;
+      isClose = true;
+    }
+
+    if (headingError < -15) {
+      headingError = -15;
+      currentSpeed = speed;
+      isClose = true;
+    }
+    
+    bool currentTurnClockwise = turnClockwise;
+
+    if (isClose == true) {
+      if (CWDegreeToGo < CCWDegreeToGo) {
+        currentTurnClockwise = true; 
+        degreeToGo = CWDegreeToGo;
+      }
+      else {
+        currentTurnClockwise = false; 
+        degreeToGo = CCWDegreeToGo;
+      }
+    }
+
+    if (currentSpeed < 2) {
+      currentSpeed = 2;
+    }
+
+    // 3. set motor speed and direction
+    Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
+    // cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
+
+   
+    leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
+    rightdrive.setVelocity(currentSpeed, vex::velocityUnits::pct);
+
+    if (currentTurnClockwise) {
+      leftdrive.spin(vex::directionType::fwd);
+      rightdrive.spin(vex::directionType::rev);
+    }
+    else {
+      leftdrive.spin(vex::directionType::rev);
+      rightdrive.spin(vex::directionType::fwd);
+    }
+
+    vex::task::sleep(10);
+  }
+  
+    //FIX ME
+
+    // warning: when current heading is very close to target heading, the turn direction is always the "quickest" turn direction to hit target -- not necessary to match the input turnClockwise
+  
+  leftdrive.stop();
+  rightdrive.stop();
+  Brain.Screen.print("done");
+
+  vex::task::sleep(2000);
+ 
+}
+
+
 void autonomous( void ) {
 
   // calibrate
@@ -87,10 +191,9 @@ void autonomous( void ) {
 
   // coming back from alliance mogo
   goStraight(1.75 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  turnToHeadingWithSleep(sdrive, 280, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
-  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  makeTurn(270, false);
   goStraight(0.8 * tileSize, vex::directionType::fwd, 270, pushSpeed);
-  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  makeTurn(0, true);
   
   // push neutral mobile goal 1
   goStraight(2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
@@ -99,21 +202,19 @@ void autonomous( void ) {
 
   // coming back from first neutral mogo
   goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  turnToHeadingWithSleep(sdrive, 280, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
-  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  makeTurn(270, false);
   goStraight(1.15 * tileSize, vex::directionType::fwd, 270, pushSpeed);
-  sdrive.turnToHeading(0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  makeTurn(0, true);
 
   // push neutral mobile goal 2
   goStraight(2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
-  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
-
+  makeTurn(0, true);
+  
   // coming back from second neutral mogo
   goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  turnToHeadingWithSleep(sdrive, 280, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
-  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  makeTurn(270, false);
   goStraight(1.2 * tileSize, vex::directionType::fwd, 270, pushSpeed);
-  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  makeTurn(0, true);
 
   // pushing third neutral mogo
   goStraight(3.1 * tileSize, vex::directionType::fwd, 0, pushSpeed);
@@ -121,8 +222,7 @@ void autonomous( void ) {
   goStraight(0.15 * tileSize, vex::directionType::rev, 0, pushSpeed);
   
   // grab the blue mogo and bring it back to red zone
-  turnToHeadingWithSleep(sdrive, 280, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
-  turnToHeadingWithSleep(sdrive, 270, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  makeTurn(270, false);
   goStraight(0.55 * tileSize + 2, vex::directionType::fwd, 270, 30, false);
   vex::task::sleep(1000);
 
@@ -131,7 +231,7 @@ void autonomous( void ) {
   lift.rotateFor(vex::directionType::fwd, 10, vex::rotationUnits::deg);
   goStraight(10, vex::directionType::rev, 270, 70);
   lift.rotateFor(vex::directionType::fwd, 40, vex::rotationUnits::deg);
-  turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
+  makeTurn(0, true);
   goStraight(3.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
  
   }

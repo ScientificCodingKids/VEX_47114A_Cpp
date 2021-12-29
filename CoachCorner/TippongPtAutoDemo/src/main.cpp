@@ -60,7 +60,7 @@ public:
     void goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp = 0.01); // P(ID) on heading!
     // void goStraightWithGyro(double rotationsToGo, double baseSpeed, double minStartSpeed, double minEndSpeed, double kp);
 
-    void makeTurn(double tgtHeading, bool turnLeft, double speed, double kp = 0.01, double kd = 0.001, double tol=0.5); // P(I)D on heading
+    void makeTurn(double tgtHeading, bool turnLeft, double speed, double kp = 0.05, double kd = 0.1, double tol=0.5); // P(I)D on heading
 }; // class Drivebase
 
 DriveBase::DriveBase(vex::motor_group& _leftdrive, vex::motor_group& _rightdrive, vex::inertial& inertialSensor):
@@ -207,52 +207,96 @@ void DriveBase::makeTurn(double tgtHeading, bool turnClockwise, double speed, do
   this->resetDriveTrainRotation();
 
   double degreeToGo = tgtHeading - this->_inertialSensor.heading();
-  
-  if (turnClockwise) { // 0 -> 90; 0 -> 270, 270 -> 90
-    if (degreeToGo < 0) {
-      degreeToGo = degreeToGo + 360.0;
-    }
-  }
-  else  {  //counter clockwise 0 -> 90; 0 -> 270, 270 -> 90
-    // FIX ME
-    if (degreeToGo < 0) {
-      degreeToGo = degreeToGo + 360.0;
-    }
+
+  if (degreeToGo < 0) {
+    degreeToGo = degreeToGo + 360.0;
   }
 
-  while (fabs(degreeToGo) > tol) {
+  double CWDegreeToGo = degreeToGo;
+  double CCWDegreeToGo = 360 - degreeToGo;
+
+
+  while (degreeToGo > tol) {
+    
+
+    //1. compute cw, ccw degreeToGo
+    CWDegreeToGo = tgtHeading - this->_inertialSensor.heading();
+    CCWDegreeToGo = 360 - CWDegreeToGo;
+    
+    if (CWDegreeToGo < 0) {
+      CWDegreeToGo = CWDegreeToGo + 360;
+      CCWDegreeToGo = 360 - CWDegreeToGo;
+    }
+
+    //2. determine rotation direction and degreeToGo
+    if (CWDegreeToGo < CCWDegreeToGo) {
+      degreeToGo = CWDegreeToGo;
+    }
+    else {
+      degreeToGo = CCWDegreeToGo;
+    }
+    
     double headingError = degreeToGo;
+
+    double currentSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
+
+    bool isClose = false;
 
     if (headingError > 15) {
       headingError = 15;
+      currentSpeed = speed;
+      isClose = true;
     }
 
     if (headingError < -15) {
       headingError = -15;
+      currentSpeed = speed;
+      isClose = true;
+    }
+    
+    bool currentTurnClockwise = turnClockwise;
+
+    if (isClose == true) {
+      if (CWDegreeToGo < CCWDegreeToGo) {
+        currentTurnClockwise = true; 
+        degreeToGo = CWDegreeToGo;
+      }
+      else {
+        currentTurnClockwise = false; 
+        degreeToGo = CCWDegreeToGo;
+      }
     }
 
-    double currentSpeed = speed * (1 - kp * headingError); // when close to target heading, the speed should be low (but not 0)
+    // 3. set motor speed and direction
+    Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
+    cout << this->_inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
 
     this->_leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
     this->_rightdrive.setVelocity(currentSpeed, vex::velocityUnits::pct);
-    
-    if (turnClockwise) {
+
+    if (currentTurnClockwise) {
       this->_leftdrive.spin(vex::directionType::fwd);
       this->_rightdrive.spin(vex::directionType::rev);
     }
     else {
-      // FIX ME
+      this->_leftdrive.spin(vex::directionType::rev);
+      this->_rightdrive.spin(vex::directionType::fwd);
     }
 
     vex::task::sleep(10);
-    
-    degreeToGo = tgtHeading - this->_inertialSensor.heading(); 
+  }
+  
     //FIX ME
 
     // warning: when current heading is very close to target heading, the turn direction is always the "quickest" turn direction to hit target -- not necessary to match the input turnClockwise
-  }
-
+  
   this->stopDriveTrain();
+  Brain.Screen.print("done");
+  cout << "done" << ", " << this->_inertialSensor.heading() << endl;
+
+  vex::task::sleep(2000);
+  cout << "2secs after done" << ", " << this->_inertialSensor.heading() << endl;
+
 }
 
 
@@ -262,8 +306,9 @@ DriveBase db(leftdrive, rightdrive, inertial_sensor);
 void autonomous( void ) {
   inertial_sensor.calibrate();
   vex::task::sleep(2000); 
+  
+  db.makeTurn(90, true, 15, 0.05, 0, 0.5);
 
-  balanceOnPlatform(leftdrive, rightdrive, 50, 0.1);
 }
 
 void autonomous1( void ) {

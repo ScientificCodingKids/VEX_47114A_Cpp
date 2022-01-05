@@ -123,7 +123,7 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
     
     bool currentTurnClockwise = turnClockwise;
 
-    if (isClose == true) {
+    if (isClose) {
       if (CWDegreeToGo < CCWDegreeToGo) {
         currentTurnClockwise = true; 
         degreeToGo = CWDegreeToGo;
@@ -140,7 +140,6 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 
     // 3. set motor speed and direction
     Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    // cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
 
    
     leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
@@ -158,10 +157,7 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
     vex::task::sleep(10);
   }
   
-    //FIX ME
-
-    // warning: when current heading is very close to target heading, the turn direction is always the "quickest" turn direction to hit target -- not necessary to match the input turnClockwise
-  
+    
   leftdrive.stop();
   rightdrive.stop();
   Brain.Screen.print("done");
@@ -180,15 +176,13 @@ void autonomous( void ) {
   // set up variables
   double pushSpeed = 60;
   double tileSize = 23.5;
-  double rotationSpeed = 40;
 
   // push first alliance mogo
   leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
   leftintake.spinFor(vex::directionType::fwd, 0.1, vex::rotationUnits::rev);
   lift.rotateFor(vex::directionType::rev, 80, vex::rotationUnits::deg);
   goStraight(3.25 * tileSize, vex::directionType::fwd, 0, pushSpeed);
-  //sdrive.turnToHeading(0, vex::rotationUnits::deg, 30, vex::velocityUnits::pct);
-
+ 
   // coming back from alliance mogo
   goStraight(1.75 * tileSize, vex::directionType::rev, 0, pushSpeed);
   makeTurn(270, false);
@@ -198,8 +192,7 @@ void autonomous( void ) {
   // push neutral mobile goal 1
   goStraight(2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
   vex::task::sleep(500);
-  // turnToHeadingWithSleep(sdrive, 0, vex::rotationUnits::deg, rotationSpeed, vex::velocityUnits::pct);
-
+ 
   // coming back from first neutral mogo
   goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
   makeTurn(270, false);

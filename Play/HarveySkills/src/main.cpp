@@ -69,7 +69,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double sp
   rightdrive.stop();
 }
 
-void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, double kd, double tol)
+void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, double tol)
 {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -85,7 +85,6 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, do
 
 
   while (degreeToGo > tol) {
-    
 
     //1. compute cw, ccw degreeToGo
     CWDegreeToGo = tgtHeading - inertialSensor.heading();
@@ -105,8 +104,9 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, do
     }
     
     double headingError = degreeToGo;
-
     double currentSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
+
+    // if kp is larger, correction is greater; if kp is smaller, correction is smaller
 
     bool isClose = false;
 
@@ -124,7 +124,7 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, do
     
     bool currentTurnClockwise = turnClockwise;
 
-    if (isClose == true) {
+    if (isClose) {
       if (CWDegreeToGo < CCWDegreeToGo) {
         currentTurnClockwise = true; 
         degreeToGo = CWDegreeToGo;
@@ -155,15 +155,10 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, do
     vex::task::sleep(10);
   }
   
-    //FIX ME
-
-    // warning: when current heading is very close to target heading, the turn direction is always the "quickest" turn direction to hit target -- not necessary to match the input turnClockwise
-  
+ 
   leftdrive.stop();
   rightdrive.stop();
   Brain.Screen.print("done");
-
-  vex::task::sleep(2000);
  
 }
 
@@ -187,16 +182,16 @@ void goSquare(int N, double a, double speed, double kp) {
 void goSquare2(int N, double a, double speed, double kp) { // clockwise
   for (int i = 0; i < N; ++i) {
       goStraight(a, vex::directionType::fwd, 0, speed, kp);
-      makeTurn(90, true, 15, 0.05, 0, 0.5);
+      makeTurn(90, true, 15, 0.05, 0.5);
 
       goStraight(a, vex::directionType::fwd, 90, speed, kp);
-      makeTurn(180, true, 15, 0.05, 0, 0.5);
+      makeTurn(180, true, 15, 0.05, 0.5);
  
       goStraight(a, vex::directionType::fwd, 180, speed, kp);
-      makeTurn(270, true, 15, 0.05, 0, 0.5);
+      makeTurn(270, true, 15, 0.05, 0.5);
 
       goStraight(a, vex::directionType::fwd, 270, speed, kp);
-      makeTurn(0, true, 15, 0.05, 0, 0.5);
+      makeTurn(0, true, 15, 0.05, 0.5);
 
   }
 }
@@ -204,16 +199,16 @@ void goSquare2(int N, double a, double speed, double kp) { // clockwise
 void goSquare3(int N, double a, double speed, double kp) { // counterclockwise
   for (int i = 0; i < N; ++i) {
       goStraight(a, vex::directionType::fwd, 0, speed, kp);
-      makeTurn(270, false, 15, 0.05, 0, 0.5);
+      makeTurn(270, false, 15, 0.05, 0.5);
 
       goStraight(a, vex::directionType::fwd, 270, speed, kp);
-      makeTurn(180, false, 15, 0.05, 0, 0.5);
+      makeTurn(180, false, 15, 0.05, 0.5);
  
       goStraight(a, vex::directionType::fwd, 180, speed, kp);
-      makeTurn(90, false, 15, 0.05, 0, 0.5);
+      makeTurn(90, false, 15, 0.05, 0.5);
 
       goStraight(a, vex::directionType::fwd, 90, speed, kp);
-      makeTurn(0, false, 15, 0.05, 0, 0.5);
+      makeTurn(0, false, 15, 0.05, 0.5);
 
   }
 }

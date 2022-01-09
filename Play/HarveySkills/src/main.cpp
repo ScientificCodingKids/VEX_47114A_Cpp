@@ -37,11 +37,14 @@ void turnToHeadingWithSleep(vex::smartdrive& sd, double tgt, vex::rotationUnits 
   vex::task::sleep(nap);
 }
 
-void goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp = 0.01) {
+void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.01, vex::brakeType bt = brake) {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
   double distToGo = dist;
+  double pctToGo = 1;
+  double finalSpeed = 5;
+  double speed = originalSpeed;
 
   while (distToGo > 0) {
     double headingError = inertialSensor.heading() - tgtHeading;
@@ -50,6 +53,14 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double sp
 
     if (headingError < -15) headingError = -15;
     if (headingError > 15) headingError = 15;
+
+    if (pctToGo < 0.4) speed = originalSpeed * pctToGo;
+    if ((speed < finalSpeed) && (speed >= 0)) {
+      speed = finalSpeed;
+    }
+    if (pctToGo < 0) {
+      speed = -finalSpeed;
+    }
 
     if (dt == vex::directionType::fwd) {
       leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
@@ -64,12 +75,14 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double sp
     vex::task::sleep(10);
 
     distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+    pctToGo = distToGo/dist;
   }
-  leftdrive.stop();
-  rightdrive.stop();
+  cout << "finalSpeed = " << speed << endl;
+  leftdrive.stop(bt);
+  rightdrive.stop(bt);
 }
 
-void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, double tol)
+void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.01, double tol=0.1)
 {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -152,7 +165,7 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, do
       rightdrive.spin(vex::directionType::fwd);
     }
 
-    vex::task::sleep(10);
+    vex::task::sleep(100);
   }
   
  
@@ -219,7 +232,7 @@ void autonomous( void ) {
   inertialSensor.calibrate();
   vex::task::sleep(2000);
 
-  goSquare3(2, 20, 40, 0.01);
+  makeTurn(90, true);
 }
 
 

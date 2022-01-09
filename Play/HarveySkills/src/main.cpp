@@ -42,9 +42,10 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
   rightdrive.resetRotation();
 
   double distToGo = dist;
-  double pctToGo = 1;
+  double distTravelled = dist - distToGo;
   double finalSpeed = 5;
   double speed = originalSpeed;
+  double const adaptiveInterval = 10;
 
   while (distToGo > 0) {
     double headingError = inertialSensor.heading() - tgtHeading;
@@ -54,13 +55,12 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
     if (headingError < -15) headingError = -15;
     if (headingError > 15) headingError = 15;
 
-    if (pctToGo < 0.4) speed = originalSpeed * pctToGo;
-    if ((speed < finalSpeed) && (speed >= 0)) {
-      speed = finalSpeed;
-    }
-    if (pctToGo < 0) {
-      speed = -finalSpeed;
-    }
+    //if (dist >= 2*adaptiveInterval) {
+    speed = originalSpeed;
+    if (distTravelled < adaptiveInterval) speed = originalSpeed * distTravelled / adaptiveInterval;
+    if (distToGo < adaptiveInterval) speed = originalSpeed * (1 - (adaptiveInterval - distToGo) / adaptiveInterval);
+    //}
+    if (speed < finalSpeed) speed = finalSpeed;
 
     if (dt == vex::directionType::fwd) {
       leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
@@ -75,9 +75,10 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
     vex::task::sleep(10);
 
     distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
-    pctToGo = distToGo/dist;
+    distTravelled = dist - distToGo;
   }
   cout << "finalSpeed = " << speed << endl;
+  Brain.Screen.print("finalSpeed = %f ", speed);
   leftdrive.stop(bt);
   rightdrive.stop(bt);
 }
@@ -165,7 +166,7 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
       rightdrive.spin(vex::directionType::fwd);
     }
 
-    vex::task::sleep(100);
+    vex::task::sleep(10);
   }
   
  
@@ -232,7 +233,7 @@ void autonomous( void ) {
   inertialSensor.calibrate();
   vex::task::sleep(2000);
 
-  makeTurn(90, true);
+  goStraight(10, vex::directionType::fwd, 0, 70);
 }
 
 

@@ -29,13 +29,16 @@ void pre_auton( void ) {
 }
 
 
-void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.01, vex::brakeType bt = brake) {
+void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.01, vex::brakeType bt = coast) {
+  
+  // leftdrive.stop(vex::brakeType::coast);
+  // rightdrive.stop(vex::brakeType::coast);
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
   double distToGo = dist;
   double distTravelled = dist - distToGo;
-  double finalSpeed = 5;
+  double finalSpeed = 10;
   double speed = originalSpeed;
   double const adaptiveInterval = 10;
 
@@ -76,8 +79,10 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
 }
 
 
-void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.01, double tol=0.1, vex::brakeType bt = brake)
+void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.01, double tol=0.1, vex::brakeType bt = coast)
 {
+//   leftdrive.stop(vex::brakeType::coast);
+//   rightdrive.stop(vex::brakeType::coast);
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
@@ -159,11 +164,11 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
       rightdrive.spin(vex::directionType::fwd);
     }
 
-    leftdrive.stop(bt);
-    rightdrive.stop(bt);
   }
   
-}
+    leftdrive.stop(bt);
+    rightdrive.stop(bt);
+} //end of loop
 
 void autonomous( void ) {
 
@@ -177,15 +182,19 @@ void autonomous( void ) {
   double tileSize = 23.5;
 
   // push first alliance mogo
-  leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
-  leftintake.spinFor(vex::directionType::fwd, 0.1, vex::rotationUnits::rev);
-  lift.rotateFor(vex::directionType::rev, 80, vex::rotationUnits::deg);
+  // leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
+  // leftintake.spinFor(vex::directionType::fwd, 0.1, vex::rotationUnits::rev);
+  // lift.rotateFor(vex::directionType::rev, 60, vex::rotationUnits::deg, false);
+
 
   goStraight(3.25 * tileSize, vex::directionType::fwd, 0, pushSpeed);
  
   // coming back from alliance mogo
   goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
   makeTurn(270, false, turnSpeed);
+
+  return;
+
   goStraight(0.8 * tileSize, vex::directionType::fwd, 270, pushSpeed);
   makeTurn(0, true, turnSpeed);
   

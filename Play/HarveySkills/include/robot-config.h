@@ -20,8 +20,8 @@ extern vex::motor leftlift;
 
 extern vex::motor_group lift;
 
-extern vex::motor leftintake;
-extern vex::motor rightintake;
+extern vex::motor backintake;
+extern vex::motor frontintake;
 
 //extern vex::motor_group intake;
 extern vex::controller rc;

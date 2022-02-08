@@ -278,13 +278,13 @@ void usercontrol( void ) {
     }
 
     if (rc.ButtonL2.pressing()) {
-      leftintake.setVelocity(10, vex::percentUnits::pct);
+      leftintake.setVelocity(50, vex::percentUnits::pct);
       leftintake.spin(vex::directionType::fwd);
     }
 
     else if (rc.ButtonL1.pressing()) {
       
-      leftintake.setVelocity(10, vex::percentUnits::pct);
+      leftintake.setVelocity(50, vex::percentUnits::pct);
       leftintake.spin(vex::directionType::rev);
 
     }
@@ -295,11 +295,11 @@ void usercontrol( void ) {
     }
 
     if (rc.ButtonA.pressing()) {
-      rightintake.setVelocity(10, vex::percentUnits::pct);
+      rightintake.setVelocity(50, vex::percentUnits::pct);
       rightintake.spin(vex::directionType::fwd);
     }
     else if (rc.ButtonB.pressing()) {
-      rightintake.setVelocity(10, vex::percentUnits::pct);
+      rightintake.setVelocity(50, vex::percentUnits::pct);
       rightintake.spin(vex::directionType::rev);
     }
     else {

@@ -178,9 +178,9 @@ void autonomous( void ) {
   double tileSize = 23.5;
 
   // push first alliance mogo
-  leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
-  leftintake.spinFor(vex::directionType::fwd, 0.1, vex::rotationUnits::rev);
-  lift.rotateFor(vex::directionType::rev, 80, vex::rotationUnits::deg);
+  //leftintake.spinFor(vex::directionType::rev, 0.3, vex::rotationUnits::rev);
+  //leftintake.spinFor(vex::directionType::fwd, 0.1, vex::rotationUnits::rev);
+  //lift.rotateFor(vex::directionType::rev, 80, vex::rotationUnits::deg);
   goStraight(3.25 * tileSize, vex::directionType::fwd, 0, pushSpeed);
  
   // coming back from alliance mogo

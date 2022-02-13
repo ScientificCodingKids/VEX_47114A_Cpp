@@ -124,13 +124,13 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 
     bool isClose = false;
 
-    if (headingError > 15) {
+    if (headingError < 15) {
       headingError = 15;
       currentSpeed = speed;
       isClose = true;
     }
 
-    if (headingError < -15) {
+    if (headingError > -15) {
       headingError = -15;
       currentSpeed = speed;
       isClose = true;
@@ -147,6 +147,10 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
         currentTurnClockwise = false; 
         degreeToGo = CCWDegreeToGo;
       }
+    }
+
+    if (currentSpeed < 5) {
+      currentSpeed = 5;
     }
 
     // 3. set motor speed and direction
@@ -227,18 +231,62 @@ void goSquare3(int N, double a, double speed, double kp) { // counterclockwise
   }
 }
 
+void autonomous_test( void ) {
+  makeTurn(90, true);
+  goStraight(10, vex::directionType::fwd, 90, 50);
+}
+
 void autonomous( void ) {
 
   // calibrate
   inertialSensor.calibrate();
-  vex::task::sleep(2000);
+  vex::task::sleep(2000); 
 
-  goStraight(10, vex::directionType::fwd, 0, 70);
+  // set up variables
+  double pushSpeed = 60;
+  double turnSpeed = 20;
+  double tileSize = 23.5;
+
+
+  goStraight(3.25 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+ 
+  // coming back from alliance mogo
+  goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  makeTurn(270, false, turnSpeed);
+
+  goStraight(0.9 * tileSize, vex::directionType::fwd, 270, pushSpeed);
+  makeTurn(0, true, turnSpeed);
+  
+  // push neutral mobile goal 1
+  goStraight(2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+  vex::task::sleep(500);
+ 
+  // coming back from first neutral mogo
+  goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  makeTurn(270, false);
+  goStraight(1.4 * tileSize, vex::directionType::fwd, 270, pushSpeed);
+  makeTurn(0, true, turnSpeed);
+
+  // push neutral mobile goal 2
+  goStraight(2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+  makeTurn(0, true, turnSpeed);
+  
+  // coming back from second neutral mogo
+  goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  makeTurn(270, false, turnSpeed);
+  goStraight(1.4 * tileSize, vex::directionType::fwd, 270, pushSpeed);
+  makeTurn(0, true, turnSpeed);
+
+  // pushing third neutral mogo
+  goStraight(2.75 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+  vex::task::sleep(500);
+  //goStraight(0.15 * tileSize, vex::directionType::rev, 0, pushSpeed);
 }
 
 
 void usercontrol( void ) {
-
+  double liftSpeed = 70;
+  lift.setVelocity(liftSpeed, vex::percentUnits::pct);
   while (1) {
 
     if (rc.ButtonR1.pressing()) {
@@ -278,32 +326,32 @@ void usercontrol( void ) {
     }
 
     if (rc.ButtonL2.pressing()) {
-      leftintake.setVelocity(50, vex::percentUnits::pct);
-      leftintake.spin(vex::directionType::fwd);
+      backintake.setVelocity(50, vex::percentUnits::pct);
+      backintake.spin(vex::directionType::fwd);
     }
 
     else if (rc.ButtonL1.pressing()) {
       
-      leftintake.setVelocity(50, vex::percentUnits::pct);
-      leftintake.spin(vex::directionType::rev);
+      backintake.setVelocity(50, vex::percentUnits::pct);
+      backintake.spin(vex::directionType::rev);
 
     }
 
     else {
-      leftintake.stop(vex::brakeType::hold);
+      backintake.stop(vex::brakeType::hold);
 
     }
 
     if (rc.ButtonA.pressing()) {
-      rightintake.setVelocity(50, vex::percentUnits::pct);
-      rightintake.spin(vex::directionType::fwd);
+      frontintake.setVelocity(50, vex::percentUnits::pct);
+      frontintake.spin(vex::directionType::fwd);
     }
     else if (rc.ButtonB.pressing()) {
-      rightintake.setVelocity(50, vex::percentUnits::pct);
-      rightintake.spin(vex::directionType::rev);
+      frontintake.setVelocity(50, vex::percentUnits::pct);
+      frontintake.spin(vex::directionType::rev);
     }
     else {
-      rightintake.stop(vex::brakeType::hold);
+      frontintake.stop(vex::brakeType::hold);
     }
 
     vex::task::sleep(50);

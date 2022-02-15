@@ -37,13 +37,13 @@ void turnToHeadingWithSleep(vex::smartdrive& sd, double tgt, vex::rotationUnits 
   vex::task::sleep(nap);
 }
 
-void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.01, vex::brakeType bt = brake) {
+void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake) {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
   double distToGo = dist;
   double distTravelled = dist - distToGo;
-  double finalSpeed = 5;
+  double finalSpeed = 10;
   double speed = originalSpeed;
   double const adaptiveInterval = 10;
 
@@ -83,7 +83,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
   rightdrive.stop(bt);
 }
 
-void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.01, double tol=0.1)
+void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.009, double tol=0.1)
 {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -243,8 +243,8 @@ void autonomous( void ) {
   vex::task::sleep(2000); 
 
   // set up variables
-  double pushSpeed = 60;
-  double turnSpeed = 20;
+  double pushSpeed = 80;
+  double turnSpeed = 50;
   double tileSize = 23.5;
 
 
@@ -254,7 +254,7 @@ void autonomous( void ) {
   goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
   makeTurn(270, false, turnSpeed);
 
-  goStraight(0.9 * tileSize, vex::directionType::fwd, 270, pushSpeed);
+  goStraight(1.1 * tileSize, vex::directionType::fwd, 270, pushSpeed);
   makeTurn(0, true, turnSpeed);
   
   // push neutral mobile goal 1
@@ -264,7 +264,7 @@ void autonomous( void ) {
   // coming back from first neutral mogo
   goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
   makeTurn(270, false);
-  goStraight(1.4 * tileSize, vex::directionType::fwd, 270, pushSpeed);
+  goStraight(1.5 * tileSize, vex::directionType::fwd, 270, pushSpeed);
   makeTurn(0, true, turnSpeed);
 
   // push neutral mobile goal 2
@@ -274,13 +274,24 @@ void autonomous( void ) {
   // coming back from second neutral mogo
   goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
   makeTurn(270, false, turnSpeed);
-  goStraight(1.4 * tileSize, vex::directionType::fwd, 270, pushSpeed);
+  goStraight(1.5 * tileSize, vex::directionType::fwd, 270, pushSpeed);
   makeTurn(0, true, turnSpeed);
 
   // pushing third neutral mogo
-  goStraight(2.75 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+  goStraight(3.2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+
+  // pushing blue mogo over to red zone
+  goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  makeTurn(90, true, turnSpeed);
+  backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev);
+  goStraight(1.2 * tileSize, vex::directionType::rev, 90, pushSpeed);
+  backintake.spinFor(vex::directionType::rev, 1, vex::rotationUnits::rev);
+  goStraight(3, vex::directionType::fwd, 90, pushSpeed);
+  backintake.spinFor(vex::directionType::rev, 0.5, vex::rotationUnits::rev);
+  goStraight(0.5 * tileSize, vex::directionType::fwd, 90, pushSpeed);
+  makeTurn(0, false);
+  goStraight(3 * tileSize, vex::directionType::rev, 0, pushSpeed);
   vex::task::sleep(500);
-  //goStraight(0.15 * tileSize, vex::directionType::rev, 0, pushSpeed);
 }
 
 

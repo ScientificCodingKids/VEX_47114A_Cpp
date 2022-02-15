@@ -231,9 +231,11 @@ void goSquare3(int N, double a, double speed, double kp) { // counterclockwise
   }
 }
 
-void autonomous_test( void ) {
-  makeTurn(90, true);
-  goStraight(10, vex::directionType::fwd, 90, 50);
+void autonomous_test_back_lifter( void ) {
+  // starting position of back lifter up as far as it can go
+  backintake.spinFor(vex::directionType::fwd, 3.7, vex::rotationUnits::rev);
+  goStraight(10, vex::directionType::rev, 0, 50);
+  backintake.spinFor(vex::directionType::rev, 1.5, vex::rotationUnits::rev);
 }
 
 void autonomous( void ) {

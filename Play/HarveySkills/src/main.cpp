@@ -28,15 +28,6 @@ competition Competition;
 void pre_auton( void ) {
 }
 
-void turnToHeadingWithSleep(vex::smartdrive& sd, double tgt, vex::rotationUnits ru, double speed, vex::velocityUnits vu)
-{
-  double nap = 300;
-
-  vex::task::sleep(nap);
-  sd.turnToHeading(tgt, vex::rotationUnits::deg, speed, vu);
-  vex::task::sleep(nap);
-}
-
 void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake) {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -180,58 +171,7 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
  
 }
 
-void goSquare(int N, double a, double speed, double kp) {
-  for (int i = 0; i < N; ++i) {
-      goStraight(a, vex::directionType::fwd, 0, speed, kp);
-      sdrive.turnToHeading(90, vex::rotationUnits::deg, speed, vex::velocityUnits::pct);
-
-      goStraight(a, vex::directionType::fwd, 90, speed, kp);
-      sdrive.turnToHeading(180, vex::rotationUnits::deg, speed, vex::velocityUnits::pct);
-      
-      goStraight(a, vex::directionType::fwd, 180, speed, kp);
-      sdrive.turnToHeading(270, vex::rotationUnits::deg, speed, vex::velocityUnits::pct);
-      
-      goStraight(a, vex::directionType::fwd, 270, speed, kp);
-      sdrive.turnToHeading(0, vex::rotationUnits::deg, speed, vex::velocityUnits::pct);
-
-  }
-}
-
-void goSquare2(int N, double a, double speed, double kp) { // clockwise
-  for (int i = 0; i < N; ++i) {
-      goStraight(a, vex::directionType::fwd, 0, speed, kp);
-      makeTurn(90, true, 15, 0.05, 0.5);
-
-      goStraight(a, vex::directionType::fwd, 90, speed, kp);
-      makeTurn(180, true, 15, 0.05, 0.5);
- 
-      goStraight(a, vex::directionType::fwd, 180, speed, kp);
-      makeTurn(270, true, 15, 0.05, 0.5);
-
-      goStraight(a, vex::directionType::fwd, 270, speed, kp);
-      makeTurn(0, true, 15, 0.05, 0.5);
-
-  }
-}
-
-void goSquare3(int N, double a, double speed, double kp) { // counterclockwise
-  for (int i = 0; i < N; ++i) {
-      goStraight(a, vex::directionType::fwd, 0, speed, kp);
-      makeTurn(270, false, 15, 0.05, 0.5);
-
-      goStraight(a, vex::directionType::fwd, 270, speed, kp);
-      makeTurn(180, false, 15, 0.05, 0.5);
- 
-      goStraight(a, vex::directionType::fwd, 180, speed, kp);
-      makeTurn(90, false, 15, 0.05, 0.5);
-
-      goStraight(a, vex::directionType::fwd, 90, speed, kp);
-      makeTurn(0, false, 15, 0.05, 0.5);
-
-  }
-}
-
-void autonomous_test_back_lifter( void ) {
+void autonomous_test_back_lifter( void ) { // tests only scooping mogo with back lifter
   // starting position of back lifter up as far as it can go
   backintake.spinFor(vex::directionType::fwd, 3.7, vex::rotationUnits::rev);
   goStraight(10, vex::directionType::rev, 0, 50);

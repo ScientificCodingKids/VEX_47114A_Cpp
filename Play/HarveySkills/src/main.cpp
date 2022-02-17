@@ -186,7 +186,7 @@ void autonomous( void ) {
 
   // set up variables
   double pushSpeed = 80;
-  double turnSpeed = 50;
+  double turnSpeed = 30;
   double tileSize = 23.5;
 
 
@@ -221,19 +221,32 @@ void autonomous( void ) {
 
   // pushing third neutral mogo
   goStraight(3.2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+  // push only:
+  goStraight(0.2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
 
   // pushing blue mogo over to red zone
-  goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  makeTurn(90, true, turnSpeed);
+  // goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  // makeTurn(90, true, turnSpeed);
+  // backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev);
+  // goStraight(1.2 * tileSize, vex::directionType::rev, 90, pushSpeed);
+  // backintake.spinFor(vex::directionType::rev, 1, vex::rotationUnits::rev);
+  // goStraight(3, vex::directionType::fwd, 90, pushSpeed);
+  // backintake.spinFor(vex::directionType::rev, 0.5, vex::rotationUnits::rev);
+  // goStraight(0.5 * tileSize, vex::directionType::fwd, 90, pushSpeed);
+  // makeTurn(0, false);
+  // goStraight(3 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  // vex::task::sleep(500);
+
+  // different method: push only!
+  goStraight(0.2 * tileSize, vex::directionType::rev, 0, pushSpeed);
   backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev);
-  goStraight(1.2 * tileSize, vex::directionType::rev, 90, pushSpeed);
-  backintake.spinFor(vex::directionType::rev, 1, vex::rotationUnits::rev);
-  goStraight(3, vex::directionType::fwd, 90, pushSpeed);
-  backintake.spinFor(vex::directionType::rev, 0.5, vex::rotationUnits::rev);
-  goStraight(0.5 * tileSize, vex::directionType::fwd, 90, pushSpeed);
+  makeTurn(80, true);
+  goStraight(0.9 * tileSize, vex::directionType::rev, 0, pushSpeed + 10);
   makeTurn(0, false);
-  goStraight(3 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  vex::task::sleep(500);
+  goStraight(2.5 * tileSize, vex::directionType::rev, 0, 100);
+
+
+
 }
 
 

@@ -115,15 +115,16 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 
     bool isClose = false;
 
-    if (headingError < 15) {
+    if (headingError > 15) {
       headingError = 15;
       currentSpeed = speed;
-      isClose = true;
     }
 
-    if (headingError > -15) {
+    else if (headingError < -15) {
       headingError = -15;
       currentSpeed = speed;
+    }
+    else {
       isClose = true;
     }
     
@@ -186,7 +187,7 @@ void autonomous( void ) {
 
   // set up variables
   double pushSpeed = 80;
-  double turnSpeed = 30;
+  double turnSpeed = 50;
   double tileSize = 23.5;
 
 
@@ -222,7 +223,7 @@ void autonomous( void ) {
   // pushing third neutral mogo
   goStraight(3.2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
   // push only:
-  goStraight(0.2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+  goStraight(0.1 * tileSize, vex::directionType::fwd, 0, pushSpeed);
 
   // pushing blue mogo over to red zone
   // goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
@@ -238,8 +239,8 @@ void autonomous( void ) {
   // vex::task::sleep(500);
 
   // different method: push only!
-  goStraight(0.2 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev);
+  goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev);
   makeTurn(80, true);
   goStraight(0.9 * tileSize, vex::directionType::rev, 0, pushSpeed + 10);
   makeTurn(0, false);

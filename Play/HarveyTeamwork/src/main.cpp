@@ -181,73 +181,14 @@ void autonomous_test_back_lifter( void ) { // tests only scooping mogo with back
 
 void autonomous( void ) {
 
-  // calibrate
-  inertialSensor.calibrate();
-  vex::task::sleep(2000); 
-
-  // set up variables
-  double pushSpeed = 80;
-  double turnSpeed = 50;
-  double tileSize = 23.5;
-
-
-  goStraight(3.25 * tileSize, vex::directionType::fwd, 0, pushSpeed);
- 
-  // coming back from alliance mogo
-  goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  makeTurn(270, false, turnSpeed);
-
-  goStraight(1.1 * tileSize, vex::directionType::fwd, 270, pushSpeed);
-  makeTurn(0, true, turnSpeed);
-  
-  // push neutral mobile goal 1
-  goStraight(2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
+  dt.driveFor(vex::directionType::fwd, 1.65 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
+  dt.driveFor(vex::directionType::fwd, 0.35 * 23.5, vex::distanceUnits::in, 50, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
- 
-  // coming back from first neutral mogo
-  goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  makeTurn(270, false);
-  goStraight(1.5 * tileSize, vex::directionType::fwd, 270, pushSpeed);
-  makeTurn(0, true, turnSpeed);
-
-  // push neutral mobile goal 2
-  goStraight(2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
-  makeTurn(0, true, turnSpeed);
-  
-  // coming back from second neutral mogo
-  goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  makeTurn(270, false, turnSpeed);
-  goStraight(1.5 * tileSize, vex::directionType::fwd, 270, pushSpeed);
-  makeTurn(0, true, turnSpeed);
-
-  // pushing third neutral mogo
-  goStraight(3.2 * tileSize, vex::directionType::fwd, 0, pushSpeed);
-  // push only:
-  goStraight(0.1 * tileSize, vex::directionType::fwd, 0, pushSpeed);
-
-  // pushing blue mogo over to red zone
-  // goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  // makeTurn(90, true, turnSpeed);
-  // backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev);
-  // goStraight(1.2 * tileSize, vex::directionType::rev, 90, pushSpeed);
-  // backintake.spinFor(vex::directionType::rev, 1, vex::rotationUnits::rev);
-  // goStraight(3, vex::directionType::fwd, 90, pushSpeed);
-  // backintake.spinFor(vex::directionType::rev, 0.5, vex::rotationUnits::rev);
-  // goStraight(0.5 * tileSize, vex::directionType::fwd, 90, pushSpeed);
-  // makeTurn(0, false);
-  // goStraight(3 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  // vex::task::sleep(500);
-
-  // different method: push only!
-  goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
+  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, false);
+  vex::task::sleep(800);
+  lift.spinFor(vex::directionType::fwd, 40, vex::rotationUnits::deg);
+  dt.driveFor(vex::directionType::rev, 1.5*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
   backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev);
-  makeTurn(80, true);
-  goStraight(0.9 * tileSize, vex::directionType::rev, 0, pushSpeed + 10);
-  makeTurn(0, false);
-  goStraight(2.5 * tileSize, vex::directionType::rev, 0, 100);
-
-
-
 }
 
 

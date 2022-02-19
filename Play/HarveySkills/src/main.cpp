@@ -206,7 +206,7 @@ void autonomous( void ) {
  
   // coming back from first neutral mogo
   goStraight(2 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  makeTurn(270, false);
+  makeTurn(270, false, turnSpeed);
   goStraight(1.5 * tileSize, vex::directionType::fwd, 270, pushSpeed);
   makeTurn(0, true, turnSpeed);
 
@@ -241,12 +241,10 @@ void autonomous( void ) {
   // different method: push only!
   goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
   backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev);
-  makeTurn(80, true);
+  makeTurn(80, true, turnSpeed);
   goStraight(0.9 * tileSize, vex::directionType::rev, 0, pushSpeed + 10);
-  makeTurn(0, false);
+  makeTurn(0, false, turnSpeed);
   goStraight(2.5 * tileSize, vex::directionType::rev, 0, 100);
-
-
 
 }
 

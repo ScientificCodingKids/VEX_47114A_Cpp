@@ -182,8 +182,8 @@ void autonomous_test_back_lifter( void ) { // tests only scooping mogo with back
 void autonomous( void ) {
 
   // calibrate
-  inertialSensor.calibrate();
-  vex::task::sleep(2000); 
+  // inertialSensor.calibrate();
+  // vex::task::sleep(2000); 
 
   // set up variables
   double pushSpeed = 80;

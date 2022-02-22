@@ -214,8 +214,14 @@ void usercontrol( void ) {
       frontleftdrive.spin(fwd);
     }
     else {
-      backleftdrive.stop(vex::brakeType::hold);
-      frontleftdrive.stop(vex::brakeType::hold);
+      if (rc.ButtonLeft.pressing()) {
+        backleftdrive.stop(vex::brakeType::brake);
+        frontleftdrive.stop(vex::brakeType::brake);
+      }
+      else {
+      backleftdrive.stop(vex::brakeType::coast);
+      frontleftdrive.stop(vex::brakeType::coast);
+      }
     }
 
     if (fabs(rightMotorSpeed) > 5.0) {
@@ -225,8 +231,14 @@ void usercontrol( void ) {
       frontrightdrive.spin(fwd);
     }
     else {
-      backrightdrive.stop(vex::brakeType::hold);
-      frontrightdrive.stop(vex::brakeType::hold);
+      if (rc.ButtonLeft.pressing()) {
+        backrightdrive.stop(vex::brakeType::brake);
+        frontrightdrive.stop(vex::brakeType::brake);
+      }
+      else {
+      backrightdrive.stop(vex::brakeType::coast);
+      frontrightdrive.stop(vex::brakeType::coast);
+      }
     }
 
     if (rc.ButtonL2.pressing()) {

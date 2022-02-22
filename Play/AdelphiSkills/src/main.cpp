@@ -74,7 +74,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
   rightdrive.stop(bt);
 }
 
-void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.6, double tol=0.1)
+void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.009, double tol=0.1)
 {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -173,30 +173,18 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 }
 
 void autonomous( void ) {
-  dt.driveFor(vex::directionType::fwd, 1.65 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
-  backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev, false);
-  dt.driveFor(vex::directionType::fwd, 0.35 * 23.5, vex::distanceUnits::in, 50, vex::velocityUnits::pct, false);
-  vex::task::sleep(500);
-  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, false);
-  vex::task::sleep(800);
-  lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
-  dt.driveFor(vex::directionType::rev, 1.2*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
-  vex::task::sleep(1500); 
-  makeTurn(270, false, 40);
-  goStraight(23.5*0.75, vex::directionType::rev, 270, 60);
 }
 
 
 void usercontrol( void ) {
   double liftSpeed = 70;
+  lift.setVelocity(liftSpeed, vex::percentUnits::pct);
   while (1) {
 
     if (rc.ButtonR1.pressing()) {
-      lift.setVelocity(liftSpeed, vex::percentUnits::pct);
       lift.spin(vex::directionType::fwd);
     }
     else if (rc.ButtonR2.pressing()) {
-      lift.setVelocity(liftSpeed+10, vex::percentUnits::pct);
       lift.spin(vex::directionType::rev);
     }
 
@@ -204,8 +192,8 @@ void usercontrol( void ) {
       lift.stop(vex::brakeType::hold);
     }
 
-    double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.85;
-    double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.85;
+    double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.7;
+    double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.7;
 
     if (fabs(leftMotorSpeed) > 5.0) {
       backleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
@@ -230,7 +218,7 @@ void usercontrol( void ) {
     }
 
     if (rc.ButtonL2.pressing()) {
-      backintake.setVelocity(70, vex::percentUnits::pct);
+      backintake.setVelocity(50, vex::percentUnits::pct);
       backintake.spin(vex::directionType::fwd);
     }
 

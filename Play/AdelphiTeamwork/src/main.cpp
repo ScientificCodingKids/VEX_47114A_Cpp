@@ -184,6 +184,7 @@ void autonomous( void ) {
 void usercontrol( void ) {
   double liftSpeed = 70;
   bool pressIn = false;
+  bool deployFork = false;
   while (1) {
 
     if (rc.ButtonR1.pressing()) {
@@ -236,6 +237,14 @@ void usercontrol( void ) {
       }
     }
 
+    if (rc.ButtonDown.pressing()) {
+      deployFork = true;
+    }
+    if (deployFork == true) {
+      backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
+      deployFork = false;
+    }
+
     if (rc.ButtonL2.pressing()) {
       backintake.setVelocity(70, vex::percentUnits::pct);
       backintake.spin(vex::directionType::fwd);
@@ -270,15 +279,16 @@ void usercontrol( void ) {
     if (rc.ButtonY.pressing()) {
       pressIn = true;
     }
-    
+
     if (pressIn == true) {
       frontintake.setVelocity(10, vex::percentUnits::pct);
       frontintake.spin(vex::directionType::rev);
     }
 
+
     vex::task::sleep(50);
-  }
-}
+  } // while loop
+} // usercontrol
 
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!

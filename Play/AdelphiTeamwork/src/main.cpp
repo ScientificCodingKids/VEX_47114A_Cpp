@@ -74,7 +74,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
   rightdrive.stop(bt);
 }
 
-void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.6, double tol=0.1)
+void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1)
 {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -116,12 +116,10 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
     bool isClose = false;
 
     if (headingError > 15) {
-      headingError = 15;
       currentSpeed = speed;
     }
 
     else if (headingError < -15) {
-      headingError = -15;
       currentSpeed = speed;
     }
     else {
@@ -174,21 +172,18 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 
 void autonomous( void ) {
   dt.driveFor(vex::directionType::fwd, 1.65 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
-  backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev, false);
   dt.driveFor(vex::directionType::fwd, 0.35 * 23.5, vex::distanceUnits::in, 50, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
   frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, false);
   vex::task::sleep(800);
   lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
   dt.driveFor(vex::directionType::rev, 1.2*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
-  vex::task::sleep(1500); 
-  makeTurn(270, false, 40);
-  goStraight(23.5*0.75, vex::directionType::rev, 270, 60);
 }
 
 
 void usercontrol( void ) {
   double liftSpeed = 70;
+  bool pressIn = false;
   while (1) {
 
     if (rc.ButtonR1.pressing()) {
@@ -259,15 +254,26 @@ void usercontrol( void ) {
     }
 
     if (rc.ButtonA.pressing()) {
+      pressIn = false;
       frontintake.setVelocity(50, vex::percentUnits::pct);
       frontintake.spin(vex::directionType::fwd);
     }
     else if (rc.ButtonB.pressing()) {
+      pressIn = false;
       frontintake.setVelocity(50, vex::percentUnits::pct);
       frontintake.spin(vex::directionType::rev);
     }
     else {
-      frontintake.stop(vex::brakeType::hold);
+      frontintake.stop(hold);
+    }
+
+    if (rc.ButtonY.pressing()) {
+      pressIn = true;
+    }
+    
+    if (pressIn == true) {
+      frontintake.setVelocity(10, vex::percentUnits::pct);
+      frontintake.spin(vex::directionType::rev);
     }
 
     vex::task::sleep(50);

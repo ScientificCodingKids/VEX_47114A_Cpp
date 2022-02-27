@@ -171,7 +171,7 @@ void autonomous( void ) {
 
   // calibrate
   inertialSensor.calibrate();
-  vex::task::sleep(1000); 
+  vex::task::sleep(1500); 
 
   // set up variables
   double pushSpeed = 60;

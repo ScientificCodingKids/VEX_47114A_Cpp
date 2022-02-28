@@ -171,17 +171,37 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 }
 
 void autonomous( void ) {
+  inertialSensor.calibrate();
+  vex::task::sleep(1500);
+
+  // placing first ring in left mogo
   lift.spinFor(vex::directionType::fwd, 2, vex::rotationUnits::rev, 50, vex::velocityUnits::pct);
   dt.driveFor(vex::directionType::fwd, 3, vex::distanceUnits::in);
   frontintake.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg, false);
   vex::task::sleep(1000);
   frontintake.spinFor(vex::directionType::fwd, 100, vex::rotationUnits::deg, false);
   dt.driveFor(vex::directionType::rev, 3, vex::distanceUnits::in);
+
+  // moving over to right mogo
+  makeTurn(270, false);
+  goStraight(23.5, vex::directionType::fwd, 270, 50);
+  makeTurn(0, true);
+  goStraight(3 * 23.5, vex::directionType::fwd, 0, 80);
+
+  //place second ring in right mogo
+  dt.driveFor(vex::directionType::fwd, 1.2 * 23.5, vex::distanceUnits::in);
+  frontintake.spinFor(vex::directionType::rev, 180, vex::rotationUnits::deg, false);
+  vex::task::sleep(1000);
+  frontintake.spinFor(vex::directionType::fwd, 180, vex::rotationUnits::deg, false);
+  dt.driveFor(vex::directionType::rev, 3, vex::distanceUnits::in);
   lift.spinFor(vex::directionType::rev, 2, vex::rotationUnits::rev, 50, vex::velocityUnits::pct);
   dt.driveFor(vex::directionType::fwd, 7, vex::distanceUnits::in);
   frontintake.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg, false);
   vex::task::sleep(1000);
   dt.driveFor(vex::directionType::rev, 20, vex::distanceUnits::in);
+
+  // prep to start
+  backintake.spinFor(vex::directionType::fwd, 2.75, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
 }
 
 

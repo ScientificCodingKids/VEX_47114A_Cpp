@@ -176,33 +176,40 @@ void autonomous( void ) {
 
   double turnSpeed = 50;
   double driveSpeed = 80;
+  double tileSize = 23.5;
 
-  // placing first ring in left mogo
-  lift.spinFor(vex::directionType::fwd, 1.7, vex::rotationUnits::rev, 50, vex::velocityUnits::pct, false);
-  vex::task::sleep(500);
-  frontintake.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg, 30, vex::velocityUnits::pct, false);
-  vex::task::sleep(800);
-  frontintake.spinFor(vex::directionType::fwd, 100, vex::rotationUnits::deg, false);
-  dt.driveFor(vex::directionType::rev, 3, vex::distanceUnits::in, driveSpeed, vex::velocityUnits::pct);
-
-  // moving over to right mogo
-  makeTurn(270, false, turnSpeed);
-  goStraight(23.5, vex::directionType::fwd, 270, driveSpeed);
-  makeTurn(0, true, turnSpeed);
-  goStraight(3.7 * 23.5, vex::directionType::fwd, 0, 80);
-
-  // place second ring in right mogo
-  frontintake.spinFor(vex::directionType::rev, 180, vex::rotationUnits::deg, false);
-  vex::task::sleep(800);
-  frontintake.spinFor(vex::directionType::fwd, 180, vex::rotationUnits::deg, false);
-  dt.driveFor(vex::directionType::rev, 3, vex::distanceUnits::in, driveSpeed, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 20, vex::distanceUnits::in, driveSpeed-10, vex::velocityUnits::pct, false);
-
-  // prep to start
+  // scooping 1st mogo
   backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
+  goStraight(tileSize, vex::directionType::rev, 0, driveSpeed);
+  backintake.spinFor(vex::directionType::rev, 2, vex::rotationUnits::rev, 70, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
-  dt.driveFor(vex::directionType::rev, 5, vex::distanceUnits::in, driveSpeed-10, vex::velocityUnits::pct, false);
-  lift.spinFor(vex::directionType::rev, 1.7, vex::rotationUnits::rev, 50, vex::velocityUnits::pct, false);
+  goStraight(1.3*tileSize, vex::directionType::rev, 0, driveSpeed);
+  // turn and get first neutral
+  makeTurn(90, true, turnSpeed);
+  goStraight(tileSize, vex::directionType::fwd, 90, 80);
+  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, 30, vex::velocityUnits::pct, false);
+  goStraight(0.3*tileSize, vex::directionType::fwd, 90, 50);
+  vex::task::sleep(500);
+  // travel over to middle => drop off on platform
+  goStraight(1*tileSize, vex::directionType::fwd, 90, 80);
+  lift.spinFor(vex::directionType::fwd, 2.2, vex::rotationUnits::rev, 50, vex::velocityUnits::pct, false);
+  makeTurn(180, true, turnSpeed);
+  goStraight(2*tileSize, vex::directionType::fwd, 180, driveSpeed);
+  frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg, 30, vex::velocityUnits::pct, false);
+  vex::task::sleep(1000);
+  goStraight(5, vex::directionType::rev, 180, driveSpeed);
+  // travel to clamp red mogo
+  makeTurn(90, false, turnSpeed);
+  lift.spinFor(vex::directionType::rev, 2.2, vex::rotationUnits::rev, 50, vex::velocityUnits::pct, false);
+  goStraight(2.2*tileSize, vex::directionType::fwd, 90, driveSpeed);
+  dt.driveFor(0.5, vex::distanceUnits::in, driveSpeed-20, vex::velocityUnits::pct, false);
+  vex::task::sleep(500);
+  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, 30, vex::velocityUnits::pct, false);
+  vex::task::sleep(500);
+  // push over
+  goStraight(0.2*tileSize, vex::directionType::rev, 90, driveSpeed);
+  makeTurn(0, false, turnSpeed);
+  goStraight(2*tileSize, vex::directionType::fwd, 0, driveSpeed);
 }
 
 

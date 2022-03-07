@@ -171,38 +171,13 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 }
 
 void autonomous( void ) {
-  inertialSensor.calibrate();
-  vex::task::sleep(1500);
-
-  double turnSpeed = 50;
-  double driveSpeed = 80;
-
-  // placing first ring in left mogo
-  lift.spinFor(vex::directionType::fwd, 1.7, vex::rotationUnits::rev, 50, vex::velocityUnits::pct, false);
+  dt.driveFor(vex::directionType::fwd, 1.65 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
+  dt.driveFor(vex::directionType::fwd, 0.35 * 23.5, vex::distanceUnits::in, 50, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
-  frontintake.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg, 30, vex::velocityUnits::pct, false);
+  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, false);
   vex::task::sleep(800);
-  frontintake.spinFor(vex::directionType::fwd, 100, vex::rotationUnits::deg, false);
-  dt.driveFor(vex::directionType::rev, 3, vex::distanceUnits::in, driveSpeed, vex::velocityUnits::pct);
-
-  // moving over to right mogo
-  makeTurn(270, false, turnSpeed);
-  goStraight(23.5, vex::directionType::fwd, 270, driveSpeed);
-  makeTurn(0, true, turnSpeed);
-  goStraight(3.7 * 23.5, vex::directionType::fwd, 0, 80);
-
-  // place second ring in right mogo
-  frontintake.spinFor(vex::directionType::rev, 180, vex::rotationUnits::deg, false);
-  vex::task::sleep(800);
-  frontintake.spinFor(vex::directionType::fwd, 180, vex::rotationUnits::deg, false);
-  dt.driveFor(vex::directionType::rev, 3, vex::distanceUnits::in, driveSpeed, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 20, vex::distanceUnits::in, driveSpeed-10, vex::velocityUnits::pct, false);
-
-  // prep to start
-  backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
-  vex::task::sleep(500);
-  dt.driveFor(vex::directionType::rev, 5, vex::distanceUnits::in, driveSpeed-10, vex::velocityUnits::pct, false);
-  lift.spinFor(vex::directionType::rev, 1.7, vex::rotationUnits::rev, 50, vex::velocityUnits::pct, false);
+  lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
+  dt.driveFor(vex::directionType::rev, 1.2*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
 }
 
 
@@ -210,13 +185,6 @@ void usercontrol( void ) {
   double liftSpeed = 70;
   bool pressIn = false;
   bool deployFork = false;
-  bool breaktypebreak = false;
-
-  backleftdrive.setBrake(vex::brakeType::coast);
-  backrightdrive.setBrake(vex::brakeType::coast);
-  frontleftdrive.setBrake(vex::brakeType::coast);
-  frontrightdrive.setBrake(vex::brakeType::coast);
-
   while (1) {
 
     if (rc.ButtonR1.pressing()) {
@@ -232,21 +200,6 @@ void usercontrol( void ) {
       lift.stop(vex::brakeType::hold);
     }
 
-    if (rc.ButtonLeft.pressing()) {
-      breaktypebreak = true;
-      backleftdrive.setBrake(vex::brakeType::brake);
-      backrightdrive.setBrake(vex::brakeType::brake);
-      frontleftdrive.setBrake(vex::brakeType::brake);
-      frontrightdrive.setBrake(vex::brakeType::brake);
-    }
-    if (rc.ButtonUp.pressing()) {
-      breaktypebreak = false;
-      backleftdrive.setBrake(vex::brakeType::coast);
-      backrightdrive.setBrake(vex::brakeType::coast);
-      frontleftdrive.setBrake(vex::brakeType::coast);
-      frontrightdrive.setBrake(vex::brakeType::coast);
-    }
-
     double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.85;
     double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.85;
 
@@ -257,8 +210,14 @@ void usercontrol( void ) {
       frontleftdrive.spin(fwd);
     }
     else {
-      backleftdrive.stop();
-      frontleftdrive.stop();
+      if (rc.ButtonLeft.pressing()) {
+        backleftdrive.stop(vex::brakeType::brake);
+        frontleftdrive.stop(vex::brakeType::brake);
+      }
+      else {
+      backleftdrive.stop(vex::brakeType::coast);
+      frontleftdrive.stop(vex::brakeType::coast);
+      }
     }
 
     if (fabs(rightMotorSpeed) > 5.0) {
@@ -269,12 +228,12 @@ void usercontrol( void ) {
     }
     else {
       if (rc.ButtonLeft.pressing()) {
-        backrightdrive.stop();
-        frontrightdrive.stop();
+        backrightdrive.stop(vex::brakeType::brake);
+        frontrightdrive.stop(vex::brakeType::brake);
       }
       else {
-      backrightdrive.stop();
-      frontrightdrive.stop();
+      backrightdrive.stop(vex::brakeType::coast);
+      frontrightdrive.stop(vex::brakeType::coast);
       }
     }
 

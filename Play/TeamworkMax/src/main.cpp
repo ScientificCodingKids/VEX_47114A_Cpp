@@ -180,12 +180,12 @@ void autonomous( void ) {
   vex::task::sleep(800);
   lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg, false);
   dt.driveFor(vex::directionType::rev, 1.1*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
-  makeTurn(180, true, 50);
+  makeTurn(180, true, 60);
   lift.spinFor(vex::directionType::rev, 60, vex::rotationUnits::deg, false);
   frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg);
   makeTurn(310, true, 40);
-  dt.driveFor(vex::directionType::fwd, 1.5*23.5, vex::distanceUnits::in, 70, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 0.2*23.5, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
+  dt.driveFor(vex::directionType::fwd, 1.3*23.5, vex::distanceUnits::in, 70, vex::velocityUnits::pct);
+  dt.driveFor(vex::directionType::fwd, 0.3*23.5, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
   frontintake.spinFor(vex::directionType::rev, 140, vex::rotationUnits::deg, false);
   vex::task::sleep(800);
   dt.driveFor(vex::directionType::rev, 2*23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);

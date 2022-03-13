@@ -240,9 +240,10 @@ void autonomous( void ) {
 
   // different method: push only!
   goStraight(0.3 * tileSize, vex::directionType::rev, 0, pushSpeed);
-  backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev);
+  backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev, 75, vex::velocityUnits::pct);
   makeTurn(80, true, turnSpeed);
   goStraight(0.9 * tileSize, vex::directionType::rev, 0, pushSpeed + 10);
+  dt.driveFor(vex::directionType::rev, 0.3*tileSize, vex::distanceUnits::in, 70, vex::velocityUnits::pct);
   makeTurn(0, false, turnSpeed);
   goStraight(2.5 * tileSize, vex::directionType::rev, 0, 100);
 

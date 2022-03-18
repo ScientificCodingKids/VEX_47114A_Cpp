@@ -171,12 +171,13 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 }
 
 void autonomous( void ) {
-  dt.driveFor(vex::directionType::fwd, 1.65 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 0.35 * 23.5, vex::distanceUnits::in, 50, vex::velocityUnits::pct, false);
+  dt.driveFor(vex::directionType::fwd, 1.75 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
+  dt.driveFor(vex::directionType::fwd, 0.25 * 23.5, vex::distanceUnits::in, 50, vex::velocityUnits::pct, false);
+  vex::task::sleep(250);
+  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
   vex::task::sleep(500);
-  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, false);
-  vex::task::sleep(800);
   lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
+  frontintake.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
   dt.driveFor(vex::directionType::rev, 1.2*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
 }
 

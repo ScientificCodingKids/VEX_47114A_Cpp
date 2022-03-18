@@ -28,7 +28,7 @@ competition Competition;
 void pre_auton( void ) {
 }
 
-void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake) {
+void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.05, vex::brakeType bt = brake) {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
@@ -167,28 +167,16 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
   leftdrive.stop();
   rightdrive.stop();
   Brain.Screen.print("done");
- 
 }
 
 void autonomous( void ) {
   inertialSensor.calibrate();
   vex::task::sleep(1500);
-  dt.driveFor(vex::directionType::fwd, 1.65 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 0.35 * 23.5, vex::distanceUnits::in, 40, vex::velocityUnits::pct, false);
-  vex::task::sleep(500);
-  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, false);
-  vex::task::sleep(800);
-  lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg, false);
-  dt.driveFor(vex::directionType::rev, 1.1*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
-  makeTurn(180, true, 60);
-  lift.spinFor(vex::directionType::rev, 60, vex::rotationUnits::deg, false);
-  frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg);
-  makeTurn(315, true, 40);
-  dt.driveFor(vex::directionType::fwd, 1*23.5, vex::distanceUnits::in, 70, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 0.3*23.5, vex::distanceUnits::in, 30, vex::velocityUnits::pct);
-  frontintake.spinFor(vex::directionType::rev, 140, vex::rotationUnits::deg, false);
-  vex::task::sleep(800);
-  dt.driveFor(vex::directionType::rev, 2*23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
+  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, 10, vex::velocityUnits::pct, false);
+  frontintake.setBrake(hold);
+  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  goStraight(1.8*23.5, vex::directionType::fwd, 0, 80);
+  goStraight(0.25*23.5, vex::directionType::fwd, 0, 30);
 }
 
 

@@ -50,28 +50,27 @@ void pre_auton(void) {
 }
 
 void autonomous(void) {
-  inertialSensor.calibrate();
-  ss.print("%f", inertialSensor.roll());
+  inertialSensor.calibrate(); // calibrate
+  ss.print("%f", inertialSensor.roll()); // test that inertial sensor roll works
   auto d = 10; // distance to approx. center of board
 
 // void goStraight(double rotationsToGo, double baseSpeed, double minStartSpeed, double minEndSpeed, double kp, bool goReverse=false, bool useGyro=false);
 
-  db.goStraight(computeRotationsFromDistance(d), 40, 20, 20, 0);
+  db.goStraight(computeRotationsFromDistance(d), 40, 20, 20, 0); // move to approx. center
 
-  while (std::abs(inertialSensor.roll()) > 1.5) {
-    auto dir = true;
+  while (std::abs(inertialSensor.roll()) > 1.5) { // keep readjusting until it's close enough to center
+    auto dir = true; // if loop to detect direction to move
     if (inertialSensor.roll() > 0) {
       dir = true;
     }
     else {
       dir = false;
     }
-    db.goStraight(computeRotationsFromDistance(0.2 * std::abs(inertialSensor.roll())), 10, 5, 5, 0, dir);
-  }
-  
-  task::sleep(50);
+    db.goStraight(computeRotationsFromDistance(0.2 * std::abs(inertialSensor.roll())), 10, 5, 5, 0, dir); // correcting itself
 
-}
+    task::sleep(50); // pause between each while loop
+  } // while loop
+} // autonomous
 
 void usercontrol(void) { ss.print("User control not impl yet"); }
 

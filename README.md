@@ -11,7 +11,7 @@ If we want to create sample projects or any other projects that we do NOT want t
 
 # Use Visual Studio Code
 
-It is one of best tools available for code reading. Please install C/C++ plugin. Once installed, please add "c:\users\XYZ\Documents\VEXcode-projects".
+It is one of best tools available for code reading. Please install C/C++ plugin. Also install the GitLens plugin. Once installed, please add "c:\users\XYZ\Documents\VEXcode-projects".
 
 Note that our vex.h refers to some header files like v5.h, v5_vcs.h. We must provide their location so that Visual Studio Code knows how to analyze the symbols and we can actually jump to there.
 

@@ -18,6 +18,7 @@
 
 #include "vex.h"
 #include <iostream>
+#include <cmath>
 
 using namespace vex;
 using namespace std;
@@ -28,7 +29,26 @@ competition Competition;
 void pre_auton( void ) {
 }
 
-void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake) {
+class Coord {
+// the class for 2D (x,y) coordinate system
+public:
+  double x, y;
+
+  Coord(double x0, double y0): x(x0), y(y0) {; }
+
+};  //class Coord
+
+void sample_sin_cos_code() {
+  // In C++, sin(), cos() are declared in cmath header
+  // input should be in arc unit, not degree
+  // M_PI = 3.14159265... the pi value declared in cmath
+  cout << sin(30.0 / M_PI);
+  cout << cos(45.0 / M_PI);
+}
+
+Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0)) {
+  Coord destLoc = srcLoc;
+
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
@@ -72,6 +92,8 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
   Brain.Screen.print("finalSpeed = %f ", speed);
   leftdrive.stop(bt);
   rightdrive.stop(bt);
+
+  return destLoc;
 }
 
 void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.009, double tol=0.1)

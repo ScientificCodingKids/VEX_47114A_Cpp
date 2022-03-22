@@ -18,6 +18,7 @@
 
 #include "vex.h"
 #include <iostream>
+#include <cmath>
 
 using namespace vex;
 using namespace std;
@@ -36,16 +37,28 @@ void findY () {
 
 }
 
+class Coord {
+  public:
+    double x, y;
 
-void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake) {
+    Coord(double x0, double y0): x(x0), y(y0) {;}
+};
+
+Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0)) {
+  Coord currLoc = srcLoc;
+
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
-  double distToGo = dist;
-  double distTravelled = dist - distToGo;
-  double finalSpeed = 10;
-  double speed = originalSpeed;
-  double const adaptiveInterval = 10;
+  double distToGo = dist; // distance more to travel
+  double distTravelled = dist - distToGo; // distance already traveled
+  double finalSpeed = 10; // capping speed
+  double speed = originalSpeed; // max speed
+  double const adaptiveInterval = 10; // slow down/speed up interval
+  double prevRot = leftdrive.rotation(vex::rotationUnits::deg); // amount of rotation at the last run through
+  double changedRotations = leftdrive.rotation(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
+  double dx = 0; // change in x coordinate since last loop
+  double dy = 0; // change in y coordinate since last loop
 
   while (distToGo > 0) {
     double headingError = inertialSensor.heading() - tgtHeading;
@@ -58,6 +71,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
     speed = originalSpeed;
     if (distTravelled < adaptiveInterval) speed = originalSpeed * distTravelled / adaptiveInterval;
     if (distToGo < adaptiveInterval) speed = originalSpeed * (1 - (adaptiveInterval - distToGo) / adaptiveInterval);
+
     if (speed < finalSpeed) speed = finalSpeed;
 
     if (dt == vex::directionType::fwd) {
@@ -73,12 +87,50 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
     vex::task::sleep(10);
 
     distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+
+    changedRotations = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRot; // need scale, deg => inch
+
+    dx = changedRotations * cos(90-inertialSensor.heading());
+    dy = changedRotations * sin(90-inertialSensor.heading());
+
+    prevRot = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+
+    currLoc.x = dx + currLoc.x;
+    currLoc.y = dy + currLoc.y;
+    
     distTravelled = dist - distToGo;
   }
   cout << "finalSpeed = " << speed << endl;
   Brain.Screen.print("finalSpeed = %f ", speed);
   leftdrive.stop(bt);
   rightdrive.stop(bt);
+  cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
+  Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
+  return currLoc;
+}
+
+void goPlatform(double speed=80) {
+  double currentRoll = inertialSensor.roll();
+  bool goforward = false;
+  bool isDone = false;
+
+  while ((abs(currentRoll) >= 1) || (isDone == true)) {
+    currentRoll = inertialSensor.roll();
+    if (currentRoll > 0) {
+      goforward = true;
+      dt.drive(vex::directionType::fwd, 80, vex::velocityUnits::pct);
+    }
+    else {
+      goforward = false;
+      dt.drive(vex::directionType::rev, 80, vex::velocityUnits::pct);
+    }
+    if (rc.ButtonRight.pressing()) {
+      isDone = true;
+    }
+    vex::task::sleep(10);
+  }
+
+  dt.stop(vex::brakeType::hold);
 }
 
 void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1)
@@ -215,14 +267,7 @@ void gotoCoord(double startX, double startY, double destX, double destY, double 
 }
 
 void autonomous( void ) {
-  dt.driveFor(vex::directionType::fwd, 1.75 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 0.25 * 23.5, vex::distanceUnits::in, 50, vex::velocityUnits::pct, false);
-  vex::task::sleep(250);
-  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
-  vex::task::sleep(500);
-  lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
-  frontintake.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::rev, 1.2*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
+  goPlatform();
 }
 
 
@@ -230,6 +275,8 @@ void usercontrol( void ) {
   double liftSpeed = 70;
   bool pressIn = false;
   bool deployFork = false;
+  bool runPlatform = false;
+
   while (1) {
 
     if (rc.ButtonR1.pressing()) {
@@ -243,6 +290,14 @@ void usercontrol( void ) {
 
     else {
       lift.stop(vex::brakeType::hold);
+    }
+
+    if (rc.ButtonUp.pressing()) {
+      runPlatform = true;
+    }
+    if (runPlatform == true) {
+      goPlatform();
+      runPlatform = false;
     }
 
     double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.85;

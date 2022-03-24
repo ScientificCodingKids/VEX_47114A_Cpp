@@ -150,8 +150,10 @@ void goPlatform(double initialSpeed=20) {
   dt.stop(vex::brakeType::hold);
 }
 
-void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1)
+Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1, Coord srcLoc = Coord(0.0, 0.0))
 {
+  Coord currLoc = srcLoc;
+
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
@@ -244,6 +246,7 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
   rightdrive.stop();
   Brain.Screen.print("done");
  
+  return currLoc;
 }
 
 

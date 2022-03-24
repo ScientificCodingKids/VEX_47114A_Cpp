@@ -109,22 +109,39 @@ Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double o
   return currLoc;
 }
 
-void goPlatform(double speed=80) {
-  double currentRoll = inertialSensor.roll();
-  bool goforward = false;
-  bool isDone = false;
+void goPlatform(double initialSpeed=20) {
+  double currentRoll = inertialSensor.roll(); // roll (angle) of robot
+  bool goforward = false; // direction
+  bool isDone = false; // exit while loop
+  double k = 1.0; // coefficient on the speed
+  double speed = initialSpeed; // adjusted speed
+  bool isRampUp = true; // whether it is the first time going up the ramp
 
-  while ((abs(currentRoll) >= 1) || (isDone == true)) {
+  while (((abs(currentRoll) >= 1) || (isRampUp == true)) || (isDone == false)) {
     currentRoll = inertialSensor.roll();
-    if (currentRoll > 0) {
+    speed = k * currentRoll;
+    // when to turn off isRampUp
+    if (currentRoll > 20) {
+      isRampUp = false;
+    }
+    // when to ignore k, revert to original
+    if ((speed > initialSpeed) || (isRampUp == true)) {
+      speed = initialSpeed;
+    }
+    // changing directions
+    if (currentRoll >= 0) {
       goforward = true;
-      dt.drive(vex::directionType::fwd, 80, vex::velocityUnits::pct);
+      dt.drive(vex::directionType::fwd, speed, vex::velocityUnits::pct);
     }
-    else {
-      goforward = false;
-      dt.drive(vex::directionType::rev, 80, vex::velocityUnits::pct);
+    else if (currentRoll < 0) {
+      if (isRampUp == false) {
+       dt.drive(vex::directionType::rev, speed, vex::velocityUnits::pct);
+      }
+      if (isRampUp == true) {
+       dt.drive(vex::directionType::fwd, speed, vex::velocityUnits::pct);
+      }
     }
-    if (rc.ButtonRight.pressing()) {
+    if (rc.ButtonX.pressing()) {
       isDone = true;
     }
     vex::task::sleep(10);

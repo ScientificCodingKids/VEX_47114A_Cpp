@@ -128,6 +128,15 @@ void goPlatform(double initialSpeed=20) {
     if ((speed > initialSpeed) || (isRampUp == true)) {
       speed = initialSpeed;
     }
+
+
+    if (abs(currentRoll) < 20 && ~isRampUp) {
+      speed = 5;
+    }
+    else {
+      speed = 45;
+    }
+
     // changing directions
     if (currentRoll >= 0) {
       goforward = true;
@@ -150,7 +159,78 @@ void goPlatform(double initialSpeed=20) {
   dt.stop(vex::brakeType::hold);
 }
 
+<<<<<<< Updated upstream
 Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1, Coord srcLoc = Coord(0.0, 0.0))
+=======
+void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, double tgtHeading = 0) {
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
+  double currentRoll = inertialSensor.roll(); // roll (angle) of robot
+  bool goforward = false; // direction
+  bool isDone = false; // exit while loop
+  double kp = 0.02;
+  double speed = initialSpeed; // adjusted speed
+  bool isRampUp = true; // whether it is the first time going up the ramp
+  double headingError = inertialSensor.heading() - tgtHeading;
+  double wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+
+  while (((abs(currentRoll) >= 1) || (isRampUp == true)) || (isDone == false)) {
+    currentRoll = inertialSensor.roll();
+    wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+
+    if ((wheelRotationIn < 23.5) && (isRampUp == true)) {
+      speed = initialSpeed;
+    }
+    else if ((wheelRotationIn > 23.5) || (isRampUp == false)) {
+      speed = slowSpeed;
+    }
+    // changing directions
+    if (currentRoll >= 0) {
+      goforward = true;
+    }
+    else if (currentRoll < 0) {
+      if (isRampUp == false) {
+       goforward = false;
+      }
+      if (isRampUp == true) {
+       goforward = true;
+      }
+    }
+
+    // adding goStraight
+
+    headingError = inertialSensor.heading() - tgtHeading;
+    if (headingError < -270) headingError = headingError + 360;
+    if (headingError > 270) headingError = headingError - 360;
+
+    if (headingError < -15) headingError = -15;
+    if (headingError > 15) headingError = 15;
+
+    if (goforward == true) {
+      leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      leftdrive.spin(vex::directionType::fwd);
+      rightdrive.spin(vex::directionType::fwd);
+    } else {
+      leftdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      leftdrive.spin(vex::directionType::rev);
+      rightdrive.spin(vex::directionType::rev);
+    }
+
+    if (rc.ButtonX.pressing()) {
+      isDone = true;
+    }
+    vex::task::sleep(10);
+  }
+
+  dt.stop(vex::brakeType::hold);
+}
+
+
+void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1)
+>>>>>>> Stashed changes
 {
   Coord currLoc = srcLoc;
 

@@ -259,7 +259,6 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
 
 	currLoc.x = currLoc.x - dx;
 	currLoc.y = currLoc.y + dy;
-
   }
   
   leftdrive.stop();

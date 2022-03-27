@@ -225,8 +225,8 @@ void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, doubl
   dt.stop(vex::brakeType::hold);
 }
 
-
-Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1, Coord srcLoc = Coord(0.0, 0.0)) {
+Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1, Coord srcLoc = Coord(0.0, 0.0))
+{
   Coord currLoc = srcLoc;
 
   leftdrive.resetRotation();
@@ -240,7 +240,13 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
 
   double CWDegreeToGo = degreeToGo;
   double CCWDegreeToGo = 360 - degreeToGo;
-
+  double prevDegree = 0.0;
+  double prevRotLeft = leftdrive.rotation(vex::rotationUnits::deg);
+  double prevRotRight = rightdrive.rotation(vex::rotationUnits::deg);
+  double changedRotationsLeft = leftdrive.rotation(vex::rotationUnits::deg) - prevRotLeft;
+  double changedRotationsRight = rightdrive.rotation(vex::rotationUnits::deg) - prevRotRight;
+  double dx = 0;
+  double dy = 0;
 
   while (degreeToGo > tol) {
 
@@ -314,9 +320,21 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
     }
 
     vex::task::sleep(10);
+
+	//update coordinates
+	changedRotationsLeft = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRotLeft;
+	changedRotationsRight = (rightdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRotRight;
+
+	dx = (changedRotationsRight - changedRotationsLeft) * sin(inertialSensor.heading()-prevDegree);
+	dy = (changedRotationsRight - changedRotationsLeft) * cos(inertialSensor.heading()-prevDegree);
+
+	prevRotLeft = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+	prevRotRight = (rightdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+
+	currLoc.x = currLoc.x - dx;
+	currLoc.y = currLoc.y + dy;
   }
   
- 
   leftdrive.stop();
   rightdrive.stop();
   Brain.Screen.print("done");

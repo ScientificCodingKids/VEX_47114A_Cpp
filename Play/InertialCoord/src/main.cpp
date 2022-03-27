@@ -159,9 +159,6 @@ void goPlatform(double initialSpeed=20) {
   dt.stop(vex::brakeType::hold);
 }
 
-<<<<<<< Updated upstream
-Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1, Coord srcLoc = Coord(0.0, 0.0))
-=======
 void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, double tgtHeading = 0) {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -229,9 +226,7 @@ void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, doubl
 }
 
 
-void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1)
->>>>>>> Stashed changes
-{
+Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1, Coord srcLoc = Coord(0.0, 0.0)) {
   Coord currLoc = srcLoc;
 
   leftdrive.resetRotation();

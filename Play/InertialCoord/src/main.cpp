@@ -31,7 +31,7 @@ void pre_auton( void ) {
 }
 
 void autonomous( void ) {
-  goPlatform();
+  goPlatformWithRotation(60);
 }
 
 void usercontrol( void ) {

@@ -28,7 +28,7 @@ Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double o
   double changedRotations = leftdrive.rotation(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
   double dx = 0; // change in x coordinate since last loop
   double dy = 0; // change in y coordinate since last loop
-
+ 
   while (distToGo > 0) {
     double headingError = inertialSensor.heading() - tgtHeading;
     if (headingError < -270) headingError = headingError + 360;
@@ -76,19 +76,24 @@ Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double o
   cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
   Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
   return currLoc;
-}
-
-void goPlatform(double initialSpeed=20) {
+} 
+ 
+void goPlatform(double initialSpeed=60) {
   double currentRoll = inertialSensor.roll(); // roll (angle) of robot
   bool goforward = false; // direction
   bool isDone = false; // exit while loop
   double k = 1.0; // coefficient on the speed
   double speed = initialSpeed; // adjusted speed
   bool isRampUp = true; // whether it is the first time going up the ramp
+  double counter = 0;
 
-  while (abs(currentRoll) >= 1 || isRampUp || ~isDone) {
+  while ((abs(currentRoll) >= 1 || isRampUp) && ~isDone) {
     currentRoll = inertialSensor.roll();
     speed = k * currentRoll;
+    if (counter == 3) {
+    counter = 0;
+    }
+    counter = counter + 1;
     // when to turn off isRampUp
     if (currentRoll > 20) {
       isRampUp = false;
@@ -104,6 +109,10 @@ void goPlatform(double initialSpeed=20) {
     }
     else {
       speed = 45;
+    }
+
+    if (speed>(initialSpeed-5) && (counter==1 || counter==2)) {
+        speed = 0;
     }
 
     // changing directions
@@ -128,7 +137,7 @@ void goPlatform(double initialSpeed=20) {
   dt.stop(vex::brakeType::hold);
 }
 
-void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, double tgtHeading = 0) {
+void goPlatformWithRotation(double initialSpeed=60, double slowSpeed = 20, double tgtHeading = 0) {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
@@ -141,7 +150,7 @@ void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, doubl
   double headingError = inertialSensor.heading() - tgtHeading;
   double wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
 
-  while (abs(currentRoll) >= 1 || isRampUp || ~isDone) {
+  while ((abs(currentRoll) >= 1 || isRampUp) && ~isDone) {
     currentRoll = inertialSensor.roll();
     wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
 

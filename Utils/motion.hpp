@@ -86,7 +86,7 @@ void goPlatform(double initialSpeed=20) {
   double speed = initialSpeed; // adjusted speed
   bool isRampUp = true; // whether it is the first time going up the ramp
 
-  while (((abs(currentRoll) >= 1) || (isRampUp == true)) || (isDone == false)) {
+  while (abs(currentRoll) >= 1 || isRampUp || ~isDone) {
     currentRoll = inertialSensor.roll();
     speed = k * currentRoll;
     // when to turn off isRampUp
@@ -94,7 +94,7 @@ void goPlatform(double initialSpeed=20) {
       isRampUp = false;
     }
     // when to ignore k, revert to original
-    if ((speed > initialSpeed) || (isRampUp == true)) {
+    if ((speed > initialSpeed) || (isRampUp)) {
       speed = initialSpeed;
     }
 
@@ -112,10 +112,10 @@ void goPlatform(double initialSpeed=20) {
       dt.drive(vex::directionType::fwd, speed, vex::velocityUnits::pct);
     }
     else if (currentRoll < 0) {
-      if (isRampUp == false) {
+      if (~isRampUp) {
        dt.drive(vex::directionType::rev, speed, vex::velocityUnits::pct);
       }
-      if (isRampUp == true) {
+      if (isRampUp) {
        dt.drive(vex::directionType::fwd, speed, vex::velocityUnits::pct);
       }
     }
@@ -141,14 +141,14 @@ void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, doubl
   double headingError = inertialSensor.heading() - tgtHeading;
   double wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
 
-  while (((abs(currentRoll) >= 1) || (isRampUp == true)) || (isDone == false)) {
+  while (abs(currentRoll) >= 1 || isRampUp || ~isDone) {
     currentRoll = inertialSensor.roll();
     wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
 
-    if ((wheelRotationIn < 23.5) && (isRampUp == true)) {
+    if ((wheelRotationIn < 23.5) && (isRampUp)) {
       speed = initialSpeed;
     }
-    else if ((wheelRotationIn > 23.5) || (isRampUp == false)) {
+    else if ((wheelRotationIn > 23.5) || (~isRampUp)) {
       speed = slowSpeed;
     }
     // changing directions
@@ -156,10 +156,10 @@ void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, doubl
       goforward = true;
     }
     else if (currentRoll < 0) {
-      if (isRampUp == false) {
+      if (~isRampUp) {
        goforward = false;
       }
-      if (isRampUp == true) {
+      if (isRampUp) {
        goforward = true;
       }
     }
@@ -173,7 +173,7 @@ void goPlatformWithRotation(double initialSpeed=20, double slowSpeed = 20, doubl
     if (headingError < -15) headingError = -15;
     if (headingError > 15) headingError = 15;
 
-    if (goforward == true) {
+    if (goforward) {
       leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
       rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
       leftdrive.spin(vex::directionType::fwd);

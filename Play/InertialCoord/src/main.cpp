@@ -30,20 +30,9 @@ competition Competition;
 void pre_auton( void ) {
 }
 
-void findX () {
-
-}
-
-void findY () {
-
-}
-
-
-
 void autonomous( void ) {
   goPlatform();
 }
-
 
 void usercontrol( void ) {
   double liftSpeed = 70;
@@ -69,7 +58,7 @@ void usercontrol( void ) {
     if (rc.ButtonUp.pressing()) {
       runPlatform = true;
     }
-    if (runPlatform == true) {
+    if (runPlatform) {
       goPlatform();
       runPlatform = false;
     }
@@ -114,7 +103,7 @@ void usercontrol( void ) {
     if (rc.ButtonDown.pressing()) {
       deployFork = true;
     }
-    if (deployFork == true) {
+    if (deployFork) {
       backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
       deployFork = false;
     }
@@ -154,7 +143,7 @@ void usercontrol( void ) {
       pressIn = true;
     }
 
-    if (pressIn == true) {
+    if (pressIn) {
       frontintake.setVelocity(10, vex::percentUnits::pct);
       frontintake.spin(vex::directionType::rev);
     }

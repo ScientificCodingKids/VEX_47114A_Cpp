@@ -27,11 +27,81 @@ using namespace std;
 competition Competition;
 
 
+void goPlatformWithRotation2(double initialSpeed=60, double slowSpeed = 20, double tgtHeading = 0) {
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
+  inertialSensor.calibrate();
+  vex::task::sleep(1500);
+
+  double currentRoll = inertialSensor.roll(); // roll (angle) of robot
+  bool goforward = false; // direction
+  bool isDone = false; // exit while loop
+  double kp = 0.02;
+  double speed = initialSpeed; // adjusted speed
+  bool isRampUp = true; // whether it is the first time going up the ramp
+  double headingError = inertialSensor.heading() - tgtHeading;
+  double wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+
+  while ((abs(currentRoll) >= 1 || isRampUp) && ~isDone) {
+    currentRoll = inertialSensor.roll();
+    wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+
+    if ((wheelRotationIn < 23.5) && (isRampUp)) {
+      speed = initialSpeed;
+    }
+    else if ((wheelRotationIn > 23.5) || (~isRampUp)) {
+      speed = slowSpeed;
+    }
+    // changing directions
+    if (currentRoll >= 0) {
+      goforward = true;
+    }
+    else if (currentRoll < 0) {
+      if (~isRampUp) {
+       goforward = false;
+      }
+      if (isRampUp) {
+       goforward = true;
+      }
+    }
+
+    // adding goStraight
+
+    headingError = inertialSensor.heading() - tgtHeading;
+    if (headingError < -270) headingError = headingError + 360;
+    if (headingError > 270) headingError = headingError - 360;
+
+    if (headingError < -15) headingError = -15;
+    if (headingError > 15) headingError = 15;
+
+    if (goforward) {
+      leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      leftdrive.spin(vex::directionType::fwd);
+      rightdrive.spin(vex::directionType::fwd);
+    } else {
+      leftdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      leftdrive.spin(vex::directionType::rev);
+      rightdrive.spin(vex::directionType::rev);
+    }
+
+    if (rc.ButtonX.pressing()) {
+      isDone = true;
+    }
+    vex::task::sleep(10);
+  }
+
+  dt.stop(vex::brakeType::hold);
+}
+
+
 void pre_auton( void ) {
 }
 
 void autonomous( void ) {
-  goPlatformWithRotation(60);
+  goPlatformWithRotation2(60);
 }
 
 void usercontrol( void ) {

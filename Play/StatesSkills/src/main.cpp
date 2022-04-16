@@ -73,7 +73,6 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
   leftdrive.stop(bt);
   rightdrive.stop(bt);
 }
-
 void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1)
 {
   leftdrive.resetRotation();
@@ -161,23 +160,49 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
     }
 
     vex::task::sleep(10);
-  }
+  } // while loop
   
  
   leftdrive.stop();
   rightdrive.stop();
   Brain.Screen.print("done");
  
-}
+} // maketurn
+
 
 void autonomous( void ) {
-  dt.driveFor(vex::directionType::fwd, 1.65 * 23.5, vex::distanceUnits::in, 80, vex::velocityUnits::pct);
-  dt.driveFor(vex::directionType::fwd, 0.35 * 23.5, vex::distanceUnits::in, 50, vex::velocityUnits::pct, false);
+  double tileSize = 23.5;
+  double driveSpeed = 75;
+  double turnSpeed = 50;
+
+  // calibrate
+  inertialSensor.calibrate();
+  vex::task::sleep(1500);
+
+  // scoop alliance off of platform
+  backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev, 75, vex::velocityUnits::pct);
+  goStraight(0.8 * tileSize, vex::directionType::rev, 0, driveSpeed);
+  backintake.spinFor(vex::directionType::rev, 2, vex::rotationUnits::rev, 75, vex::velocityUnits::pct);
+  goStraight(0.8, vex::directionType::fwd, 0, driveSpeed);
+
+  // get first neutral
+  makeTurn(105, true, turnSpeed);
+  goStraight(2 * tileSize, vex::directionType::fwd, 110, driveSpeed);
+  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
-  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, false);
-  vex::task::sleep(800);
   lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
-  dt.driveFor(vex::directionType::rev, 1.2*23.5, vex::distanceUnits::in, 65, vex::velocityUnits::pct);
+  goStraight(tileSize, vex::directionType::fwd, 110, driveSpeed);
+
+  // drop alliance, stack top
+  makeTurn(180, true, turnSpeed);
+  backintake.spinFor(vex::directionType::rev, 3.5, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
+  goStraight(0.8 * tileSize, vex::directionType::fwd, 180, driveSpeed);
+  makeTurn(90, false, turnSpeed);
+  lift.spinFor(vex::directionType::fwd, 300, vex::rotationUnits::deg);
+  goStraight(0.5 * tileSize, vex::directionType::fwd, 90, driveSpeed);
+  lift.spinFor(vex::directionType::rev, 150, vex::rotationUnits::deg);
+  frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
+
 }
 
 
@@ -203,10 +228,14 @@ void usercontrol( void ) {
     double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.85;
     double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.85;
 
+    if (rightMotorSpeed-2 < leftMotorSpeed < rightMotorSpeed+2) {
+      rightMotorSpeed = leftMotorSpeed;
+    }
+
     if (fabs(leftMotorSpeed) > 5.0) {
       backleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
-      backleftdrive.spin(fwd);
       frontleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
+      backleftdrive.spin(fwd);
       frontleftdrive.spin(fwd);
     }
     else {

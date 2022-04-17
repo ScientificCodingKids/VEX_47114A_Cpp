@@ -80,6 +80,8 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
   rightdrive.resetRotation();
 
   double degreeToGo = tgtHeading - inertialSensor.heading();
+  bool isClose = false;
+  bool currentTurnClockwise = turnClockwise;
 
   if (degreeToGo < 0) {
     degreeToGo = degreeToGo + 360.0;
@@ -113,8 +115,6 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
 
     // if kp is larger, correction is greater; if kp is smaller, correction is smaller
 
-    bool isClose = false;
-
     if (headingError > 15) {
       currentSpeed = speed;
     }
@@ -125,8 +125,6 @@ void makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=
     else {
       isClose = true;
     }
-    
-    bool currentTurnClockwise = turnClockwise;
 
     if (isClose) {
       if (CWDegreeToGo < CCWDegreeToGo) {

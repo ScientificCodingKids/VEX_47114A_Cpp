@@ -27,6 +27,110 @@ using namespace std;
 competition Competition;
 
 
+Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0)) {
+  Coord currLoc = srcLoc;
+
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
+  double distToGo = dist; // distance more to travel
+  double distTravelled = dist - distToGo; // distance already traveled
+  double finalSpeed = 10; // capping speed
+  double speed = originalSpeed; // max speed
+  double const adaptiveInterval = 10; // slow down/speed up interval
+  double prevRot = leftdrive.rotation(vex::rotationUnits::deg); // amount of rotation at the last run through
+  double changedRotations = leftdrive.rotation(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
+  double dx = 0; // change in x coordinate since last loop
+  double dy = 0; // change in y coordinate since last loop
+ 
+  while (distToGo > 0) {
+    double headingError = inertialSensor.heading() - tgtHeading;
+    if (headingError < -270) headingError = headingError + 360;
+    if (headingError > 270) headingError = headingError - 360;
+
+    if (headingError < -15) headingError = -15;
+    if (headingError > 15) headingError = 15;
+
+    speed = originalSpeed;
+    if (distTravelled < adaptiveInterval) speed = originalSpeed * distTravelled / adaptiveInterval;
+    if (distToGo < adaptiveInterval) speed = originalSpeed * (1 - (adaptiveInterval - distToGo) / adaptiveInterval);
+
+    if (speed < finalSpeed) speed = finalSpeed;
+
+    if (dt == vex::directionType::fwd) {
+      leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+    } else {
+      leftdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+    }
+    leftdrive.spin(dt);
+    rightdrive.spin(dt);
+
+    vex::task::sleep(50);
+
+    distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+
+    changedRotations = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRot; // need scale, deg => inch
+
+    dx = changedRotations * cos(( 90-inertialSensor.heading())/ 180.0 * 3.1415);
+    dy = changedRotations * sin((90-inertialSensor.heading())/180.0 * 3.1415);
+
+    prevRot = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+
+    currLoc.x = dx + currLoc.x;
+    currLoc.y = dy + currLoc.y;
+    
+    distTravelled = dist - distToGo;
+    cout << inertialSensor.heading() << ", " << changedRotations << ", " << dx << ", " << dy << ", " << currLoc.x << ", " << currLoc.y << endl;
+  }
+  //cout << "finalSpeed = " << speed << endl;
+  //Brain.Screen.print("finalSpeed = %f ", speed);
+  leftdrive.stop(bt);
+  rightdrive.stop(bt);
+  //cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
+  //Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
+  return currLoc;
+} 
+
+
+Coord gotoCoordnew(double startX, double startY, double destX, double destY, double originalSpeed) {
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
+  // length of travel
+  double xToGo = destX - startX;
+  double yToGo = destY - startY;
+  double distToGo = sqrt(xToGo * xToGo + yToGo * yToGo);
+  double quadrant = 0;
+  // angle of travel
+  double triangleAngle = asin(xToGo / distToGo);
+  double angle = triangleAngle;
+  if (destX >= startX) {
+    if (destY >= startY) {
+      quadrant = 1;
+      angle = triangleAngle;
+    }
+    else {
+      quadrant = 4;
+      angle = 90 + triangleAngle;
+    }
+  }
+  else {
+    if (destY >= startY) {
+      quadrant = 2;
+      angle = 360 - triangleAngle;
+    }
+    else {
+      quadrant = 3;
+      angle = 180 + triangleAngle;
+    }
+  }
+  // makeTurn(angle, true, originalSpeed); // make sure angle is heading
+  Coord endCoord = goStraightnew(distToGo, vex::directionType::fwd, angle, originalSpeed);
+  return endCoord;
+}
+
 void goPlatformWithRotation2(double initialSpeed=60, double slowSpeed = 20, double tgtHeading = 0) {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -101,7 +205,12 @@ void pre_auton( void ) {
 }
 
 void autonomous( void ) {
-  goPlatformWithRotation2(60);
+  inertialSensor.calibrate();
+  vex::task::sleep(1500);
+  Coord printCoord = goStraightnew(10, vex::directionType::fwd, 0, 70);
+  // Coord printCoord = gotoCoordnew(0, 0, 50, 50, 70);
+  //Brain.Screen.clearScreen();
+  Brain.Screen.print("location: %4.1f, %4.1f", printCoord.x, printCoord.y);
 }
 
 void usercontrol( void ) {
@@ -226,7 +335,7 @@ void usercontrol( void ) {
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  Brain.Screen.print("Get ready to start!");
+  //Brain.Screen.print("Get ready to start!");
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );
 

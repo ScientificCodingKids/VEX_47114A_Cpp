@@ -18,6 +18,7 @@
 
 #include "vex.h"
 #include <iostream>
+#include <cmath>
 
 using namespace vex;
 using namespace std;
@@ -26,6 +27,12 @@ competition Competition;
 
 
 void pre_auton( void ) {
+}
+
+double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4) {
+  // returns distance in inches
+  double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
+  return distance;
 }
 
 void goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake) {
@@ -199,15 +206,38 @@ void autonomous( void ) {
   frontintake.spin(vex::directionType::rev, 10, vex::percentUnits::pct);
   goStraight(1.2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
 
-  // drop alliance, stack top
+  // drop alliance mogo
   currentheading = makeTurn(180, true, turnSpeed);
   backintake.spinFor(vex::directionType::fwd, 2.2, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
-  goStraight(1.25 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  goStraight(1.5 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
   backintake.spinFor(vex::directionType::rev, 3.5, vex::rotationUnits::rev, 80, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
+  
+  // stack yellow
   currentheading = makeTurn(90, false, turnSpeed);
   lift.spinFor(vex::directionType::fwd, 580, vex::rotationUnits::deg);
-  goStraight(1.3 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  goStraight(1.2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  lift.spinFor(vex::directionType::rev, 180, vex::rotationUnits::deg);
+  frontintake.stop();
+  frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
+  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  goStraight(1.2 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
+  lift.spinFor(vex::directionType::rev, 600, vex::rotationUnits::deg, false);
+
+  // grab alliance mogo
+  currentheading = makeTurn(0, false, turnSpeed);
+  goStraight(1.5 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  frontintake.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg, 80, vex::velocityUnits::pct, false);
+  vex::task::sleep(500);
+  frontintake.spin(vex::directionType::rev, 10, vex::percentUnits::pct);
+  lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
+  goStraight(1.1 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
+
+  // stack alliance mogo
+  lift.spinFor(vex::directionType::fwd, 580, vex::rotationUnits::deg, false);
+  currentheading = makeTurn(90, true, turnSpeed);
+  vex::task::sleep(500);
+  goStraight(1.2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
   lift.spinFor(vex::directionType::rev, 180, vex::rotationUnits::deg);
   frontintake.stop();
   frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
@@ -215,11 +245,7 @@ void autonomous( void ) {
   goStraight(1.2 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
   lift.spinFor(vex::directionType::rev, 600, vex::rotationUnits::deg);
 
-  // stack alliance mogo
-  currentheading = makeTurn(0, false, turnSpeed);
-  goStraight(1.3 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
-  frontintake.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg, 80, vex::velocityUnits::pct, false);
-  vex::task::sleep(500);
+  // 
 }
 
 

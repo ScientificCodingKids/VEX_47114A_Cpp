@@ -26,6 +26,15 @@ using namespace std;
 
 competition Competition;
 
+double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4) {
+  // returns distance in inches
+  double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
+  return distance;
+}
+
+double degree2arc(double deg) {
+  return deg * M_PI / 180;
+}
 
 Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0)) {
   Coord currLoc = srcLoc;
@@ -69,14 +78,14 @@ Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, doubl
 
     vex::task::sleep(50);
 
-    distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+    distToGo = dist - rotation2distance(fabs(leftdrive.rotation(vex::rotationUnits::deg)));
 
-    changedRotations = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRot; // need scale, deg => inch
+    changedRotations = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - prevRot; // need scale, deg => inch
 
-    dx = changedRotations * cos(( 90-inertialSensor.heading())/ 180.0 * 3.1415);
-    dy = changedRotations * sin((90-inertialSensor.heading())/180.0 * 3.1415);
+    dx = changedRotations * sin(degree2arc(inertialSensor.heading()));
+    dy = changedRotations * cos(degree2arc(inertialSensor.heading()));
 
-    prevRot = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+    prevRot = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
 
     currLoc.x = dx + currLoc.x;
     currLoc.y = dy + currLoc.y;

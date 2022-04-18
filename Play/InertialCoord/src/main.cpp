@@ -187,8 +187,8 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
     }
 
     // 3. set motor speed and direction
-    Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
+    //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
+    //cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
 
    
     leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
@@ -339,10 +339,8 @@ void pre_auton( void ) {
 void autonomous( void ) {
   inertialSensor.calibrate();
   vex::task::sleep(1500);
-  Coord printCoord = goStraightnew(10, vex::directionType::fwd, 0, 70);
-  // Coord printCoord = gotoCoordnew(0, 0, 50, 50, 70);
-  //Brain.Screen.clearScreen();
-  Brain.Screen.print("location: %4.1f, %4.1f", printCoord.x, printCoord.y);
+  Coord printCoord = makeTurnnew(90, true);
+  Brain.Screen.print("%3.2f, %3.2f", printCoord.x, printCoord.y);
 }
 
 void usercontrol( void ) {

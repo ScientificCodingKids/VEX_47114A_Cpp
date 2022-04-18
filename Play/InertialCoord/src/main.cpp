@@ -36,24 +36,29 @@ double degree2arc(double deg) {
   return deg * M_PI / 180;
 }
 
-Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0)) {
+Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, Coord srcLoc = Coord(0.0, 0.0), double kp = 0.02, vex::brakeType bt = brake) {
   Coord currLoc = srcLoc;
 
   leftdrive.resetRotation();
   rightdrive.resetRotation();
 
   double distToGo = dist; // distance more to travel
-  double distTravelled = dist - distToGo; // distance already traveled
+  double distTravelled = 0; // distance already traveled
   double finalSpeed = 10; // capping speed
   double speed = originalSpeed; // max speed
   double const adaptiveInterval = 10; // slow down/speed up interval
-  double prevRot = leftdrive.rotation(vex::rotationUnits::deg); // amount of rotation at the last run through
-  double changedRotations = leftdrive.rotation(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
+  double prevDist = 0; // amount of rotation at the last run through
+  double changedRotations = leftdrive.rotation(vex::rotationUnits::deg) - prevDist; // rotations passed since last loop
   double dx = 0; // change in x coordinate since last loop
   double dy = 0; // change in y coordinate since last loop
  
   while (distToGo > 0) {
-    double headingError = inertialSensor.heading() - tgtHeading;
+    double ch = inertialSensor.heading();
+    double headingError = ch - tgtHeading;
+    double motorRot = leftdrive.rotation(vex::rotationUnits::deg);
+    distTravelled = rotation2distance(fabs(motorRot));
+    distToGo = dist - distTravelled;
+
     if (headingError < -270) headingError = headingError + 360;
     if (headingError > 270) headingError = headingError - 360;
 
@@ -78,21 +83,19 @@ Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, doubl
 
     vex::task::sleep(50);
 
-    distToGo = dist - rotation2distance(fabs(leftdrive.rotation(vex::rotationUnits::deg)));
+    changedRotations = distTravelled - prevDist;
 
-    changedRotations = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - prevRot; // need scale, deg => inch
+    dx = changedRotations * sin(degree2arc(ch));
+    dy = changedRotations * cos(degree2arc(ch));
 
-    dx = changedRotations * sin(degree2arc(inertialSensor.heading()));
-    dy = changedRotations * cos(degree2arc(inertialSensor.heading()));
-
-    prevRot = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
+    prevDist = distTravelled;
 
     currLoc.x = dx + currLoc.x;
     currLoc.y = dy + currLoc.y;
     
-    distTravelled = dist - distToGo;
-    cout << inertialSensor.heading() << ", " << changedRotations << ", " << dx << ", " << dy << ", " << currLoc.x << ", " << currLoc.y << endl;
-  }
+    
+    cout << ch << ", " << changedRotations << ", " << dx << ", " << dy << ", " << currLoc.x << ", " << currLoc.y << endl;
+  } // while loop
   //cout << "finalSpeed = " << speed << endl;
   //Brain.Screen.print("finalSpeed = %f ", speed);
   leftdrive.stop(bt);
@@ -100,43 +103,45 @@ Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, doubl
   //cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
   //Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
   return currLoc;
-} 
+} // goStraightnew
 
+double arc2deg(double arc) {
+  return 180 * M_PI / arc;
+}
 
-Coord gotoCoordnew(double startX, double startY, double destX, double destY, double originalSpeed) {
-  leftdrive.resetRotation();
-  rightdrive.resetRotation();
+Coord gotoCoordnew(Coord startLoc, Coord destLoc, double originalSpeed) {
 
   // length of travel
-  double xToGo = destX - startX;
-  double yToGo = destY - startY;
+  double xToGo = destLoc.x - startLoc.x;
+  double yToGo = destLoc.y - startLoc.y;
   double distToGo = sqrt(xToGo * xToGo + yToGo * yToGo);
   double quadrant = 0;
+
   // angle of travel
-  double triangleAngle = asin(xToGo / distToGo);
-  double angle = triangleAngle;
-  if (destX >= startX) {
-    if (destY >= startY) {
+  double triangleAngle = arc2deg(asin(xToGo / distToGo));
+  double heading = triangleAngle;
+  if (destLoc.x >= startLoc.x) {
+    if (destLoc.y >= startLoc.y) {
       quadrant = 1;
-      angle = triangleAngle;
+      heading = triangleAngle;
     }
     else {
       quadrant = 4;
-      angle = 90 + triangleAngle;
+      heading = 180 - triangleAngle;
     }
   }
   else {
-    if (destY >= startY) {
+    if (destLoc.y >= startLoc.y) {
       quadrant = 2;
-      angle = 360 - triangleAngle;
+      heading = 360 - triangleAngle;
     }
     else {
       quadrant = 3;
-      angle = 180 + triangleAngle;
+      heading = 180 + triangleAngle;
     }
   }
   // makeTurn(angle, true, originalSpeed); // make sure angle is heading
-  Coord endCoord = goStraightnew(distToGo, vex::directionType::fwd, angle, originalSpeed);
+  Coord endCoord = goStraightnew(distToGo, vex::directionType::fwd, heading, originalSpeed, startLoc);
   return endCoord;
 }
 

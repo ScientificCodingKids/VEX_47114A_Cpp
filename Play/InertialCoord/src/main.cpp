@@ -209,8 +209,8 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
 	changedRotationsLeft = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - prevRotLeft;
 	changedRotationsRight = rotation2distance(rightdrive.rotation(vex::rotationUnits::deg)) - prevRotRight;
 
-	dx = (changedRotationsRight - changedRotationsLeft) * degree2arc(sin(inertialSensor.heading()-prevDegree));
-	dy = (changedRotationsRight - changedRotationsLeft) * degree2arc(cos(inertialSensor.heading()-prevDegree));
+	dx = (changedRotationsRight - changedRotationsLeft) * sin(degree2arc(inertialSensor.heading() - prevDegree));
+	dy = (changedRotationsRight - changedRotationsLeft) * cos(degree2arc(inertialSensor.heading() - prevDegree));
 
 	prevRotLeft = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
 	prevRotRight = rotation2distance(rightdrive.rotation(vex::rotationUnits::deg));

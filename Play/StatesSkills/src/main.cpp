@@ -41,7 +41,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
 
   double distToGo = dist;
   double distTravelled = dist - distToGo;
-  double finalSpeed = 10;
+  double finalSpeed = 20;
   double speed = originalSpeed;
   double const adaptiveInterval = 10;
 
@@ -72,7 +72,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
 
     vex::task::sleep(10);
 
-    distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+    distToGo = dist - rotation2distance(fabs(leftdrive.rotation(vex::rotationUnits::deg)));
     distTravelled = dist - distToGo;
   }
   cout << "finalSpeed = " << speed << endl;
@@ -183,18 +183,19 @@ double makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double k
 void autonomous( void ) {
   double currentheading = 0;
   double tileSize = 23.5;
-  double driveSpeed = 75;
+  double driveSpeed = 80;
   double turnSpeed = 40;
-
+  lift.setVelocity(80, vex::percentUnits::pct);
 
   // calibrate
   inertialSensor.calibrate();
   vex::task::sleep(1500);
 
   // scoop alliance off of platform
-  backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev, 75, vex::velocityUnits::pct);
+  backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
   goStraight(0.8 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
-  backintake.spinFor(vex::directionType::rev, 2, vex::rotationUnits::rev, 75, vex::velocityUnits::pct);
+  backintake.spinFor(vex::directionType::rev, 2, vex::rotationUnits::rev, 75, vex::velocityUnits::pct, false);
+  vex::task::sleep(500);
   goStraight(0.8, vex::directionType::fwd, currentheading, driveSpeed);
 
   // get first neutral
@@ -209,43 +210,70 @@ void autonomous( void ) {
   // drop alliance mogo
   currentheading = makeTurn(180, true, turnSpeed);
   backintake.spinFor(vex::directionType::fwd, 2.2, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
-  goStraight(1.5 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  lift.spinFor(vex::directionType::fwd, 600, vex::rotationUnits::deg, false);
+  goStraight(1.3 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
   backintake.spinFor(vex::directionType::rev, 3.5, vex::rotationUnits::rev, 80, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
   
   // stack yellow
   currentheading = makeTurn(90, false, turnSpeed);
-  lift.spinFor(vex::directionType::fwd, 580, vex::rotationUnits::deg);
   goStraight(1.2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
-  lift.spinFor(vex::directionType::rev, 180, vex::rotationUnits::deg);
+  lift.spinFor(vex::directionType::rev, 200, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
   frontintake.stop();
   frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
-  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  lift.spinFor(vex::directionType::fwd, 200, vex::rotationUnits::deg);
   goStraight(1.2 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
-  lift.spinFor(vex::directionType::rev, 600, vex::rotationUnits::deg, false);
+  lift.spinFor(vex::directionType::rev, 660, vex::rotationUnits::deg, false);
+  vex::task::sleep(500);
 
   // grab alliance mogo
   currentheading = makeTurn(0, false, turnSpeed);
-  goStraight(1.5 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  goStraight(2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
   frontintake.spinFor(vex::directionType::rev, 100, vex::rotationUnits::deg, 80, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
   frontintake.spin(vex::directionType::rev, 10, vex::percentUnits::pct);
   lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
-  goStraight(1.1 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
+  goStraight(2.3 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
 
   // stack alliance mogo
-  lift.spinFor(vex::directionType::fwd, 580, vex::rotationUnits::deg, false);
+  lift.spinFor(vex::directionType::fwd, 600, vex::rotationUnits::deg, false);
   currentheading = makeTurn(90, true, turnSpeed);
   vex::task::sleep(500);
   goStraight(1.2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
   lift.spinFor(vex::directionType::rev, 180, vex::rotationUnits::deg);
   frontintake.stop();
   frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
-  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg, false);
   goStraight(1.2 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
-  lift.spinFor(vex::directionType::rev, 600, vex::rotationUnits::deg);
+  lift.spinFor(vex::directionType::rev, 660, vex::rotationUnits::deg, false);
 
-  // 
+  // scoop alliance from under platform
+  currentheading = makeTurn(180, true, turnSpeed);
+  backintake.spinFor(vex::directionType::fwd, 3.5, vex::rotationUnits::rev, 75, vex::velocityUnits::pct, false);
+  goStraight(2.1 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  currentheading = makeTurn(240, true, turnSpeed);
+  goStraight(1.65 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
+  backintake.spinFor(vex::directionType::rev, 1, vex::rotationUnits::rev, 75, vex::velocityUnits::pct, false);
+  vex::task::sleep(500);
+  goStraight(1.2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  backintake.spinFor(vex::directionType::rev, 1, vex::rotationUnits::rev, 75, vex::velocityUnits::pct, false);
+
+  // grab next
+  currentheading = makeTurn(305, true, turnSpeed);
+  goStraight(1.3 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct, false);
+  vex::task::sleep(500);
+  lift.spinFor(vex::directionType::fwd, 660, vex::rotationUnits::deg, false);
+  frontintake.spin(vex::directionType::rev, 10, vex::percentUnits::pct);
+  goStraight(2.3 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  lift.spinFor(vex::directionType::rev, 180, vex::rotationUnits::deg);
+  frontintake.stop();
+  frontintake.spinFor(vex::directionType::fwd, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct);
+  lift.spinFor(vex::directionType::fwd, 150, vex::rotationUnits::deg);
+  goStraight(0.5 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
+  currentheading = makeTurn(270, false, turnSpeed);
+  goStraight(2 * tileSize, vex::directionType::rev, currentheading, driveSpeed);
+  goStraight(2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
 }
 
 
@@ -253,6 +281,7 @@ void usercontrol( void ) {
   double liftSpeed = 70;
   bool pressIn = false;
   bool deployFork = false;
+  bool climbPlatform = false;
   while (1) {
 
     if (rc.ButtonR1.pressing()) {
@@ -271,7 +300,7 @@ void usercontrol( void ) {
     double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.85;
     double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.85;
 
-    if (rightMotorSpeed-2 < leftMotorSpeed < rightMotorSpeed+2) {
+    if (((rightMotorSpeed-2) < leftMotorSpeed) && (leftMotorSpeed < (rightMotorSpeed+2))) {
       rightMotorSpeed = leftMotorSpeed;
     }
 
@@ -300,8 +329,18 @@ void usercontrol( void ) {
     }
     else {
       if (rc.ButtonLeft.pressing()) {
-        backrightdrive.stop(vex::brakeType::brake);
-        frontrightdrive.stop(vex::brakeType::brake);
+        climbPlatform = true;
+        backrightdrive.setBrake(vex::brakeType::brake);
+        backleftdrive.setBrake(vex::brakeType::brake);
+        frontrightdrive.setBrake(vex::brakeType::brake);
+        frontleftdrive.setBrake(vex::brakeType::brake);
+      }
+      else if (rc.ButtonUp.pressing()) {
+        climbPlatform = false;
+        backrightdrive.setBrake(vex::brakeType::coast);
+        backleftdrive.setBrake(vex::brakeType::coast);
+        frontrightdrive.setBrake(vex::brakeType::coast);
+        frontleftdrive.setBrake(vex::brakeType::coast);
       }
       else {
       backrightdrive.stop(vex::brakeType::coast);

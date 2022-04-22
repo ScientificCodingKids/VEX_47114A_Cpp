@@ -26,6 +26,7 @@ using namespace std;
 
 competition Competition;
 
+
 double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4) {
   // returns distance in inches
   double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
@@ -188,7 +189,7 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
 
     // 3. set motor speed and direction
     //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    //cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
+    cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
 
    
     leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
@@ -339,7 +340,7 @@ void pre_auton( void ) {
 void autonomous( void ) {
   inertialSensor.calibrate();
   vex::task::sleep(1500);
-  Coord printCoord = makeTurnnew(90, true);
+  Coord printCoord = makeTurnnew(90, true, 50);
   Brain.Screen.print("%3.2f, %3.2f", printCoord.x, printCoord.y);
 }
 

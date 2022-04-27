@@ -298,6 +298,7 @@ void usercontrol( void ) {
       lift.stop(vex::brakeType::hold);
     }
 
+
     double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.85;
     double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.85;
 
@@ -310,6 +311,9 @@ void usercontrol( void ) {
       frontleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
       backleftdrive.spin(fwd);
       frontleftdrive.spin(fwd);
+    }
+    else if (rc.ButtonUp.pressing()) {
+      leftdrive.spin(vex::directionType::fwd, 80, vex::percentUnits::pct);
     }
     else {
       if (rc.ButtonLeft.pressing()) {
@@ -328,24 +332,19 @@ void usercontrol( void ) {
       frontrightdrive.setVelocity(rightMotorSpeed, vex::velocityUnits::pct);
       frontrightdrive.spin(fwd);
     }
+    else if (rc.ButtonUp.pressing()) {
+      rightdrive.spin(vex::directionType::fwd, 80, vex::percentUnits::pct);
+    }
     else {
       if (rc.ButtonLeft.pressing()) {
         climbPlatform = true;
-        backrightdrive.setBrake(vex::brakeType::brake);
-        backleftdrive.setBrake(vex::brakeType::brake);
-        frontrightdrive.setBrake(vex::brakeType::brake);
-        frontleftdrive.setBrake(vex::brakeType::brake);
-      }
-      else if (rc.ButtonUp.pressing()) {
-        climbPlatform = false;
-        backrightdrive.setBrake(vex::brakeType::coast);
-        backleftdrive.setBrake(vex::brakeType::coast);
-        frontrightdrive.setBrake(vex::brakeType::coast);
-        frontleftdrive.setBrake(vex::brakeType::coast);
+        backrightdrive.stop(vex::brakeType::brake);
+        frontrightdrive.stop(vex::brakeType::brake);
+
       }
       else {
-      backrightdrive.stop(vex::brakeType::coast);
-      frontrightdrive.stop(vex::brakeType::coast);
+        backrightdrive.stop(vex::brakeType::coast);
+        frontrightdrive.stop(vex::brakeType::coast);
       }
     }
 

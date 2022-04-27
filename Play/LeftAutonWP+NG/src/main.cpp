@@ -236,10 +236,6 @@ void usercontrol( void ) {
     double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.85;
     double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.85;
 
-    if (((rightMotorSpeed-2) < leftMotorSpeed) && (leftMotorSpeed < (rightMotorSpeed+2))) {
-      rightMotorSpeed = leftMotorSpeed;
-    }
-
     if (fabs(leftMotorSpeed) > 5.0) {
       backleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
       frontleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);

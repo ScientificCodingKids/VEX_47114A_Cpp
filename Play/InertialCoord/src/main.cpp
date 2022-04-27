@@ -20,6 +20,7 @@
 #include <iostream>
 #include <cmath>
 #include "../../../Utils/motion.hpp"
+#include <cassert>
 
 using namespace vex;
 using namespace std;
@@ -144,13 +145,11 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
       CCWDegreeToGo = 360 - CWDegreeToGo;
     }
 
+    assert(CWDegreeToGo >= 0 && CWDegreeToGo < 360);
+    assert(CCWDegreeToGo >= 0 && CCWDegreeToGo < 360);
+
     //2. determine rotation direction and degreeToGo
-    if (CWDegreeToGo < CCWDegreeToGo) {
-      degreeToGo = CWDegreeToGo;
-    }
-    else {
-      degreeToGo = CCWDegreeToGo;
-    }
+    degreeToGo = CWDegreeToGo < CCWDegreeToGo ? CWDegreeToGo : CCWDegreeToGo;
     
     double headingError = degreeToGo;
     double currentSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
@@ -159,29 +158,16 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
 
     bool isClose = false;
 
-    if (headingError > 15) {
+    if (headingError > 15 || headingError < -15) {
       currentSpeed = speed;
     }
 
-    else if (headingError < -15) {
-      currentSpeed = speed;
-    }
     else {
+      currentSpeed = speed*(1-(15 - degreeToGo)/15);
       isClose = true;
     }
     
-    bool currentTurnClockwise = turnClockwise;
-
-    if (isClose) {
-      if (CWDegreeToGo < CCWDegreeToGo) {
-        currentTurnClockwise = true; 
-        degreeToGo = CWDegreeToGo;
-      }
-      else {
-        currentTurnClockwise = false; 
-        degreeToGo = CCWDegreeToGo;
-      }
-    }
+    bool currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
 
     if (currentSpeed < 5) {
       currentSpeed = 5;

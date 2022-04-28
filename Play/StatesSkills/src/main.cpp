@@ -183,9 +183,9 @@ double makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double k
 void autonomous( void ) {
   double currentheading = 0;
   double tileSize = 23.5;
-  double driveSpeed = 80;
+  double driveSpeed = 70;
   double turnSpeed = 40;
-  lift.setVelocity(80, vex::percentUnits::pct);
+  lift.setVelocity(60, vex::percentUnits::pct);
 
   // calibrate
   inertialSensor.calibrate();
@@ -199,19 +199,19 @@ void autonomous( void ) {
   goStraight(0.8, vex::directionType::fwd, currentheading, driveSpeed);
 
   // get first neutral
-  currentheading = makeTurn(92, true, turnSpeed);
-  goStraight(2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  currentheading = makeTurn(93, true, turnSpeed);
+  goStraight(2.3 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
   frontintake.spinFor(vex::directionType::rev, 120, vex::rotationUnits::deg, 80, vex::velocityUnits::pct, false);
   vex::task::sleep(500);
   lift.spinFor(vex::directionType::fwd, 60, vex::rotationUnits::deg);
   frontintake.spin(vex::directionType::rev, 10, vex::percentUnits::pct);
-  goStraight(1.2 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
+  goStraight(0.9 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
 
   // drop alliance mogo
   currentheading = makeTurn(180, true, turnSpeed);
+  lift.spinFor(vex::directionType::fwd, 600, vex::rotationUnits::deg, false);
   backintake.spinFor(vex::directionType::fwd, 2.2, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
   goStraight(1 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
-  lift.spinFor(vex::directionType::fwd, 600, vex::rotationUnits::deg, false);
   goStraight(0.4 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);
   backintake.spinFor(vex::directionType::rev, 3.5, vex::rotationUnits::rev, 80, vex::velocityUnits::pct, false);
   vex::task::sleep(500);

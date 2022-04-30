@@ -209,6 +209,7 @@ void autonomous( void ) {
 
   // drop alliance mogo
   currentheading = makeTurn(180, true, turnSpeed);
+  lift.setVelocity(40, vex::percentUnits::pct);
   lift.spinFor(vex::directionType::fwd, 600, vex::rotationUnits::deg, false);
   backintake.spinFor(vex::directionType::fwd, 2.2, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
   goStraight(1 * tileSize, vex::directionType::fwd, currentheading, driveSpeed);

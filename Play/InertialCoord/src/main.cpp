@@ -21,6 +21,7 @@
 #include <cmath>
 #include "../../../Utils/motion.hpp"
 #include <cassert>
+#include "../../../Utils/nutils.hpp"
 
 using namespace vex;
 using namespace std;
@@ -452,6 +453,34 @@ void usercontrol( void ) {
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+  Brain.Screen.setCursor(1, 1);
+  Brain.Screen.print("Built at: %s %s", __DATE__, __TIME__);
+
+  Brain.Screen.setCursor(3, 1);
+  Brain.Screen.print("3rd line");
+
+  for (int i=10; i>0; --i) {
+    Brain.Screen.setCursor(2, 1);  // has to set this each time calling print()
+    Brain.Screen.setPenColor(color(0, 255, 0));
+    Brain.Screen.clearLine(2);
+    Brain.Screen.print("count down: %d", i);
+    task::sleep(50);
+  }
+
+
+  SmartScreen scr1(Brain.Screen, 5, 5);
+  scr1.printAt(1, "Built at: %s %s", __DATE__, __TIME__);
+
+  RollingScreen scr2(Brain.Screen, 10, 5);
+
+  scr1.printAt(3, "Foo");
+
+  for (int i=100; i>0; --i) {
+    scr2.setPenColor(color(0, 255, 0));
+    scr2.print("roll up: %d", i);
+    task::sleep(100);
+  }
+
   //Brain.Screen.print("Get ready to start!");
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );

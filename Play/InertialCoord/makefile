@@ -2,7 +2,7 @@
 
 # show compiler output
 VERBOSE = 0
-
+HOME = T:
 # include toolchain options
 include vex/mkenv.mk
 

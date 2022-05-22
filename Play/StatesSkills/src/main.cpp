@@ -19,6 +19,7 @@
 #include "vex.h"
 #include <iostream>
 #include <cmath>
+#include <cassert>
 
 using namespace vex;
 using namespace std;
@@ -82,7 +83,7 @@ void goStraight(double dist, vex::directionType dt, double tgtHeading, double or
 }
 
 
-double makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1)
+double makeTurn(double tgtHeading, bool turnClockwise, double origSpeed=15, double tol=0.1, double adaptiveInterval=15, vex::brakeType bt = brake, bool makeStop = true)
 {
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -93,67 +94,45 @@ double makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double k
     degreeToGo = degreeToGo + 360.0;
   }
 
-  double CWDegreeToGo = degreeToGo;
-  double CCWDegreeToGo = 360 - degreeToGo;
-
-
   while (degreeToGo > tol) {
+    // all sensor values should be read only once in each while loop iteration
+    double ch = inertialSensor.heading();
 
     //1. compute cw, ccw degreeToGo
-    CWDegreeToGo = tgtHeading - inertialSensor.heading();
-    CCWDegreeToGo = 360 - CWDegreeToGo;
+    double CWDegreeToGo = tgtHeading - ch;
+    double CCWDegreeToGo = 360 - CWDegreeToGo;
     
     if (CWDegreeToGo < 0) {
       CWDegreeToGo = CWDegreeToGo + 360;
       CCWDegreeToGo = 360 - CWDegreeToGo;
     }
 
-    //2. determine rotation direction and degreeToGo
-    if (CWDegreeToGo < CCWDegreeToGo) {
-      degreeToGo = CWDegreeToGo;
-    }
-    else {
-      degreeToGo = CCWDegreeToGo;
-    }
-    
-    double headingError = degreeToGo;
-    double currentSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
+    assert( CWDegreeToGo >= 0 && CWDegreeToGo < 360);
+    assert( CCWDegreeToGo >=0 && CCWDegreeToGo < 360);
 
-    // if kp is larger, correction is greater; if kp is smaller, correction is smaller
-
-    bool isClose = false;
+    bool isClose = min(CWDegreeToGo, CCWDegreeToGo) < adaptiveInterval;
 
     bool currentTurnClockwise = turnClockwise;
 
-    if (headingError > 15) {
-      currentSpeed = speed;
+    if (isClose) {
+      currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
     }
 
-    else if (headingError < -15) {
-      currentSpeed = speed;
-    }
-    else {
-      isClose = true;
-    }
+    // double degreeToGo = if currentheading then CWDegreeToGo else CCWDegreeToGo
+    degreeToGo = currentTurnClockwise ? CWDegreeToGo : CCWDegreeToGo;
+
+    double currentSpeed = origSpeed;
 
     if (isClose) {
-      if (CWDegreeToGo < CCWDegreeToGo) {
-        currentTurnClockwise = true; 
-        degreeToGo = CWDegreeToGo;
-      }
-      else {
-        currentTurnClockwise = false; 
-        degreeToGo = CCWDegreeToGo;
-      }
-    }
+      currentSpeed = origSpeed * (1- (adaptiveInterval - degreeToGo)/adaptiveInterval);
 
-    if (currentSpeed < 5) {
-      currentSpeed = 5;
+      //if (distToGo < adaptiveInterval) speed = originalSpeed * (1 - (adaptiveInterval - distToGo) / adaptiveInterval);
+
     }
 
     // 3. set motor speed and direction
     Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
+    cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
 
    
     leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
@@ -171,9 +150,11 @@ double makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double k
     vex::task::sleep(10);
   } // while loop
   
- 
-  leftdrive.stop();
-  rightdrive.stop();
+  if (makeStop) {
+    leftdrive.stop(bt);
+    rightdrive.stop(bt);
+  }
+
   Brain.Screen.print("done");
   return inertialSensor.heading();
 

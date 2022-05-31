@@ -29,7 +29,7 @@ using namespace std;
 competition Competition;
 
 
-double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4) {
+double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4.15) {
   // returns distance in inches
   double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
   return distance;
@@ -116,6 +116,7 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
 {
 
   Coord currLoc = srcLoc;
+  Coord currLoc2 = srcLoc;
 
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -135,6 +136,10 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
   double dx = 0;
   double dy = 0;
   double pastTravelled = 0; // inches
+  double radius = 0;
+  double dx2 = 0;
+  double dy2 = 0;
+  double chOld = 0;
 
   while (degreeToGo > tol) {
     double travelledDist = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - pastTravelled;
@@ -180,43 +185,59 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
 
     // 3. set motor speed and direction
     //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
-  
+    //cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
+
    
     leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
     rightdrive.setVelocity(currentSpeed, vex::velocityUnits::pct);
 
     if (currentTurnClockwise) {
       leftdrive.spin(vex::directionType::fwd);
+      rightdrive.stop(vex::brakeType::coast);
     //  rightdrive.spin(vex::directionType::rev);
     }
     else {
       leftdrive.spin(vex::directionType::rev);
     //  rightdrive.spin(vex::directionType::fwd);
+      rightdrive.stop(vex::brakeType::coast);
     }
 
 
 	//update coordinates
 
     changedRotations = lrot - prevDegree;
+    if (ch - chOld == 0) radius = 0;
+    else radius = travelledDist/degree2arc(ch - chOld);
 
     dx = travelledDist * sin(degree2arc(ch));
     dy = travelledDist * cos(degree2arc(ch));
 
-    
+    dx2 = radius * -cos(degree2arc(ch)) + radius * cos(degree2arc(chOld));
+    dy2 = radius * sin(degree2arc(ch) - radius * sin(degree2arc(chOld)));
+
+    cout << "(" << currLoc2.x << ", " << currLoc2.y << "), (" << dx2 << ", " << dy2 << ")" << endl;
+    cout << "radius: " << radius << ", ch: " << ch << ", prevDegree: " << prevDegree << endl;
+
     // change in value = distance newly travelled x sin or cos (arc of current inertial heading)
  
     currLoc.x = dx + currLoc.x;
     currLoc.y = dy + currLoc.y;
 
+    currLoc2.x = dx2 + currLoc2.x;
+    currLoc2.y = dy2 + currLoc2.y;
+
     pastTravelled = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
 
+    prevDegree = lrot;
+
+    chOld = ch;
     vex::task::sleep(10);
   }
   
   leftdrive.stop();
   rightdrive.stop();
-  Brain.Screen.print("done");
+  // Brain.Screen.print("straight line currLoc: %f, %f", currLoc.x, currLoc.y);
+  Brain.Screen.print("arc currLoc: %f, %f", currLoc2.x, currLoc2.y);
  
   return currLoc;
 }

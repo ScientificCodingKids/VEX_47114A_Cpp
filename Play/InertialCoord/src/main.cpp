@@ -29,7 +29,7 @@ using namespace std;
 competition Competition;
 
 
-double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4) {
+double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4.15) {
   // returns distance in inches
   double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
   return distance;
@@ -51,7 +51,6 @@ Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, doubl
   double speed = originalSpeed; // max speed
   double const adaptiveInterval = 10; // slow down/speed up interval
   double prevDist = 0; // amount of rotation at the last run through
-  double changedRotations = leftdrive.rotation(vex::rotationUnits::deg) - prevDist; // rotations passed since last loop
   double dx = 0; // change in x coordinate since last loop
   double dy = 0; // change in y coordinate since last loop
  
@@ -61,6 +60,7 @@ Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, doubl
     double motorRot = leftdrive.rotation(vex::rotationUnits::deg);
     distTravelled = rotation2distance(fabs(motorRot));
     distToGo = dist - distTravelled;
+    double distChanged = distTravelled - prevDist;
 
     if (headingError < -270) headingError = headingError + 360;
     if (headingError > 270) headingError = headingError - 360;
@@ -86,18 +86,18 @@ Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, doubl
 
     vex::task::sleep(50);
 
-    changedRotations = distTravelled - prevDist;
+    distChanged = distTravelled - prevDist;
 
-    dx = changedRotations * sin(degree2arc(ch));
-    dy = changedRotations * cos(degree2arc(ch));
+    dx = distChanged * sin(degree2arc(ch));
+    dy = distChanged * cos(degree2arc(ch));
+
+    // change in value = distance newly travelled x sin or cos (arc of current inertial heading)
 
     prevDist = distTravelled;
 
     currLoc.x = dx + currLoc.x;
     currLoc.y = dy + currLoc.y;
     
-    
-    cout << ch << ", " << changedRotations << ", " << dx << ", " << dy << ", " << currLoc.x << ", " << currLoc.y << endl;
   } // while loop
   //cout << "finalSpeed = " << speed << endl;
   //Brain.Screen.print("finalSpeed = %f ", speed);
@@ -112,9 +112,11 @@ double arc2deg(double arc) {
   return 180 * M_PI / arc;
 }
 
-Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1, Coord srcLoc = Coord(0.0, 0.0))
+Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, Coord srcLoc = Coord(0.0, 0.0))
 {
+
   Coord currLoc = srcLoc;
+  Coord currLoc2 = srcLoc;
 
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -127,18 +129,25 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
 
   double CWDegreeToGo = degreeToGo;
   double CCWDegreeToGo = 360 - degreeToGo;
+
+  double lrot = leftdrive.rotation(vex::rotationUnits::deg);
   double prevDegree = 0.0;
-  double prevRotLeft = leftdrive.rotation(vex::rotationUnits::deg);
-  double prevRotRight = rightdrive.rotation(vex::rotationUnits::deg);
-  double changedRotationsLeft = leftdrive.rotation(vex::rotationUnits::deg) - prevRotLeft;
-  double changedRotationsRight = rightdrive.rotation(vex::rotationUnits::deg) - prevRotRight;
+  double changedRotations = lrot - prevDegree; // rotations passed since last loop
   double dx = 0;
   double dy = 0;
+  double pastTravelled = 0; // inches
+  double radius = 0;
+  double dx2 = 0;
+  double dy2 = 0;
+  double chOld = 0;
 
   while (degreeToGo > tol) {
+    double travelledDist = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - pastTravelled;
+    double ch = inertialSensor.heading();
+    lrot = leftdrive.rotation(vex::rotationUnits::deg);
 
     //1. compute cw, ccw degreeToGo
-    CWDegreeToGo = tgtHeading - inertialSensor.heading();
+    CWDegreeToGo = tgtHeading - ch;
     CCWDegreeToGo = 360 - CWDegreeToGo;
     
     if (CWDegreeToGo < 0) {
@@ -176,7 +185,7 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
 
     // 3. set motor speed and direction
     //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
+    //cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
 
    
     leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
@@ -184,32 +193,51 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
 
     if (currentTurnClockwise) {
       leftdrive.spin(vex::directionType::fwd);
-      rightdrive.spin(vex::directionType::rev);
+      rightdrive.stop(vex::brakeType::coast);
+    //  rightdrive.spin(vex::directionType::rev);
     }
     else {
       leftdrive.spin(vex::directionType::rev);
-      rightdrive.spin(vex::directionType::fwd);
+    //  rightdrive.spin(vex::directionType::fwd);
+      rightdrive.stop(vex::brakeType::coast);
     }
 
-    vex::task::sleep(10);
 
 	//update coordinates
-	changedRotationsLeft = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - prevRotLeft;
-	changedRotationsRight = rotation2distance(rightdrive.rotation(vex::rotationUnits::deg)) - prevRotRight;
 
-	dx = (changedRotationsRight - changedRotationsLeft) * sin(degree2arc(inertialSensor.heading() - prevDegree));
-	dy = (changedRotationsRight - changedRotationsLeft) * cos(degree2arc(inertialSensor.heading() - prevDegree));
+    changedRotations = lrot - prevDegree;
+    if (ch - chOld == 0) radius = 0;
+    else radius = travelledDist/degree2arc(ch - chOld);
 
-	prevRotLeft = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
-	prevRotRight = rotation2distance(rightdrive.rotation(vex::rotationUnits::deg));
+    dx = travelledDist * sin(degree2arc(ch));
+    dy = travelledDist * cos(degree2arc(ch));
 
-	currLoc.x = currLoc.x - dx;
-	currLoc.y = currLoc.y + dy;
+    dx2 = radius * -cos(degree2arc(ch)) + radius * cos(degree2arc(chOld));
+    dy2 = radius * sin(degree2arc(ch) - radius * sin(degree2arc(chOld)));
+
+    cout << "(" << currLoc2.x << ", " << currLoc2.y << "), (" << dx2 << ", " << dy2 << ")" << endl;
+    cout << "radius: " << radius << ", ch: " << ch << ", prevDegree: " << prevDegree << endl;
+
+    // change in value = distance newly travelled x sin or cos (arc of current inertial heading)
+ 
+    currLoc.x = dx + currLoc.x;
+    currLoc.y = dy + currLoc.y;
+
+    currLoc2.x = dx2 + currLoc2.x;
+    currLoc2.y = dy2 + currLoc2.y;
+
+    pastTravelled = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
+
+    prevDegree = lrot;
+
+    chOld = ch;
+    vex::task::sleep(10);
   }
   
   leftdrive.stop();
   rightdrive.stop();
-  Brain.Screen.print("done");
+  // Brain.Screen.print("straight line currLoc: %f, %f", currLoc.x, currLoc.y);
+  Brain.Screen.print("arc currLoc: %f, %f", currLoc2.x, currLoc2.y);
  
   return currLoc;
 }
@@ -320,6 +348,75 @@ void goPlatformWithRotation2(double initialSpeed=60, double slowSpeed = 20, doub
   dt.stop(vex::brakeType::hold);
 }
 
+void inertialTest (void) {
+  while (1) {
+    cout << inertialSensor.heading() << endl;
+    vex::task::sleep(1000);
+  }
+}
+
+void primitiveTurnNinety(double speed) {
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+  inertialSensor.resetHeading();
+
+  double degreeToGo = 90;
+  double CWDegreeToGo = 90;
+  double CCWDegreeToGo = 360 - CWDegreeToGo;
+  double ch = inertialSensor.heading();
+  bool turnClockwise = true;
+  bool isClose = false;
+  double currentSpeed = speed;
+
+  while (ch < 90) {
+    if (CWDegreeToGo < CCWDegreeToGo) {
+      turnClockwise = true;
+      degreeToGo = CWDegreeToGo;}
+    else {
+      turnClockwise = false;
+      degreeToGo = CCWDegreeToGo;
+    }
+
+    if (degreeToGo > 15) {
+      isClose = false;
+      currentSpeed = speed;
+    }
+    else {
+      isClose = true;
+      currentSpeed = currentSpeed = speed*(1-(15 - degreeToGo)/15);
+    }
+
+    if (currentSpeed < 5) {
+      currentSpeed = 5;
+    }
+
+    // 3. set motor speed and direction
+    //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
+    cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << endl;  // print to terminal
+
+    leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
+    rightdrive.setVelocity(currentSpeed, vex::velocityUnits::pct);
+
+    if (turnClockwise) {
+      leftdrive.spin(vex::directionType::fwd);
+      rightdrive.spin(vex::directionType::rev);
+    }
+    else {
+      leftdrive.spin(vex::directionType::rev);
+      rightdrive.spin(vex::directionType::fwd);
+    }
+
+    ch = inertialSensor.heading();
+    degreeToGo = 90 - rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
+    CWDegreeToGo = 90 - ch;
+    CCWDegreeToGo = 360 - CWDegreeToGo;
+    vex::task::sleep(100);
+    
+  }
+  leftdrive.stop();
+  rightdrive.stop();
+}
+
 
 void pre_auton( void ) {
 }
@@ -332,156 +429,66 @@ void autonomous( void ) {
 }
 
 void usercontrol( void ) {
-  double liftSpeed = 70;
-  bool pressIn = false;
-  bool deployFork = false;
-  bool runPlatform = false;
+  inertialSensor.calibrate();
+  vex::task::sleep(500);
 
-  while (1) {
+  Coord actualDestLoc = makeTurnnew(90, true);
+  //goStraightnew(30, vex::directionType::fwd, 0, 50);
+  SmartScreen ss(Brain.Screen, 7, 8);
+  ss.printAt(7, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
 
-    if (rc.ButtonR1.pressing()) {
-      lift.setVelocity(liftSpeed, vex::percentUnits::pct);
-      lift.spin(vex::directionType::fwd);
-    }
-    else if (rc.ButtonR2.pressing()) {
-      lift.setVelocity(liftSpeed+10, vex::percentUnits::pct);
-      lift.spin(vex::directionType::rev);
-    }
-
-    else {
-      lift.stop(vex::brakeType::hold);
-    }
-
-    if (rc.ButtonUp.pressing()) {
-      runPlatform = true;
-    }
-    if (runPlatform) {
-      goPlatform();
-      runPlatform = false;
-    }
-
-    double leftMotorSpeed = rc.Axis3.position(vex::percentUnits::pct) * 0.85;
-    double rightMotorSpeed = rc.Axis2.position(vex::percentUnits::pct) * 0.85;
-
-    if (fabs(leftMotorSpeed) > 5.0) {
-      backleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
-      backleftdrive.spin(fwd);
-      frontleftdrive.setVelocity(leftMotorSpeed, vex::velocityUnits::pct);
-      frontleftdrive.spin(fwd);
-    }
-    else {
-      if (rc.ButtonLeft.pressing()) {
-        backleftdrive.stop(vex::brakeType::brake);
-        frontleftdrive.stop(vex::brakeType::brake);
-      }
-      else {
-      backleftdrive.stop(vex::brakeType::coast);
-      frontleftdrive.stop(vex::brakeType::coast);
-      }
-    }
-
-    if (fabs(rightMotorSpeed) > 5.0) {
-      backrightdrive.setVelocity(rightMotorSpeed, vex::velocityUnits::pct);
-      backrightdrive.spin(fwd);  
-      frontrightdrive.setVelocity(rightMotorSpeed, vex::velocityUnits::pct);
-      frontrightdrive.spin(fwd);
-    }
-    else {
-      if (rc.ButtonLeft.pressing()) {
-        backrightdrive.stop(vex::brakeType::brake);
-        frontrightdrive.stop(vex::brakeType::brake);
-      }
-      else {
-      backrightdrive.stop(vex::brakeType::coast);
-      frontrightdrive.stop(vex::brakeType::coast);
-      }
-    }
-
-    if (rc.ButtonDown.pressing()) {
-      deployFork = true;
-    }
-    if (deployFork) {
-      backintake.spinFor(vex::directionType::fwd, 3.75, vex::rotationUnits::rev, 80, vex::velocityUnits::pct);
-      deployFork = false;
-    }
-
-    if (rc.ButtonL2.pressing()) {
-      backintake.setVelocity(70, vex::percentUnits::pct);
-      backintake.spin(vex::directionType::fwd);
-    }
-
-    else if (rc.ButtonL1.pressing()) {
-      
-      backintake.setVelocity(50, vex::percentUnits::pct);
-      backintake.spin(vex::directionType::rev);
-
-    }
-
-    else {
-      backintake.stop(vex::brakeType::hold);
-
-    }
-
-    if (rc.ButtonA.pressing()) {
-      pressIn = false;
-      frontintake.setVelocity(50, vex::percentUnits::pct);
-      frontintake.spin(vex::directionType::fwd);
-    }
-    else if (rc.ButtonB.pressing()) {
-      pressIn = false;
-      frontintake.setVelocity(50, vex::percentUnits::pct);
-      frontintake.spin(vex::directionType::rev);
-    }
-    else {
-      frontintake.stop(hold);
-    }
-
-    if (rc.ButtonY.pressing()) {
-      pressIn = true;
-    }
-
-    if (pressIn) {
-      frontintake.setVelocity(10, vex::percentUnits::pct);
-      frontintake.spin(vex::directionType::rev);
-    }
+  // actualDestLoc = makeTurnnew(90, true, 30, 0.03, 0.1, actualDestLoc);
+  // ss.printAt(5, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
 
 
-    vex::task::sleep(50);
-  } // while loop
+  // Brain.Screen.setCursor(4, 1);  // has to set this each time calling print()
+  // Brain.Screen.setPenColor(color(0, 0, 250));
+  // Brain.Screen.clearLine(4);
+  // Brain.Screen.print("end coordinates: %d, %d", printValues.x, printValues.y);
+  
 } // usercontrol
 
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  Brain.Screen.setCursor(1, 1);
-  Brain.Screen.print("Built at: %s %s", __DATE__, __TIME__);
 
-  Brain.Screen.setCursor(3, 1);
-  Brain.Screen.print("3rd line");
+  // Brain.Screen.setCursor(1, 1);
+  // Brain.Screen.print("Built at: %s %s", __DATE__, __TIME__);
 
-  for (int i=10; i>0; --i) {
-    Brain.Screen.setCursor(2, 1);  // has to set this each time calling print()
-    Brain.Screen.setPenColor(color(0, 255, 0));
-    Brain.Screen.clearLine(2);
-    Brain.Screen.print("count down: %d", i);
-    task::sleep(50);
-  }
+  // Brain.Screen.setCursor(3, 1);
+  // Brain.Screen.print("3rd line");
+
+  // for (int i=10; i>0; --i) {
+  //   Brain.Screen.setCursor(2, 1);  // has to set this each time calling print()
+  //   Brain.Screen.setPenColor(color(0, 255, 0));
+  //   Brain.Screen.clearLine(2);
+  //   Brain.Screen.print("count down: %d", i);
+  //   task::sleep(50);
+  // }
 
 
-  SmartScreen scr1(Brain.Screen, 5, 5);
-  scr1.printAt(1, "Built at: %s %s", __DATE__, __TIME__);
+  // SmartScreen scr1(Brain.Screen, 1, 5);
+  // scr1.printAt(1, "Built at: %s %s", __DATE__, __TIME__); // shows when code was compiled
 
-  RollingScreen scr2(Brain.Screen, 10, 5);
+  // RollingScreen scr2(Brain.Screen, 10, 5);
 
-  scr1.printAt(3, "Foo");
+  // scr1.printAt(3, "Foo");
 
-  for (int i=100; i>0; --i) {
-    scr2.setPenColor(color(0, 255, 0));
-    scr2.print("roll up: %d", i);
-    task::sleep(100);
-  }
+  // for (int i=100; i>0; --i) {
+  //   scr2.setPenColor(color(255, 0, 0));
+  //   scr2.print("roll up: %d", i);
+  //   task::sleep(100);
+  // }
 
   //Brain.Screen.print("Get ready to start!");
+
+  inertialSensor.calibrate();
+  vex::task::sleep(2500);
+
+  Coord actualDestLoc = makeTurnnew(180, true);
+  SmartScreen ss(Brain.Screen, 1, 6);
+  ss.printAt(4, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
+
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );
 

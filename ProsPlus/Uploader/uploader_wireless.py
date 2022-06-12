@@ -1,11 +1,11 @@
-# This is a simple uploader which uses wired (USB) connection between computer and V5 brain.
-# user need ensure no other programs use such connections, or program will fail.
+# This is a simple uploader which uses wireless (bluetooth) connection between computer and V5 remote.
+# https://pros.cs.purdue.edu/v5/tutorials/topical/wireless-upload.html
+
 import logging
 from typing import Optional
 
 import pros.serial.devices.vex as vex
-from pros.cli.common import resolve_v5_port
-from pros.serial.ports import DirectPort
+from pros.serial.ports.v5_wireless_port import V5WirelessPort
 
 
 def upload(slot: int, pname: str, bin_file: str, desc: Optional[str] = None) -> None:
@@ -17,8 +17,13 @@ def upload(slot: int, pname: str, bin_file: str, desc: Optional[str] = None) -> 
 
     desc = desc or "Lazy team does not supply description."
 
-    port, is_v5_user_joystick = resolve_v5_port(None, "system")
-    ser = DirectPort(port)
+    ports = [p for p in vex.find_v5_ports("user") if "Controller" in p.description]
+
+    if len(ports) != 1:
+        raise ValueError(f"Find non-unique port")
+
+    port = ports[0].device
+    ser = V5WirelessPort(port)
 
     device = vex.V5Device(ser)
 
@@ -38,6 +43,6 @@ def upload(slot: int, pname: str, bin_file: str, desc: Optional[str] = None) -> 
 if __name__ == "__main__":
     logging.RootLogger(logging.DEBUG)
 
-    upload(6, "WiredTest", r"..\..\Play\InertialCoord\build\InertialCoord.bin")
+    upload(5, "WirelessTest", r"d:\dev\robotics\VEX_47114A_Cpp\Play\InertialCoord\build\InertialCoord.bin")
 
     print("OK")

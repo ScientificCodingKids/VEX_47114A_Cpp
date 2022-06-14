@@ -35,3 +35,6 @@
 bin
 build
 compile_commands.json
+
+ProPlus/.idea/*
+.idea

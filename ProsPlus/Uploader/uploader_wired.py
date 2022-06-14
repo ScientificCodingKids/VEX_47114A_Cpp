@@ -1,6 +1,7 @@
 # This is a simple uploader which uses wired (USB) connection between computer and V5 brain.
 # user need ensure no other programs use such connections, or program will fail.
 import logging
+import click
 from typing import Optional
 
 import pros.serial.devices.vex as vex
@@ -34,11 +35,18 @@ from pros.serial.ports import DirectPort
 # USER926x.bmp: VexCode C++ logo
 # USER999x.bmp: Default file logo (A file with </> in it)
 
-def upload(slot: int, pname: str, bin_file: str, desc: Optional[str] = None) -> None:
+
+@click.command()
+@click.option("--slot", default=1, help="V5 slot (1-8)")
+@click.option("--pname", default="Unnamed", help="Program name")
+@click.option("--bin_file", prompt="Path to bin file", help="bin file for project to upload")
+@click.option("--icon", default=None, help="icon as provided by VEX")
+def upload(slot: int, pname: str, bin_file: str, desc: Optional[str] = None, icon: Optional[str] = None) -> None:
     # according to upload.py, L106 and L143, we need use system port
     if not 1 <= slot <= 8:
         raise ValueError(f"Slot must be in 1 - 8: {slot}")
 
+    icon = icon or "USER027x.bmp"  # default at alien
     slot = slot - 1  # indexed by 0 while V5 indexed by 1
 
     desc = desc or "Lazy team does not supply description."
@@ -51,7 +59,7 @@ def upload(slot: int, pname: str, bin_file: str, desc: Optional[str] = None) -> 
     kwargs = {
         "slot": slot,
         # https://www.vexforum.com/t/a-guide-to-changing-program-icons/78293
-        "icon": "USER029x.bmp",
+        "icon": icon,
         "IDE": "VSCode",
         "description": desc,
         "remote_name": pname  # Program name shown on V5 brain screen
@@ -63,7 +71,7 @@ def upload(slot: int, pname: str, bin_file: str, desc: Optional[str] = None) -> 
 
 if __name__ == "__main__":
     logging.RootLogger(logging.DEBUG)
-
-    upload(7, "WiredTest", r"..\..\Play\InertialCoord\build\InertialCoord.bin")
+    upload()
+    #upload(7, "WiredTest", r"..\..\Play\InertialCoord\build\InertialCoord.bin")
 
     print("OK")

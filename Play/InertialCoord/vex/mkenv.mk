@@ -102,3 +102,7 @@ INC += -I"$(TOOLCHAIN)/$(PLATFORM)/include"
 INC += -I"D:/dev/robotics/VEX_47114A_Cpp/Utils"
 
 INC += ${TOOL_INC}
+
+# custom make config
+VEX_SLOT = 1
+VEX_ICON = "USER027x.bmp"

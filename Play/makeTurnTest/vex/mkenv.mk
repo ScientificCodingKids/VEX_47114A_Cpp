@@ -98,11 +98,4 @@ LIBS =  --start-group -lv5rt -lstdc++ -lc -lm -lgcc --end-group
 # include file paths
 INC += $(addprefix -I, ${INC_F})
 INC += -I"$(TOOLCHAIN)/$(PLATFORM)/include"
-
-INC += -I"$(VEX_DEV_HOME)/Utils"
-
 INC += ${TOOL_INC}
-
-# custom make config
-VEX_SLOT = 1
-VEX_ICON = "USER027x.bmp"

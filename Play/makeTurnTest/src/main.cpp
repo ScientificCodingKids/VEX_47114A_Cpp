@@ -45,6 +45,7 @@ double arc2deg(double arc) {
 
 Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, Coord srcLoc = Coord(0.0, 0.0))
 {
+  RollingScreen rs(Brain.Screen);
 
   Coord currLoc = srcLoc;
   Coord currLoc2 = srcLoc;
@@ -71,10 +72,13 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
   double dx2 = 0;
   double dy2 = 0;
   double chOld = 0;
+  bool currentTurnClockwise = turnClockwise;
 
   while (degreeToGo > tol) {
     double travelledDist = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - pastTravelled;
     double ch = inertialSensor.heading();
+    double chArc = degree2arc(ch);
+    double chOldArc = degree2arc(chOld);
     lrot = leftdrive.rotation(vex::rotationUnits::deg);
 
     //1. compute cw, ccw degreeToGo
@@ -108,7 +112,13 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
       isClose = true;
     }
     
-    bool currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
+    if (isClose) {
+      currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
+    }
+    
+    else {
+      currentTurnClockwise = turnClockwise;
+    }
 
     if (currentSpeed < 5) {
       currentSpeed = 5;
@@ -140,14 +150,16 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
     if (ch - chOld == 0) radius = 0;
     else radius = travelledDist/degree2arc(ch - chOld);
 
-    dx = travelledDist * sin(degree2arc(ch));
-    dy = travelledDist * cos(degree2arc(ch));
+    dx = travelledDist * sin(chArc);
+    dy = travelledDist * cos(chArc);
 
-    dx2 = radius * -cos(degree2arc(ch)) + radius * cos(degree2arc(chOld));
-    dy2 = radius * sin(degree2arc(ch) - radius * sin(degree2arc(chOld)));
+    dx2 = radius * -cos(chArc) + radius * cos(chOldArc);
+    dy2 = radius * sin(chArc) - radius * sin(chOldArc);
 
-    cout << "(" << currLoc2.x << ", " << currLoc2.y << "), (" << dx2 << ", " << dy2 << ")" << endl;
 
+    cout << ch << ", " << chOld << ":" << radius << ": " << "(" << currLoc2.x << ", " << currLoc2.y << "), (" << dx2 << ", " << dy2 << ")" << endl;
+
+    //rs.print("ch=%.2f: %.2f, R=%.2f; (%.2f, %.2f)", ch, chOld, radius, dx2, dy2);
     // change in value = distance newly travelled x sin or cos (arc of current inertial heading)
  
     currLoc.x = dx + currLoc.x;
@@ -325,7 +337,7 @@ void usercontrol( void ) {
   inertialSensor.calibrate();
   vex::task::sleep(500);
 
-  Coord actualDestLoc = makeTurnnew(90, true);
+  Coord actualDestLoc = makeTurnnew(90, false);
   //goStraightnew(30, vex::directionType::fwd, 0, 50);
   SmartScreen ss(Brain.Screen, 7, 8);
   ss.printAt(7, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
@@ -378,7 +390,7 @@ int main() {
   inertialSensor.calibrate();
   vex::task::sleep(2500);
 
-  Coord actualDestLoc = makeTurnnew(180, true);
+  Coord actualDestLoc = makeTurnnew(90, false);
   SmartScreen ss(Brain.Screen, 1, 6);
   ss.printAt(4, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
 

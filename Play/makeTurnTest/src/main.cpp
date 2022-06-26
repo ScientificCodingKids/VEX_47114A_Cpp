@@ -72,13 +72,10 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
   double dx2 = 0;
   double dy2 = 0;
   double chOld = 0;
-  bool currentTurnClockwise = turnClockwise;
 
   while (degreeToGo > tol) {
     double travelledDist = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - pastTravelled;
     double ch = inertialSensor.heading();
-    double chArc = degree2arc(ch);
-    double chOldArc = degree2arc(chOld);
     lrot = leftdrive.rotation(vex::rotationUnits::deg);
 
     //1. compute cw, ccw degreeToGo
@@ -112,13 +109,7 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
       isClose = true;
     }
     
-    if (isClose) {
-      currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
-    }
-    
-    else {
-      currentTurnClockwise = turnClockwise;
-    }
+    bool currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
 
     if (currentSpeed < 5) {
       currentSpeed = 5;
@@ -150,12 +141,11 @@ Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double
     if (ch - chOld == 0) radius = 0;
     else radius = travelledDist/degree2arc(ch - chOld);
 
-    dx = travelledDist * sin(chArc);
-    dy = travelledDist * cos(chArc);
+    dx = travelledDist * sin(degree2arc(ch));
+    dy = travelledDist * cos(degree2arc(ch));
 
-    dx2 = radius * -cos(chArc) + radius * cos(chOldArc);
-    dy2 = radius * sin(chArc) - radius * sin(chOldArc);
-
+    dx2 = radius * -cos(degree2arc(ch)) + radius * cos(degree2arc(chOld));
+    dy2 = radius * sin(degree2arc(ch) - radius * sin(degree2arc(chOld)));
 
     cout << ch << ", " << chOld << ":" << radius << ": " << "(" << currLoc2.x << ", " << currLoc2.y << "), (" << dx2 << ", " << dy2 << ")" << endl;
 

@@ -9,6 +9,8 @@
 #include "v5.h"
 #include "v5_vcs.h"
 
+using namespace std;
+
 class SmartScreen {
   /*
   One V5 brain screen can be divided into multiple "windowed" screens (by rows only; not supported by cols yet)

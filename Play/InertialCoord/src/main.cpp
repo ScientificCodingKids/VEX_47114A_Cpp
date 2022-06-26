@@ -29,16 +29,6 @@ using namespace std;
 competition Competition;
 
 
-double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4.15) {
-  // returns distance in inches
-  double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
-  return distance;
-}
-
-double degree2arc(double deg) {
-  return deg * M_PI / 180;
-}
-
 Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, Coord srcLoc = Coord(0.0, 0.0), double kp = 0.02, vex::brakeType bt = brake) {
   Coord currLoc = srcLoc;
 
@@ -108,140 +98,8 @@ Coord goStraightnew(double dist, vex::directionType dt, double tgtHeading, doubl
   return currLoc;
 } // goStraightnew
 
-double arc2deg(double arc) {
-  return 180 * M_PI / arc;
-}
-
-Coord makeTurnnew(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, Coord srcLoc = Coord(0.0, 0.0))
-{
-
-  Coord currLoc = srcLoc;
-  Coord currLoc2 = srcLoc;
-
-  leftdrive.resetRotation();
-  rightdrive.resetRotation();
-
-  double degreeToGo = tgtHeading - inertialSensor.heading();
-
-  if (degreeToGo < 0) {
-    degreeToGo = degreeToGo + 360.0;
-  }
-
-  double CWDegreeToGo = degreeToGo;
-  double CCWDegreeToGo = 360 - degreeToGo;
-
-  double lrot = leftdrive.rotation(vex::rotationUnits::deg);
-  double prevDegree = 0.0;
-  double changedRotations = lrot - prevDegree; // rotations passed since last loop
-  double dx = 0;
-  double dy = 0;
-  double pastTravelled = 0; // inches
-  double radius = 0;
-  double dx2 = 0;
-  double dy2 = 0;
-  double chOld = 0;
-
-  while (degreeToGo > tol) {
-    double travelledDist = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - pastTravelled;
-    double ch = inertialSensor.heading();
-    lrot = leftdrive.rotation(vex::rotationUnits::deg);
-
-    //1. compute cw, ccw degreeToGo
-    CWDegreeToGo = tgtHeading - ch;
-    CCWDegreeToGo = 360 - CWDegreeToGo;
-    
-    if (CWDegreeToGo < 0) {
-      CWDegreeToGo = CWDegreeToGo + 360;
-      CCWDegreeToGo = 360 - CWDegreeToGo;
-    }
-
-    assert(CWDegreeToGo >= 0 && CWDegreeToGo < 360);
-    assert(CCWDegreeToGo >= 0 && CCWDegreeToGo < 360);
-
-    //2. determine rotation direction and degreeToGo
-    degreeToGo = CWDegreeToGo < CCWDegreeToGo ? CWDegreeToGo : CCWDegreeToGo;
-    
-    double headingError = degreeToGo;
-    double currentSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
-
-    // if kp is larger, correction is greater; if kp is smaller, correction is smaller
-
-    bool isClose = false;
-
-    if (headingError > 15 || headingError < -15) {
-      currentSpeed = speed;
-    }
-
-    else {
-      currentSpeed = speed*(1-(15 - degreeToGo)/15);
-      isClose = true;
-    }
-    
-    bool currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
-
-    if (currentSpeed < 5) {
-      currentSpeed = 5;
-    }
-
-    // 3. set motor speed and direction
-    //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    //cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
-
-   
-    leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
-    rightdrive.setVelocity(currentSpeed, vex::velocityUnits::pct);
-
-    if (currentTurnClockwise) {
-      leftdrive.spin(vex::directionType::fwd);
-      rightdrive.stop(vex::brakeType::coast);
-    //  rightdrive.spin(vex::directionType::rev);
-    }
-    else {
-      leftdrive.spin(vex::directionType::rev);
-    //  rightdrive.spin(vex::directionType::fwd);
-      rightdrive.stop(vex::brakeType::coast);
-    }
 
 
-	//update coordinates
-
-    changedRotations = lrot - prevDegree;
-    if (ch - chOld == 0) radius = 0;
-    else radius = travelledDist/degree2arc(ch - chOld);
-
-    dx = travelledDist * sin(degree2arc(ch));
-    dy = travelledDist * cos(degree2arc(ch));
-
-    dx2 = radius * -cos(degree2arc(ch)) + radius * cos(degree2arc(chOld));
-    dy2 = radius * sin(degree2arc(ch) - radius * sin(degree2arc(chOld)));
-
-    cout << "(" << currLoc2.x << ", " << currLoc2.y << "), (" << dx2 << ", " << dy2 << ")" << endl;
-    cout << "radius: " << radius << ", ch: " << ch << ", prevDegree: " << prevDegree << endl;
-
-    // change in value = distance newly travelled x sin or cos (arc of current inertial heading)
- 
-    currLoc.x = dx + currLoc.x;
-    currLoc.y = dy + currLoc.y;
-
-    currLoc2.x = dx2 + currLoc2.x;
-    currLoc2.y = dy2 + currLoc2.y;
-
-    Brain.Screen.print("currLoc2: %f, $f", currLoc2.x, currLoc2.y);
-    pastTravelled = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
-
-    prevDegree = lrot;
-
-    chOld = ch;
-    vex::task::sleep(10);
-  }
-  
-  leftdrive.stop();
-  rightdrive.stop();
-  // Brain.Screen.print("straight line currLoc: %f, %f", currLoc.x, currLoc.y);
-  Brain.Screen.print("arc currLoc: %f, %f", currLoc2.x, currLoc2.y);
- 
-  return currLoc;
-}
 
 
 Coord gotoCoordnew(Coord startLoc, Coord destLoc, double originalSpeed) {
@@ -425,7 +283,7 @@ void pre_auton( void ) {
 void autonomous( void ) {
   inertialSensor.calibrate();
   vex::task::sleep(1500);
-  Coord printCoord = makeTurnnew(90, true, 50);
+  Coord printCoord = makeTurn(270, false, 50);
   Brain.Screen.print("%3.2f, %3.2f", printCoord.x, printCoord.y);
 }
 
@@ -433,7 +291,7 @@ void usercontrol( void ) {
   inertialSensor.calibrate();
   vex::task::sleep(500);
 
-  Coord actualDestLoc = makeTurnnew(90, true);
+  Coord actualDestLoc = makeTurn(90, true);
   //goStraightnew(30, vex::directionType::fwd, 0, 50);
   SmartScreen ss(Brain.Screen, 7, 8);
   ss.printAt(7, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
@@ -486,9 +344,11 @@ int main() {
   inertialSensor.calibrate();
   vex::task::sleep(2500);
 
-  Coord actualDestLoc = makeTurnnew(180, true);
+  Coord actualDestLoc = makeTurn(180, false);
   SmartScreen ss(Brain.Screen, 1, 6);
   ss.printAt(4, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
+  vex::task::sleep(3000);
+  ss.printAt(5, "actual loc after three seconds: (%.2f, %.2f)", actualDestLoc.x, actualDestLoc.y);
 
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );

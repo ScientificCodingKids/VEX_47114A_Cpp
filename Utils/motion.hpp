@@ -1,7 +1,10 @@
+//#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/v5_color.h"
 #include "vex.h"
 #include <iostream>
 #include <cmath>
+#include <cassert>
 
+#include "nutils.hpp"
 using namespace vex;
 using namespace std;
 
@@ -12,6 +15,22 @@ class Coord {
 
     Coord(double x0, double y0): x(x0), y(y0) {;}
 };
+
+double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4.15) {
+  // returns distance in inches
+  double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
+  return distance;
+}
+
+double degree2arc(double deg) {
+  return deg * M_PI / 180;
+}
+
+double arc2deg(double arc) {
+  return 180 * M_PI / arc;
+}
+
+
 
 Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0)) {
   Coord currLoc = srcLoc;
@@ -203,9 +222,13 @@ void goPlatformWithRotation(double initialSpeed=60, double slowSpeed = 20, doubl
   dt.stop(vex::brakeType::hold);
 }
 
-Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=0.1, Coord srcLoc = Coord(0.0, 0.0))
+
+Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, Coord srcLoc = Coord(0.0, 0.0))
 {
+  RollingScreen rs(Brain.Screen);
+
   Coord currLoc = srcLoc;
+  Coord currLoc2 = srcLoc;
 
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -218,18 +241,28 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
 
   double CWDegreeToGo = degreeToGo;
   double CCWDegreeToGo = 360 - degreeToGo;
+
+  double lrot = leftdrive.rotation(vex::rotationUnits::deg);
   double prevDegree = 0.0;
-  double prevRotLeft = leftdrive.rotation(vex::rotationUnits::deg);
-  double prevRotRight = rightdrive.rotation(vex::rotationUnits::deg);
-  double changedRotationsLeft = leftdrive.rotation(vex::rotationUnits::deg) - prevRotLeft;
-  double changedRotationsRight = rightdrive.rotation(vex::rotationUnits::deg) - prevRotRight;
+  double changedRotations = lrot - prevDegree; // rotations passed since last loop
   double dx = 0;
   double dy = 0;
+  double pastTravelled = 0; // inches
+  double radius = 0;
+  double dx2 = 0;
+  double dy2 = 0;
+  double chOld = 0;
+  double currentTurnClockwise = turnClockwise;
 
   while (degreeToGo > tol) {
+    double travelledDist = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - pastTravelled;
+    double ch = inertialSensor.heading();
+    double chArc = degree2arc(ch);
+    double chOldArc = degree2arc(chOld);
+    lrot = leftdrive.rotation(vex::rotationUnits::deg);
 
     //1. compute cw, ccw degreeToGo
-    CWDegreeToGo = tgtHeading - inertialSensor.heading();
+    CWDegreeToGo = tgtHeading - ch;
     CCWDegreeToGo = 360 - CWDegreeToGo;
     
     if (CWDegreeToGo < 0) {
@@ -237,13 +270,11 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
       CCWDegreeToGo = 360 - CWDegreeToGo;
     }
 
+    assert(CWDegreeToGo >= 0 && CWDegreeToGo < 360);
+    assert(CCWDegreeToGo >= 0 && CCWDegreeToGo < 360);
+
     //2. determine rotation direction and degreeToGo
-    if (CWDegreeToGo < CCWDegreeToGo) {
-      degreeToGo = CWDegreeToGo;
-    }
-    else {
-      degreeToGo = CCWDegreeToGo;
-    }
+    degreeToGo = CWDegreeToGo < CCWDegreeToGo ? CWDegreeToGo : CCWDegreeToGo;
     
     double headingError = degreeToGo;
     double currentSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
@@ -252,28 +283,20 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
 
     bool isClose = false;
 
-    if (headingError > 15) {
+    if (headingError > 15 || headingError < -15) {
       currentSpeed = speed;
     }
 
-    else if (headingError < -15) {
-      currentSpeed = speed;
-    }
     else {
+      currentSpeed = speed*(1-(15 - degreeToGo)/15);
       isClose = true;
     }
     
-    bool currentTurnClockwise = turnClockwise;
-
     if (isClose) {
-      if (CWDegreeToGo < CCWDegreeToGo) {
-        currentTurnClockwise = true; 
-        degreeToGo = CWDegreeToGo;
-      }
-      else {
-        currentTurnClockwise = false; 
-        degreeToGo = CCWDegreeToGo;
-      }
+      currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
+    }
+    else {
+      currentTurnClockwise = turnClockwise;
     }
 
     if (currentSpeed < 5) {
@@ -281,8 +304,8 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
     }
 
     // 3. set motor speed and direction
-    Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    cout << inertialSensor.heading() << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << endl;  // print to terminal
+    //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
+    //cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
 
    
     leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
@@ -290,36 +313,50 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
 
     if (currentTurnClockwise) {
       leftdrive.spin(vex::directionType::fwd);
+      rightdrive.stop(vex::brakeType::coast);
       rightdrive.spin(vex::directionType::rev);
     }
     else {
       leftdrive.spin(vex::directionType::rev);
       rightdrive.spin(vex::directionType::fwd);
+      rightdrive.stop(vex::brakeType::coast);
     }
 
-    vex::task::sleep(10);
 
 	//update coordinates
-	changedRotationsLeft = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRotLeft;
-	changedRotationsRight = (rightdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRotRight;
 
-	dx = (changedRotationsRight - changedRotationsLeft) * sin(inertialSensor.heading()-prevDegree);
-	dy = (changedRotationsRight - changedRotationsLeft) * cos(inertialSensor.heading()-prevDegree);
+    changedRotations = lrot - prevDegree;
+    if (ch - chOld == 0) radius = 0;
+    else radius = travelledDist/degree2arc(ch - chOld);
 
-	prevRotLeft = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
-	prevRotRight = (rightdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+    dx = travelledDist * sin(chArc);
+    dy = travelledDist * cos(chArc);
 
-	currLoc.x = currLoc.x - dx;
-	currLoc.y = currLoc.y + dy;
+    dx2 = radius * -cos(chArc) + radius * cos(chOldArc);
+    dy2 = radius * sin(chArc) + radius * sin(chOldArc);
+
+   
+    currLoc.x = dx + currLoc.x;
+    currLoc.y = dy + currLoc.y;
+
+    currLoc2.x = dx2 + currLoc2.x;
+    currLoc2.y = dy2 + currLoc2.y;
+
+    pastTravelled = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
+
+    prevDegree = lrot;
+
+    chOld = ch;
+    vex::task::sleep(10);
   }
   
   leftdrive.stop();
   rightdrive.stop();
-  Brain.Screen.print("done");
+  // Brain.Screen.print("straight line currLoc: %f, %f", currLoc.x, currLoc.y);
+  Brain.Screen.print("arc currLoc: %f, %f", currLoc2.x, currLoc2.y);
  
-  return currLoc;
+  return currLoc2;
 }
-
 
 void gotoCoord(double startX, double startY, double destX, double destY, double originalSpeed) {
   leftdrive.resetRotation();
@@ -356,3 +393,4 @@ void gotoCoord(double startX, double startY, double destX, double destY, double 
   makeTurn(angle, true, originalSpeed); // make sure angle is heading
   goStraight(distToGo, vex::directionType::fwd, angle, originalSpeed);
 }
+

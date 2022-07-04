@@ -271,7 +271,7 @@ void gotoCoord(double startX, double startY, double destX, double destY, double 
   goStraight(distToGo, vex::directionType::fwd, angle, originalSpeed);
 }
 
-void goPlatform(double initialSpeed=50, double tgtHeading = 0) {
+void goPlatform(double initialSpeed=20, double changeInPitchThreshold = 0.4, double tgtHeading = 0) {
   // assume the inertial sensor is attached so that pitch is being used and it is negative when heading up
   // the heading is positive towards the right
 
@@ -294,7 +294,7 @@ void goPlatform(double initialSpeed=50, double tgtHeading = 0) {
 
   RollingScreen rs(Brain.Screen);
 
-  while ((currentPitch < 0.4  + previousPitch || isRampUp) && !isDone) {
+  while ((currentPitch < changeInPitchThreshold + previousPitch || isRampUp) && !isDone) {
     previousPitch = currentPitch;
 
     currentPitch = inertialSensor.pitch();

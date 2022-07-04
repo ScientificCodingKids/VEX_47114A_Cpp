@@ -16,7 +16,7 @@
 // mogo2                motor         20              
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
-#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
+//#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
 #include "vex.h"
 #include <iostream>
 #include <cmath>
@@ -54,7 +54,7 @@ int main() {
   // vex::task::sleep(3000);
   // ss.printAt(2, "actual loc after three seconds: (%.2f, %.2f)", actualDestLoc.x, actualDestLoc.y);
 
-  goPlatformWithRotation2();
+  goPlatform();
   Brain.Screen.print("done");
 
   Competition.autonomous( autonomous );

@@ -249,8 +249,8 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
   double dy = 0;
   double pastTravelled = 0; // inches
   double radius = 0;
-  double dx2 = 0;
-  double dy2 = 0;
+  //double dx2 = 0;
+  //double dy2 = 0;
   double chOld = 0;
   double currentTurnClockwise = turnClockwise;
 
@@ -324,21 +324,21 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
 	//update coordinates
 
     changedRotations = lrot - prevDegree;
-    if (ch - chOld == 0) radius = 0;
-    else radius = abs(travelledDist)/degree2arc(ch - chOld);
+    //if (ch - chOld == 0) radius = 0;
+    //else radius = abs(travelledDist)/degree2arc(ch - chOld);
 
     dx = abs(travelledDist) * sin(chArc);
     dy = abs(travelledDist) * cos(chArc);
 
-    dx2 = radius * -cos(chArc) + radius * cos(chOldArc); 
-    dy2 = radius * sin(chArc) - radius * sin(chOldArc);
+    //dx2 = radius * -cos(chArc) + radius * cos(chOldArc); 
+    //dy2 = radius * sin(chArc) - radius * sin(chOldArc);
 
    
     currLoc.x = dx + currLoc.x;
     currLoc.y = dy + currLoc.y;
 
-    currLoc2.x = dx2 + currLoc2.x;
-    currLoc2.y = dy2 + currLoc2.y;
+    //currLoc2.x = dx2 + currLoc2.x;
+    //currLoc2.y = dy2 + currLoc2.y;
 
     pastTravelled = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
 
@@ -350,10 +350,10 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
   
   leftdrive.stop();
   rightdrive.stop();
-  SmartScreen ss(Brain.Screen, 1, 2);
-  ss.printAt(1, "straight line location: (%.2f, %.2f)", currLoc.x, currLoc.y);
+  // SmartScreen ss(Brain.Screen, 1, 2);
+  // ss.printAt(1, "straight line location: (%.2f, %.2f)", currLoc.x, currLoc.y);
  
-  return currLoc2;
+  return currLoc;
 }
 
 void gotoCoord(double startX, double startY, double destX, double destY, double originalSpeed) {

@@ -214,68 +214,6 @@ void inertialTest (void) {
   }
 }
 
-void primitiveTurnNinety(double speed) {
-  leftdrive.resetRotation();
-  rightdrive.resetRotation();
-  inertialSensor.resetHeading();
-
-  double degreeToGo = 90;
-  double CWDegreeToGo = 90;
-  double CCWDegreeToGo = 360 - CWDegreeToGo;
-  double ch = inertialSensor.heading();
-  bool turnClockwise = true;
-  bool isClose = false;
-  double currentSpeed = speed;
-
-  while (ch < 90) {
-    if (CWDegreeToGo < CCWDegreeToGo) {
-      turnClockwise = true;
-      degreeToGo = CWDegreeToGo;}
-    else {
-      turnClockwise = false;
-      degreeToGo = CCWDegreeToGo;
-    }
-
-    if (degreeToGo > 15) {
-      isClose = false;
-      currentSpeed = speed;
-    }
-    else {
-      isClose = true;
-      currentSpeed = currentSpeed = speed*(1-(15 - degreeToGo)/15);
-    }
-
-    if (currentSpeed < 5) {
-      currentSpeed = 5;
-    }
-
-    // 3. set motor speed and direction
-    //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
-    cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << endl;  // print to terminal
-
-    leftdrive.setVelocity(currentSpeed, vex::percentUnits::pct);
-    rightdrive.setVelocity(currentSpeed, vex::velocityUnits::pct);
-
-    if (turnClockwise) {
-      leftdrive.spin(vex::directionType::fwd);
-      rightdrive.spin(vex::directionType::rev);
-    }
-    else {
-      leftdrive.spin(vex::directionType::rev);
-      rightdrive.spin(vex::directionType::fwd);
-    }
-
-    ch = inertialSensor.heading();
-    degreeToGo = 90 - rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
-    CWDegreeToGo = 90 - ch;
-    CCWDegreeToGo = 360 - CWDegreeToGo;
-    vex::task::sleep(100);
-    
-  }
-  leftdrive.stop();
-  rightdrive.stop();
-}
-
 
 void pre_auton( void ) {
 }
@@ -345,10 +283,10 @@ int main() {
   vex::task::sleep(2500);
 
   Coord actualDestLoc = makeTurn(180, false);
-  SmartScreen ss(Brain.Screen, 1, 6);
-  ss.printAt(4, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
+  SmartScreen ss(Brain.Screen, 3, 6);
+  ss.printAt(1, "actual loc: (%.2f, %.2f)",actualDestLoc.x, actualDestLoc.y);
   vex::task::sleep(3000);
-  ss.printAt(5, "actual loc after three seconds: (%.2f, %.2f)", actualDestLoc.x, actualDestLoc.y);
+  ss.printAt(2, "actual loc after three seconds: (%.2f, %.2f)", actualDestLoc.x, actualDestLoc.y);
 
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );

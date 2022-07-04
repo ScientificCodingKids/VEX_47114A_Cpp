@@ -313,13 +313,11 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
 
     if (currentTurnClockwise) {
       leftdrive.spin(vex::directionType::fwd);
-      rightdrive.stop(vex::brakeType::coast);
       rightdrive.spin(vex::directionType::rev);
     }
     else {
       leftdrive.spin(vex::directionType::rev);
       rightdrive.spin(vex::directionType::fwd);
-      rightdrive.stop(vex::brakeType::coast);
     }
 
 
@@ -327,13 +325,13 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
 
     changedRotations = lrot - prevDegree;
     if (ch - chOld == 0) radius = 0;
-    else radius = travelledDist/degree2arc(ch - chOld);
+    else radius = abs(travelledDist)/degree2arc(ch - chOld);
 
-    dx = travelledDist * sin(chArc);
-    dy = travelledDist * cos(chArc);
+    dx = abs(travelledDist) * sin(chArc);
+    dy = abs(travelledDist) * cos(chArc);
 
-    dx2 = radius * -cos(chArc) + radius * cos(chOldArc);
-    dy2 = radius * sin(chArc) + radius * sin(chOldArc);
+    dx2 = radius * -cos(chArc) + radius * cos(chOldArc); 
+    dy2 = radius * sin(chArc) - radius * sin(chOldArc);
 
    
     currLoc.x = dx + currLoc.x;
@@ -352,8 +350,8 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
   
   leftdrive.stop();
   rightdrive.stop();
-  // Brain.Screen.print("straight line currLoc: %f, %f", currLoc.x, currLoc.y);
-  Brain.Screen.print("arc currLoc: %f, %f", currLoc2.x, currLoc2.y);
+  SmartScreen ss(Brain.Screen, 1, 2);
+  ss.printAt(1, "straight line location: (%.2f, %.2f)", currLoc.x, currLoc.y);
  
   return currLoc2;
 }

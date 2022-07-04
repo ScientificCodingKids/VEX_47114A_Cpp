@@ -156,79 +156,16 @@ void goPlatform(double initialSpeed=60) {
   dt.stop(vex::brakeType::hold);
 }
 
-void goPlatformWithRotation(double initialSpeed=60, double slowSpeed = 20, double tgtHeading = 0) {
-  leftdrive.resetRotation();
-  rightdrive.resetRotation();
-
-  double currentRoll = inertialSensor.roll(); // roll (angle) of robot
-  bool goforward = false; // direction
-  bool isDone = false; // exit while loop
-  double kp = 0.02;
-  double speed = initialSpeed; // adjusted speed
-  bool isRampUp = true; // whether it is the first time going up the ramp
-  double headingError = inertialSensor.heading() - tgtHeading;
-  double wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
-
-  while ((abs(currentRoll) >= 1 || isRampUp) && ~isDone) {
-    currentRoll = inertialSensor.roll();
-    wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
-
-    if ((wheelRotationIn < 23.5) && (isRampUp)) {
-      speed = initialSpeed;
-    }
-    else if ((wheelRotationIn > 23.5) || (~isRampUp)) {
-      speed = slowSpeed;
-    }
-    // changing directions
-    if (currentRoll >= 0) {
-      goforward = true;
-    }
-    else if (currentRoll < 0) {
-      if (~isRampUp) {
-       goforward = false;
-      }
-      if (isRampUp) {
-       goforward = true;
-      }
-    }
-
-    // adding goStraight
-
-    headingError = inertialSensor.heading() - tgtHeading;
-    if (headingError < -270) headingError = headingError + 360;
-    if (headingError > 270) headingError = headingError - 360;
-
-    if (headingError < -15) headingError = -15;
-    if (headingError > 15) headingError = 15;
-
-    if (goforward) {
-      leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
-      rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
-      leftdrive.spin(vex::directionType::fwd);
-      rightdrive.spin(vex::directionType::fwd);
-    } else {
-      leftdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
-      rightdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
-      leftdrive.spin(vex::directionType::rev);
-      rightdrive.spin(vex::directionType::rev);
-    }
-
-    if (rc.ButtonX.pressing()) {
-      isDone = true;
-    }
-    vex::task::sleep(10);
-  }
-
-  dt.stop(vex::brakeType::hold);
-}
-
-
 Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, Coord srcLoc = Coord(0.0, 0.0))
 {
+  // using straight line method to measure
+  // close enough to arc (within 0.1)
+  // code for arc is commented out
+
   RollingScreen rs(Brain.Screen);
 
   Coord currLoc = srcLoc;
-  Coord currLoc2 = srcLoc;
+  //Coord currLoc2 = srcLoc;
 
   leftdrive.resetRotation();
   rightdrive.resetRotation();
@@ -248,7 +185,7 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
   double dx = 0;
   double dy = 0;
   double pastTravelled = 0; // inches
-  double radius = 0;
+  //double radius = 0;
   //double dx2 = 0;
   //double dy2 = 0;
   double chOld = 0;
@@ -258,7 +195,7 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
     double travelledDist = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - pastTravelled;
     double ch = inertialSensor.heading();
     double chArc = degree2arc(ch);
-    double chOldArc = degree2arc(chOld);
+    //double chOldArc = degree2arc(chOld);
     lrot = leftdrive.rotation(vex::rotationUnits::deg);
 
     //1. compute cw, ccw degreeToGo
@@ -392,3 +329,81 @@ void gotoCoord(double startX, double startY, double destX, double destY, double 
   goStraight(distToGo, vex::directionType::fwd, angle, originalSpeed);
 }
 
+void goPlatform(double initialSpeed=50, double slowSpeed = 20, double tgtHeading = 0) {
+  // assume the inertial sensor is attached so that pitch is being used and it is negative when heading up
+  // the heading is positive towards the right
+
+  leftdrive.resetRotation();
+  rightdrive.resetRotation();
+
+  double currentPitch = inertialSensor.pitch(); // pitch (angle) of robot
+  double previousPitch = currentPitch;
+
+  bool goforward = false; // direction
+  bool isDone = false; // exit while loop
+  double kp = 0.1;
+  double speed = initialSpeed; // adjusted speed
+  bool isRampUp = true; // whether it is the first time going up the ramp
+  double headingError = inertialSensor.heading() - tgtHeading;
+  double wheelRotationIn = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
+  bool isSpeedMode = true;
+  double lastModeCounter = 0;
+  double counter = 0;
+  double timeInterval = 0.01; // ok: 0.05; (0.85)
+
+  RollingScreen rs(Brain.Screen);
+
+  while ((currentPitch < 0.4  + previousPitch || isRampUp) && !isDone) {
+     previousPitch = currentPitch;
+
+    currentPitch = inertialSensor.pitch();
+    wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+
+    isSpeedMode = false;
+
+    if (counter > 2) isRampUp = false;
+
+    // changing directions
+    goforward = isRampUp || (currentPitch < 0.);
+    
+    // adding goStraight
+
+    if (isSpeedMode) {
+      speed = initialSpeed;
+    }
+    else {
+      speed = slowSpeed;
+    }
+
+    headingError = inertialSensor.heading() - tgtHeading;
+    if (headingError < -270) headingError = headingError + 360;
+    if (headingError > 270) headingError = headingError - 360;
+
+    if (headingError < -15) headingError = -15;
+    if (headingError > 15) headingError = 15;
+
+    if (goforward) {
+      leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      leftdrive.spin(vex::directionType::fwd);
+      rightdrive.spin(vex::directionType::fwd);
+    } else {
+      leftdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
+      rightdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
+      leftdrive.spin(vex::directionType::rev);
+      rightdrive.spin(vex::directionType::rev);
+    }
+
+    if (rc.ButtonX.pressing()) {
+      isDone = true;
+    }
+    rs.print("p:%.1f/%.1f, RampUp: %d, speed: %.1f", currentPitch, previousPitch, isRampUp, speed);
+
+    vex::task::sleep(1000. * timeInterval);
+    lastModeCounter = lastModeCounter + timeInterval;
+    counter = counter + timeInterval;
+
+  }
+
+  dt.stop(vex::brakeType::hold);
+}

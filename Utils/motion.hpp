@@ -1,4 +1,5 @@
 //#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/v5_color.h"
+#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
 #include "vex.h"
 #include <iostream>
 #include <cmath>
@@ -97,65 +98,6 @@ Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double o
   return currLoc;
 } 
  
-void goPlatform(double initialSpeed=60) {
-  double currentRoll = inertialSensor.roll(); // roll (angle) of robot
-  bool goforward = false; // direction
-  bool isDone = false; // exit while loop
-  double k = 1.0; // coefficient on the speed
-  double speed = initialSpeed; // adjusted speed
-  bool isRampUp = true; // whether it is the first time going up the ramp
-  double counter = 0;
-
-  while ((abs(currentRoll) >= 1 || isRampUp) && ~isDone) {
-    currentRoll = inertialSensor.roll();
-    speed = k * currentRoll;
-    if (counter == 3) {
-    counter = 0;
-    }
-    counter = counter + 1;
-    // when to turn off isRampUp
-    if (currentRoll > 20) {
-      isRampUp = false;
-    }
-    // when to ignore k, revert to original
-    if ((speed > initialSpeed) || (isRampUp)) {
-      speed = initialSpeed;
-    }
-
-
-    if (abs(currentRoll) < 20 && ~isRampUp) {
-      speed = 5;
-    }
-    else {
-      speed = 45;
-    }
-
-    if (speed>(initialSpeed-5) && (counter==1 || counter==2)) {
-        speed = 0;
-    }
-
-    // changing directions
-    if (currentRoll >= 0) {
-      goforward = true;
-      dt.drive(vex::directionType::fwd, speed, vex::velocityUnits::pct);
-    }
-    else if (currentRoll < 0) {
-      if (~isRampUp) {
-       dt.drive(vex::directionType::rev, speed, vex::velocityUnits::pct);
-      }
-      if (isRampUp) {
-       dt.drive(vex::directionType::fwd, speed, vex::velocityUnits::pct);
-      }
-    }
-    if (rc.ButtonX.pressing()) {
-      isDone = true;
-    }
-    vex::task::sleep(10);
-  }
-
-  dt.stop(vex::brakeType::hold);
-}
-
 Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, Coord srcLoc = Coord(0.0, 0.0))
 {
   // using straight line method to measure
@@ -329,7 +271,7 @@ void gotoCoord(double startX, double startY, double destX, double destY, double 
   goStraight(distToGo, vex::directionType::fwd, angle, originalSpeed);
 }
 
-void goPlatform(double initialSpeed=50, double slowSpeed = 20, double tgtHeading = 0) {
+void goPlatform(double initialSpeed=50, double tgtHeading = 0) {
   // assume the inertial sensor is attached so that pitch is being used and it is negative when heading up
   // the heading is positive towards the right
 
@@ -346,34 +288,22 @@ void goPlatform(double initialSpeed=50, double slowSpeed = 20, double tgtHeading
   bool isRampUp = true; // whether it is the first time going up the ramp
   double headingError = inertialSensor.heading() - tgtHeading;
   double wheelRotationIn = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
-  bool isSpeedMode = true;
-  double lastModeCounter = 0;
-  double counter = 0;
+  double rampUpTime = 0;
   double timeInterval = 0.01; // ok: 0.05; (0.85)
+  double rampUpWait = 2;
 
   RollingScreen rs(Brain.Screen);
 
   while ((currentPitch < 0.4  + previousPitch || isRampUp) && !isDone) {
-     previousPitch = currentPitch;
+    previousPitch = currentPitch;
 
     currentPitch = inertialSensor.pitch();
-    wheelRotationIn = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+    wheelRotationIn = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
 
-    isSpeedMode = false;
-
-    if (counter > 2) isRampUp = false;
+    if (rampUpTime > rampUpWait) isRampUp = false;
 
     // changing directions
     goforward = isRampUp || (currentPitch < 0.);
-    
-    // adding goStraight
-
-    if (isSpeedMode) {
-      speed = initialSpeed;
-    }
-    else {
-      speed = slowSpeed;
-    }
 
     headingError = inertialSensor.heading() - tgtHeading;
     if (headingError < -270) headingError = headingError + 360;
@@ -400,10 +330,9 @@ void goPlatform(double initialSpeed=50, double slowSpeed = 20, double tgtHeading
     rs.print("p:%.1f/%.1f, RampUp: %d, speed: %.1f", currentPitch, previousPitch, isRampUp, speed);
 
     vex::task::sleep(1000. * timeInterval);
-    lastModeCounter = lastModeCounter + timeInterval;
-    counter = counter + timeInterval;
+    rampUpTime = rampUpTime + timeInterval;
 
   }
-
-  dt.stop(vex::brakeType::hold);
+  leftdrive.stop(vex::brakeType::hold);
+  rightdrive.stop(vex::brakeType::hold);
 }

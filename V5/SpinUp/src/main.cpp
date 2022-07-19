@@ -10,6 +10,10 @@ using namespace std;
 
 competition Competition;
 
+double multby2(double x) {
+  return x + 2.0;
+}
+
 
 void pre_auton( void ) {
   inertialSensor.calibrate();

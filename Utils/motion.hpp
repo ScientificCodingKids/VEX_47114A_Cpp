@@ -1,10 +1,7 @@
-#ifndef _motion_hpp_
-#define _motion_hpp_
-
-// #include "vex.h"  -- SHOULD NOT DEPEND ON A SPECIFIC PROJECT!!!
+//#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/v5_color.h"
+#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
+#include "vex.h"
 #include <iostream>
-
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cassert>
 
@@ -12,10 +9,6 @@
 using namespace vex;
 using namespace std;
 
-
-#ifndef M_PI
-#define M_PI = 3.14159265
-#endif
 
 class Coord {
   public:
@@ -35,7 +28,7 @@ double degree2arc(double deg) {
 }
 
 double arc2deg(double arc) {
-  return 180 * arc / M_PI;
+  return 180 * M_PI / arc;
 }
 
 
@@ -343,5 +336,3 @@ void goPlatform(double initialSpeed=20, double changeInPitchThreshold = 0.4, dou
   leftdrive.stop(vex::brakeType::hold);
   rightdrive.stop(vex::brakeType::hold);
 }
-
-#endif  // _motion_hpp_

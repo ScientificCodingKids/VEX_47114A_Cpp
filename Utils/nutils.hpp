@@ -10,7 +10,6 @@
 #include "v5_vcs.h"
 
 using namespace std;
-using namespace vex;
 
 class SmartScreen {
   /*

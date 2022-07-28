@@ -35,11 +35,7 @@ class XDriveRobot {
         vex::task::sleep(1500);
     }
 
-    void setSpeed(double blspeed, double brspeed, double flspeed, double frspeed, RollingScreen& rs) {
-        // double blspeed = -xSpeed + ySpeed + spinSpeed;
-        // double brspeed = xSpeed + ySpeed - spinSpeed;
-        // double flspeed = xSpeed + ySpeed + spinSpeed;
-        // double frspeed = -xSpeed + ySpeed - spinSpeed;
+    void move(double blspeed, double brspeed, double flspeed, double frspeed, RollingScreen& rs) {
 
         backleftdrive.spin(vex::directionType::fwd, blspeed, vex::velocityUnits::pct);
         backrightdrive.spin(vex::directionType::fwd, brspeed, vex::velocityUnits::pct);
@@ -48,7 +44,7 @@ class XDriveRobot {
 
         rs.print("motor speed: %.1f, %.1f, %.f, %.1f", blspeed, brspeed, flspeed, frspeed);
 
-    }  // setSpeed()
+    }  // move()
 
 };  // class XDriveRobot
 
@@ -66,18 +62,28 @@ double logDriveT(double cv) { // less intense, for turning
   //return pow(fabs(cv), 1.5) / (sign(cv)*sqrt(50));
 }
 
-void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs) {
+void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, double kp) {
     while (1) {
+        double h = robot.inertialSensor.heading();
+
         double xSpeed = logDrive(rc.Axis4.position(vex::percentUnits::pct)); // run experiment to see which side is positive/negative
-        double ySpeed = 0; //logDrive(rc.Axis3.position(vex::percentUnits::pct));
-        double spinSpeed = 0; //logDriveT(rc.Axis1.position(vex::percentUnits::pct)/2);
+        double ySpeed = logDrive(rc.Axis3.position(vex::percentUnits::pct));
+        double spinSpeed = -logDriveT(rc.Axis1.position(vex::percentUnits::pct)*3/4);
+
+        // double intendAngle = arc2degree(atan(abs(ySpeed/xSpeed)));
+        // if (xSpeed >= 0 && ySpeed >= 0) intendAngle = 90 - intendAngle;
+        // if (xSpeed >=0 && ySpeed < 0) intendAngle = 90 + intendAngle;
+        // if (xSpeed < 0 && ySpeed >= 0) intendAngle = 270 + intendAngle;
+        // if (xSpeed < 0 && ySpeed < 0) intendAngle = 270 -
+        // double actualAngle = h;
+        
         
         rs.print("user speed: %.1f, %.1f, %.f", xSpeed, ySpeed, spinSpeed);
 
-        double blspeed = -xSpeed + ySpeed + spinSpeed;
-        double brspeed = xSpeed + ySpeed - spinSpeed;
-        double flspeed = xSpeed + ySpeed + spinSpeed;
-        double frspeed = -xSpeed + ySpeed - spinSpeed;
+        double blspeed = xSpeed - ySpeed + spinSpeed;
+        double brspeed = -xSpeed - ySpeed - spinSpeed;
+        double flspeed = -xSpeed + ySpeed + spinSpeed;
+        double frspeed = xSpeed + ySpeed - spinSpeed;
 
         // double maxAxis = MAX(fabs(xSpeed), fabs(ySpeed), fabs(spinSpeed)); //Find the maximum input given by the controller's axes and the angle corrector
         // float maxOutput = MAX(fabs(blspeed), fabs(brspeed), fabs(flspeed), fabs(frspeed)); //Find the maximum output that the drive program has calculated
@@ -94,7 +100,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs) {
         // flspeed *= normalizer;
         // frspeed *= normalizer;
 
-        robot.setSpeed(blspeed, brspeed, flspeed, frspeed, rs);
+        robot.move(blspeed, brspeed, flspeed, frspeed, rs);
 
         vex::task::sleep(10);
     }

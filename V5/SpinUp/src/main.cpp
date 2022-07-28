@@ -29,7 +29,8 @@ XDriveRobot robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive
 RollingScreen rs(Brain.Screen);
 
 void usercontrol( void ) {
-  driveWithXD(robot, rc, rs);
+  robot.calibrate();
+  driveWithXD(robot, rc, rs, 0);
 } // usercontrol
 
 int main() {

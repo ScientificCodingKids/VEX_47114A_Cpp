@@ -18,6 +18,7 @@ class SmartScreen {
   User of SmartScreen is required to specify row number for each print
   */
   public:
+
     SmartScreen(vex::brain::lcd& aV5Screen, int firstRow=1, int maxRows=12): 
       _screen(aV5Screen), _firstRow(firstRow), _maxRows(maxRows) {;}
 

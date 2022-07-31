@@ -13,32 +13,6 @@ using namespace vex;
 using namespace std;
 
 
-#ifndef M_PI
-#define M_PI = 3.14159265
-#endif
-
-class Coord {
-  public:
-    double x, y;
-
-    Coord(double x0, double y0): x(x0), y(y0) {;}
-};
-
-double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4.15) {
-  // returns distance in inches
-  double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
-  return distance;
-}
-
-double degree2arc(double deg) {
-  return deg * M_PI / 180;
-}
-
-double arc2deg(double arc) {
-  return 180 * arc / M_PI;
-}
-
-
 
 Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0)) {
   Coord currLoc = srcLoc;

@@ -53,14 +53,39 @@ double sign (double x) {
     else return 1;
 }
 
-double logDrive (double cv) {
-  return pow(fabs(cv), 1.5) / (sign(cv)*sqrt(100));
+double logDrive (double cv, double c = 1.5) {
+    // map [-100, 100] to [-100, 100]
+  return pow(fabs(cv/100.), c) * sign(cv) * 100.0;
 }
 
 double logDriveT(double cv) { // less intense, for turning
     return cv;
   //return pow(fabs(cv), 1.5) / (sign(cv)*sqrt(50));
 }
+
+void autonWithXD(XDriveRobot& robot, double tgtHeading, double speed, double spinSpeed, RollingScreen& rs, double kp = 0.01) {
+    for (int t=0; t<200; ++t) {
+        double h = robot.inertialSensor.heading();
+
+        double xSpeed = tgtHeading * cos(degree2arc(tgtHeading));
+        double ySpeed = tgtHeading * sin(degree2arc(tgtHeading));
+
+        spinSpeed = spinSpeed - kp * (h - tgtHeading);
+
+        
+        rs.print("user speed: %.1f, %.1f, %.1f | %.1f, %.1f", xSpeed, ySpeed, spinSpeed, h, tgtHeading);
+
+        double blspeed = xSpeed - ySpeed + spinSpeed;
+        double brspeed = -xSpeed - ySpeed - spinSpeed;
+        double flspeed = -xSpeed + ySpeed + spinSpeed;
+        double frspeed = xSpeed + ySpeed - spinSpeed;
+
+        robot.move(blspeed, brspeed, flspeed, frspeed, rs);
+
+        task::sleep(10);
+    }  // for t
+
+}  //autonWithXD
 
 void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, double kp) {
     while (1) {

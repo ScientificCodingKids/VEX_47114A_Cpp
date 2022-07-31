@@ -10,6 +10,8 @@ using namespace vex;
 using namespace std;
 
 competition Competition;
+XDriveRobot robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor);
+RollingScreen rs(Brain.Screen);
 
 double multby2(double x) {
   return x * 2.0;
@@ -22,11 +24,9 @@ void pre_auton( void ) {
 }
 
 void autonomous( void ) {
-  
+  autonWithXD(robot, 0.0, 80, 0., rs, 0.05);
 }
 
-XDriveRobot robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor);
-RollingScreen rs(Brain.Screen);
 
 void usercontrol( void ) {
   robot.calibrate();

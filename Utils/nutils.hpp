@@ -12,6 +12,31 @@
 using namespace std;
 using namespace vex;
 
+#ifndef M_PI
+#define M_PI = 3.14159265
+#endif
+
+class Coord {
+  public:
+    double x, y;
+
+    Coord(double x0, double y0): x(x0), y(y0) {;}
+};
+
+double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4.15) {
+  // returns distance in inches
+  double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
+  return distance;
+}
+
+double degree2arc(double deg) {
+  return deg * M_PI / 180;
+}
+
+double arc2deg(double arc) {
+  return 180 * arc / M_PI;
+}
+
 class SmartScreen {
   /*
   One V5 brain screen can be divided into multiple "windowed" screens (by rows only; not supported by cols yet)

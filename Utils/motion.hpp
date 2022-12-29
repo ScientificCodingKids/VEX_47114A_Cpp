@@ -1,35 +1,16 @@
-//#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/v5_color.h"
-#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
-#include "vex.h"
+#ifndef _motion_hpp_
+#define _motion_hpp_
+
+// #include "vex.h"  -- SHOULD NOT DEPEND ON A SPECIFIC PROJECT!!!
 #include <iostream>
+
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cassert>
 
 #include "nutils.hpp"
 using namespace vex;
 using namespace std;
-
-
-class Coord {
-  public:
-    double x, y;
-
-    Coord(double x0, double y0): x(x0), y(y0) {;}
-};
-
-double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4.15) {
-  // returns distance in inches
-  double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
-  return distance;
-}
-
-double degree2arc(double deg) {
-  return deg * M_PI / 180;
-}
-
-double arc2deg(double arc) {
-  return 180 * M_PI / arc;
-}
 
 
 
@@ -336,3 +317,5 @@ void goPlatform(double initialSpeed=20, double changeInPitchThreshold = 0.4, dou
   leftdrive.stop(vex::brakeType::hold);
   rightdrive.stop(vex::brakeType::hold);
 }
+
+#endif  // _motion_hpp_

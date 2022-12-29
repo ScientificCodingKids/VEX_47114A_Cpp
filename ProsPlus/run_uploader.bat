@@ -16,4 +16,4 @@ call %CONDAPATH%\activate.bat %ENVNAME%
 python "%VEX_DEV_HOME%\ProsPlus\Uploader\uploader_wired.py" --slot=%1 --pname=%2 --icon=%3 --bin_file=%4
 
 rem Deactivate the environment
-conda deactivate
+rem conda deactivate

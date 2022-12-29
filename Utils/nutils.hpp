@@ -10,6 +10,32 @@
 #include "v5_vcs.h"
 
 using namespace std;
+using namespace vex;
+
+#ifndef M_PI
+#define M_PI = 3.14159265
+#endif
+
+class Coord {
+  public:
+    double x, y;
+
+    Coord(double x0, double y0): x(x0), y(y0) {;}
+};
+
+double rotation2distance(double deg, double gearRatio = 1, double wheelDiameter = 4.15) {
+  // returns distance in inches
+  double distance = (gearRatio * deg * wheelDiameter * M_PI) / 360;
+  return distance;
+}
+
+double degree2arc(double deg) {
+  return deg * M_PI / 180;
+}
+
+double arc2deg(double arc) {
+  return 180 * arc / M_PI;
+}
 
 class SmartScreen {
   /*
@@ -17,6 +43,7 @@ class SmartScreen {
   User of SmartScreen is required to specify row number for each print
   */
   public:
+
     SmartScreen(vex::brain::lcd& aV5Screen, int firstRow=1, int maxRows=12): 
       _screen(aV5Screen), _firstRow(firstRow), _maxRows(maxRows) {;}
 

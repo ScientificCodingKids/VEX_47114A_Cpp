@@ -20,8 +20,8 @@ using namespace std;
 
 class XDriveRobot {
     public:
-    XDriveRobot(vex::motor& bl, vex::motor& br, vex::motor& fr, vex::motor& fl, vex::brain& brn, vex::inertial& ins, vex::motor& fly, vex::motor& ind): 
-        backleftdrive(bl), backrightdrive(br), frontrightdrive(fr), frontleftdrive(fl), Brain (brn), inertialSensor(ins), flywheel(fly), indexer(ind) {;} 
+    XDriveRobot(vex::motor& bl, vex::motor& br, vex::motor& fr, vex::motor& fl, vex::brain& brn, vex::inertial& ins, vex::motor& fly, vex::motor& ind, vex::motor& intk): 
+        backleftdrive(bl), backrightdrive(br), frontrightdrive(fr), frontleftdrive(fl), Brain (brn), inertialSensor(ins), flywheel(fly), indexer(ind), intake(intk) {;} 
     vex::motor& backleftdrive;
     vex::motor& backrightdrive;
     vex::motor& frontrightdrive;
@@ -32,6 +32,7 @@ class XDriveRobot {
 
     vex::motor& flywheel;
     vex::motor& indexer;
+    vex::motor& intake;
 
     void calibrate () {
         inertialSensor.calibrate();
@@ -100,10 +101,8 @@ void autonWithXD(XDriveRobot& robot, double tgtHeading, double speed, double spi
 }  //autonWithXD
 
 void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, double kp) {
-    //robot.indexer.stop(vex::brakeType::hold);
 
     while (1) {
-        //robot.flywheel.stop(vex::brakeType::coast);
 
         double h = robot.inertialSensor.heading();
 
@@ -120,14 +119,21 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, dou
 
         robot.move(blspeed, brspeed, flspeed, frspeed, rs);
 
-        if (rc.ButtonX.pressing()) {
-            robot.flywheel.spin(vex::directionType::fwd, 70, vex::velocityUnits::pct);
-        }
-        else if (rc.ButtonY.pressing()) {
+        if (rc.ButtonY.pressing()) {
             robot.flywheel.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
         }
-        else if (rc.ButtonA.pressing()) {
+        else if (rc.ButtonX.pressing()) {
             robot.flywheel.stop(vex::brakeType::coast);
+        }
+
+        if (rc.ButtonUp.pressing()) {
+            robot.intake.spin(vex::directionType::fwd, 50, vex::velocityUnits::pct);
+        }
+        else if (rc.ButtonDown.pressing()) {
+            robot.intake.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
+        }
+        else if (rc.ButtonLeft.pressing()) {
+            robot.intake.stop(vex::brakeType::coast);
         }
 
         vex::task::sleep(10);

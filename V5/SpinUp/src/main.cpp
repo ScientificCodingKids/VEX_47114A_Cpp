@@ -10,7 +10,7 @@ using namespace vex;
 using namespace std;
 
 competition Competition;
-XDriveRobot robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, flywheel, indexer);
+XDriveRobot robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, flywheel, indexer, intake);
 RollingScreen rs(Brain.Screen);
 
 double multby2(double x) {

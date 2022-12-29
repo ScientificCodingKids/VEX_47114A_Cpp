@@ -17,6 +17,7 @@ extern vex::smartdrive sdrive;
 
 extern vex::motor flywheel;
 extern vex::motor indexer;
+extern vex::motor intake;
 
 //extern vex::motor_group intake;
 extern vex::controller rc;

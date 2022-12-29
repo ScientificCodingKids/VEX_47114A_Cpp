@@ -20,6 +20,7 @@ vex::smartdrive sdrive = vex::smartdrive(backleftdrive, backrightdrive, inertial
 
 vex::motor flywheel = vex::motor(PORT10);
 vex::motor indexer = vex::motor(PORT9, true);
+vex::motor intake = vex::motor(PORT6);
 
 vex::controller rc = vex::controller();
 

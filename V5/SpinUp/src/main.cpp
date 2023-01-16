@@ -5,6 +5,7 @@
 #include "../../../Utils/nutils.hpp"
 #include "../../../Utils/motion.hpp"
 #include "../../../Utils/XDrive.hpp"
+#include <tuple>
 
 using namespace vex;
 using namespace std;

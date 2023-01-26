@@ -113,28 +113,20 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
   double dx = 0; // change in x coordinate since last loop
   double dy = 0; // change in y coordinate since last loop
 
-  // set adjustment wheels
-  tuple <int> adjSL;
-  tuple <int> adjSR;
+  double xspeed = originalSpeed * cos(targetArc);
+  double yspeed = originalSpeed * sin(targetArc);
 
-  /*
-    fr = 1
-    br = 2
-    bl = 3
-    fl = 4
-  */
+  double blspeed = xSpeed - ySpeed;
+  double brspeed = -xSpeed - ySpeed;
+  double flspeed = -xSpeed + ySpeed;
+  double frspeed = xSpeed + ySpeed;
 
-  if (tgtHeading < 90 - wheelAngle || tgtHeading > 270 + wheelAngle) { adjSR = {1, 2}; adjSL = {3, 4}; }
-  else if (tgtHeading < 90 + wheelAngle) { adjSR = {2, 3}; adjSL = {1, 4}; }
-  else if (tgtHeading < 270 - wheelAngle) { adjSR = {3, 4}; adjSL = {1, 2}; }
-  else { adjSR = {1, 4}; adjSL = {2, 3}; }
- 
   while (distToGo > 0) {
-    double negate = 1;
-    double signflipbr = 1;
-    double signflipbl = 1;
-    double signflipfl = 1;
-    double signflipfr = 1;
+
+    double frsign = 1;
+    double flsign = -1;
+    double blsign = -1;
+    double brsign = 1;
 
     // update other variables
 
@@ -156,76 +148,7 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
 
     if (speed < finalSpeed) speed = finalSpeed;
 
-    if (headingError < 0) {
-    }
-
-    // setting up zeroes for perfect diagonals
-
-    if (tgtHeading == 45) {
-        signflipfr = 0;
-        signflipbl = 0;
-    }
-
-    else if (tgtHeading == 135) {
-        signflipbr = 0;
-        signflipfl = 0;
-    }
-
-    else if (tgtHeading == 225) {
-        signflipbl = 0;
-    }
-
-    else if (tgtHeading == 315) {
-
-    }
-
-    // adjusting values based on which side
-    // right is positive value
-
-    if (headingError > 0) {
-        if (adjSR == {1, 2}) {
-            signflipbl = -1 * signflipbl;
-            signflipfl = -1 * signflipfl;
-        }
-
-        if (adjSR == {2, 3}) {
-            signflipfr = -1 * signflipfr;
-            signflipfl = -1 * signflipfl;
-        }
-
-        if (adjSR == {3, 4}) {
-            signflipfr = -1;
-            signflipbr = -1;
-        }
-
-        if (adjSR == {1, 4}) {
-            signflipbr = -1;
-            signflipbl = -1;
-        }
-    }
-
-    else if (headingError < 0) {
-        if (adjSL == {1, 2}) {
-            signflipbl = -1 * signflipbl;
-            signflipfl = -1 * signflipfl;
-        }
-
-        if (adjSL == {2, 3}) {
-            signflipfr = -1 * signflipfr;
-            signflipfl = -1 * signflipfl;
-        }
-
-        if (adjSL == {3, 4}) {
-            signflipfr = -1;
-            signflipbr = -1;
-        }
-
-        if (adjSL == {1, 4}) {
-            signflipbr = -1;
-            signflipbl = -1;
-        }
-    }
-
+    
 
     if (dt == vex::directionType::fwd) {
       leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);

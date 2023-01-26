@@ -159,14 +159,30 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
     if (headingError < 0) {
     }
 
+    // setting up zeroes for perfect diagonals
+
     if (tgtHeading == 45) {
         signflipfr = 0;
-        signflipbr = 
-        signflipbl = 
-        signflip fl = 
+        signflipbl = 0;
     }
 
-    if (tgtHeading > 0) {
+    else if (tgtHeading == 135) {
+        signflipbr = 0;
+        signflipfl = 0;
+    }
+
+    else if (tgtHeading == 225) {
+        signflipbl = 0;
+    }
+
+    else if (tgtHeading == 315) {
+
+    }
+
+    // adjusting values based on which side
+    // right is positive value
+
+    if (headingError > 0) {
         if (adjSR == {1, 2}) {
             signflipbl = -1 * signflipbl;
             signflipfl = -1 * signflipfl;
@@ -188,7 +204,7 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
         }
     }
 
-    else if (tgtHeading < 0) {
+    else if (headingError < 0) {
         if (adjSL == {1, 2}) {
             signflipbl = -1 * signflipbl;
             signflipfl = -1 * signflipfl;

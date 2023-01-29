@@ -57,6 +57,13 @@ class XDriveRobot {
         frontrightdrive.stop(bt);
     }
 
+    // high level movement functions
+    void goStraight();
+
+    void makeTurn(); // this is "in-place" turn, different from ordinary drive train
+
+    void goTo(); // even higher level, go from A to B without explicilty mentioning heading
+
 };  // class XDriveRobot
 
 double sign (double x) {
@@ -72,6 +79,19 @@ double logDrive (double cv, double c = 1.5) {
 double logDriveT(double cv) { // less intense, for turning
     return cv;
   //return pow(fabs(cv), 1.5) / (sign(cv)*sqrt(50));
+}
+
+void XDriveRobot::goStraight() {
+// 1. copy the interface and implementation from motion.hpp
+// 2. interface should be kept -- as user should not care if the drivetrain is ordinary or x-drive
+// 3. implementation has to change: 1) use object method, not free function (and global varilables); 2) adjustment of heading can be directly applied on xSpeed, ySpeed (strife)
+// 4. MUST maintain the goodies like 1) ramp up and ramp down; 2) output destination coord
+}
+
+void XDriveRobot::makeTurn() {
+    // use spinSpeed
+    // the robot MUST perform in-place turn
+    // must compute and measure the error for output coordinates
 }
 
 void autonWithXD(XDriveRobot& robot, double tgtHeading, double speed, double spinSpeed, RollingScreen& rs, double kp = 0.01) {

@@ -3,7 +3,6 @@
 
 // #include "vex.h"  -- SHOULD NOT DEPEND ON A SPECIFIC PROJECT!!!
 
-#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
 #include <iostream>
 
 #define _USE_MATH_DEFINES
@@ -198,12 +197,22 @@ double logDriveT(double cv) { // less intense, for turning
 }
 
 void autonWithXD(XDriveRobot& robot) {
-    robot.move(double blspeed, double brspeed, double flspeed, double frspeed);
-    vex::task::sleep(2000);
+
+    robot.move(-50, -50, 50, 50);
+    vex::task::sleep(1000);
     robot.stop(vex::brakeType::coast);
-    robot.roller.spin(vex::directionType::fwd, 70, vex::velocityUnits::pct);
-    vex::task::sleep(2000);
+    robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+    vex::task::sleep(1000);
     robot.roller.stop(vex::brakeType::coast);
+    // robot.move(50, 50, -50, -50);
+    // vex::task::sleep(2300);
+    // robot.stop(vex::brakeType::coast);
+    // robot.move(50, -50, -50, 50);
+    // robot.stop(vex::brakeType::coast);
+    // robot.expander.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
+    // vex::task::sleep(1000);
+    // robot.expander.stop(vex::brakeType::coast);
+    
 
 }  //autonWithXD
 
@@ -228,6 +237,9 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, dou
 
         if (rc.ButtonY.pressing()) {
             robot.flywheel.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+        }
+        else if (rc.ButtonLeft.pressing()){
+            robot.flywheel.spin(vex::directionType::fwd, 40, vex::velocityUnits::pct);
         }
         else {
             robot.flywheel.stop(vex::brakeType::coast);

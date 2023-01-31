@@ -285,7 +285,7 @@ void autonWithXD(XDriveRobot& robot) {
 
     task::sleep(3000);
 
-    robot.makeTurn(90, true, 25, 0.05);
+    //robot.makeTurn(90, true, 25, 0.05);
 
     // below used in Kennedy event
     /* robot.move(-50, -50, 50, 50);
@@ -313,17 +313,17 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
     bool isShooting = false;
     int counter = 0; // for delayed intake start after flywheel
 
-    const controller::button& btnShootStart = rc.ButtonLeft;
-    const controller::button& btnShootStop = rc.ButtonRight;
+    controller::button& btnShootStart = rc.ButtonLeft;
+    controller::button& btnShootStop = rc.ButtonRight;
 
-    const controller::button& btnIntakeFwd = rc.ButtonL1;
-    const controller::button& btnIntakeRev = rc.ButtonL2;
+    controller::button& btnIntakeFwd = rc.ButtonL1;
+    controller::button& btnIntakeRev = rc.ButtonL2;
 
-    const controller::button& btnRollerFwd = rc.ButtonR1;
-    const controller::button& btnRollerRev = rc.ButtonR2;
+    controller::button& btnRollerFwd = rc.ButtonR1;
+    controller::button& btnRollerRev = rc.ButtonR2;
 
-    const controller::button& btnExpanderFwd = rc.ButtonUp;
-    const controller::button& btnExpanderRev = rc.ButtonDown;
+    controller::button& btnExpanderFwd = rc.ButtonUp;
+    controller::button& btnExpanderRev = rc.ButtonDown;
 
     while (1) {
         double xSpeed = logDrive(rc.Axis4.position(percentUnits::pct)); // run experiment to see which side is positive/negative
@@ -345,7 +345,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
 
         double spinSpeed = logDriveT(rc.Axis1.position(percentUnits::pct)*3/4);
         
-        rs.print("user speed: %.1f, %.1f, %.f", xSpeed, ySpeed, spinSpeed);
+        //rs.print("user speed: %.1f, %.1f, %.f", xSpeed, ySpeed, spinSpeed);
 
         // based on motor config: +, -, -, +
         double blspeed = xSpeed - ySpeed - spinSpeed;
@@ -363,6 +363,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
         if (btnShootStop.pressing()) {
             isShooting = false;
             counter = 0;
+            rs.print("STOP flywheel: %d", counter);
             robot.flywheel.stop(brakeType::coast);
             robot.intake.stop(brakeType::coast);
         }
@@ -404,7 +405,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
         if (isShooting) {
             counter++;
         }
-        
+        rs.print("%d: %d", isShooting, counter);
         task::sleep(10);
     }
 }

@@ -29,7 +29,7 @@ $(BUILD)/$(PROJECTLIB).a: $(OBJ)
 # upload to brain using ProsPlus
 upload: $(BUILD)/$(PROJECT).bin
 	echo $(VEX_DEV_HOME)/V5/$(PROJECT)/$(BUILD)/$(PROJECT).bin
-	call "$(VEX_DEV_HOME)\ProsPlus\run_uploader.bat" 1 $(PROJECT) $(VEX_ICON) "$(VEX_DEV_HOME)\V5\$(PROJECT)\$(BUILD)\$(PROJECT).bin"
+	call "$(VEX_DEV_HOME)\ProsPlus\run_uploader.bat" $(VEX_SLOT) $(PROJECT) $(VEX_ICON) "$(VEX_DEV_HOME)\V5\$(PROJECT)\$(BUILD)\$(PROJECT).bin"
 	echo Done
 # clean project
 

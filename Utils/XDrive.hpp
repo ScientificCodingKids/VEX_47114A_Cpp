@@ -93,7 +93,7 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
     resetRot();
 
     // orientation of the wheels, default = 45
-    double wheelAngle = 45;
+    //double wheelAngle = 45;
 
     // tracking distance
     double distToGo = dist; // distance more to travel
@@ -280,13 +280,21 @@ double logDriveT(double cv) { // less intense, for turning
 }
 
 void autonWithXD(XDriveRobot& robot) {
+    robot.goStraight(5, directionType::fwd, 0, 70, 0.05);
 
-    robot.move(-50, -50, 50, 50);
+    task::sleep(3000);
+
+    robot.makeTurn(90, true, 25, 0.05);
+
+    // below used in Kennedy event
+    /* robot.move(-50, -50, 50, 50);
     vex::task::sleep(1000);
     robot.stop(vex::brakeType::coast);
     robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
     vex::task::sleep(1000);
-    robot.roller.stop(vex::brakeType::coast);
+    robot.roller.stop(vex::brakeType::coast); 
+    */
+
     // robot.move(50, 50, -50, -50);
     // vex::task::sleep(2300);
     // robot.stop(vex::brakeType::coast);
@@ -304,9 +312,21 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
     bool isShooting = false;
     int counter = 0; // for delayed intake start after flywheel
 
+    const controller::button& btnShootStart = rc.ButtonLeft;
+    const controller::button& btnShootStop = rc.ButtonRight;
+
+    const controller::button& btnIntakeFwd = rc.ButtonL1;
+    const controller::button& btnIntakeRev = rc.ButtonL2;
+
+    const controller::button& btnRollerFwd = rc.ButtonR1;
+    const controller::button& btnRollerRev = rc.ButtonR2;
+
+    const controller::button& btnExpanderFwd = rc.ButtonUp;
+    const controller::button& btnExpanderRev = rc.ButtonDown;
+
     while (1) {
-        double xSpeed = logDrive(rc.Axis4.position(vex::percentUnits::pct)); // run experiment to see which side is positive/negative
-        double ySpeed = logDrive(rc.Axis3.position(vex::percentUnits::pct));
+        double xSpeed = logDrive(rc.Axis4.position(percentUnits::pct)); // run experiment to see which side is positive/negative
+        double ySpeed = logDrive(rc.Axis3.position(percentUnits::pct));
 
         // force move along x or y direction, no striffing
         if (fabs(xSpeed) > 2.0 * fabs(ySpeed)) {
@@ -322,7 +342,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
             }
         }
 
-        double spinSpeed = logDriveT(rc.Axis1.position(vex::percentUnits::pct)*3/4);
+        double spinSpeed = logDriveT(rc.Axis1.position(percentUnits::pct)*3/4);
         
         rs.print("user speed: %.1f, %.1f, %.f", xSpeed, ySpeed, spinSpeed);
 
@@ -334,60 +354,57 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
 
         robot.move(blspeed, brspeed, flspeed, frspeed);
 
-        /*if (rc.ButtonY.pressing()) {
-            robot.flywheel.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
-        }
-        else if (!isShooting) {
-            robot.flywheel.stop(vex::brakeType::coast);
-        }*/
-
-        if (rc.ButtonLeft.pressing()){
+        if (btnShootStart.pressing()){
             isShooting = true;
-            robot.flywheel.spin(vex::directionType::fwd, 70, vex::velocityUnits::pct);
+            robot.flywheel.spin(directionType::fwd, 70, velocityUnits::pct);
         }
-        else {
+        
+        if (btnShootStop.pressing()) {
             isShooting = false;
             counter = 0;
+            robot.flywheel.stop(brakeType::coast);
+            robot.intake.stop(brakeType::coast);
         }
 
-        if (rc.ButtonL1.pressing()) {
-            robot.intake.spin(vex::directionType::fwd, 50, vex::velocityUnits::pct);
+        if (btnIntakeFwd.pressing()) {
+            robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
         }
-        else if (rc.ButtonL2.pressing()) {
-            robot.intake.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
+        else if (btnIntakeRev.pressing()) {
+            robot.intake.spin(directionType::rev, 50, velocityUnits::pct);
         }
         else if (!isShooting) {
-            robot.intake.stop(vex::brakeType::coast);
+            robot.intake.stop(brakeType::coast);
         }
 
-        if (rc.ButtonR1.pressing()) {
-            robot.roller.spin(vex::directionType::fwd, 70, vex::velocityUnits::pct);
+        if (btnRollerFwd.pressing()) {
+            robot.roller.spin(directionType::fwd, 70, velocityUnits::pct);
         }
-        else if (rc.ButtonR2.pressing()) {
-            robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+        else if (btnRollerRev.pressing()) {
+            robot.roller.spin(directionType::rev, 70, velocityUnits::pct);
         }
         else {
-            robot.roller.stop(vex::brakeType::coast);
+            robot.roller.stop(brakeType::coast);
         }
 
-        if (rc.ButtonUp.pressing()) {
-            robot.expander.spin(vex::directionType::fwd, 50, vex::velocityUnits::pct);
+        if (btnExpanderFwd.pressing()) {
+            robot.expander.spin(directionType::fwd, 50, velocityUnits::pct);
         }
-        else if (rc.ButtonDown.pressing()) {
-            robot.expander.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
+        else if (btnExpanderRev.pressing()) {
+            robot.expander.spin(directionType::rev, 50, velocityUnits::pct);
         }
         else {
-            robot.expander.stop(vex::brakeType::coast);
+            robot.expander.stop(brakeType::coast);
         }
 
         if (isShooting && counter == 400) {
-            robot.intake.spin(vex::directionType::fwd, 50, vex::velocityUnits::pct);
+            robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
         }
 
         if (isShooting) {
             counter++;
         }
-        vex::task::sleep(10);
+        
+        task::sleep(10);
     }
 }
 

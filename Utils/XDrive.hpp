@@ -3,6 +3,7 @@
 
 // #include "vex.h"  -- SHOULD NOT DEPEND ON A SPECIFIC PROJECT!!!
 
+#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
 #include <iostream>
 
 #define _USE_MATH_DEFINES
@@ -38,6 +39,14 @@ class XDriveRobot {
     void calibrate () {
         inertialSensor.calibrate();
         vex::task::sleep(1500);
+    }
+
+    double sin_with_deg(double deg) {
+        return sin(deg * M_PI / 180);
+    }
+
+    double cos_with_deg(double deg) {
+        return cos(deg * M_PI / 180);
     }
 
     void move(double blspeed, double brspeed, double flspeed, double frspeed) {
@@ -84,18 +93,16 @@ class XDriveRobot {
 
 };  // class XDriveRobot
 
-Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp, vex::brakeType bt, Coord srcLoc) {
+Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHeading, double speed, double kp, vex::brakeType bt, Coord srcLoc) {
   Coord currLoc = srcLoc;
 
   resetRot();
 
   // orientation of the wheels, default = 45
   double wheelAngle = 45;
-  double wheelArc = degree2arc(45);
 
   // target orientation that the robot should cont. to travel at
   // tgtHeading is a parameter
-  double targetArc = degree2arc(tgtHeading);
   
   // tracking distance
   double distToGo = dist; // distance more to travel
@@ -105,21 +112,16 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
 
   // speed
   double finalSpeed = 10; // capping speed
-  double speed = originalSpeed; // max speed
   double const adaptiveInterval = 10; // slow down/speed up interval
-
   
   // location tracking on the coordinate plane
   double dx = 0; // change in x coordinate since last loop
   double dy = 0; // change in y coordinate since last loop
 
-  double xSpeed = originalSpeed * cos(targetArc);
-  double ySpeed = originalSpeed * sin(targetArc);
-
-  double blspeed = xSpeed - ySpeed;
-  double brspeed = -xSpeed - ySpeed;
-  double flspeed = -xSpeed + ySpeed;
-  double frspeed = xSpeed + ySpeed;
+  double blspeed = blxdriveVelocity(speed, tgtHeading);
+  double brspeed = brxdriveVelocity(speed, tgtHeading);
+  double flspeed = flxdriveVelocity(speed, tgtHeading);
+  double frspeed = frxdriveVelocity(speed, tgtHeading);
 
   while (distToGo > 0) {
 
@@ -160,12 +162,12 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
 
     distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
 
-    changedRot = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRot; // need scale, deg => inch
+    changedRot = (backleftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRot; // need scale, deg => inch
 
-    dx = changedRot * cos(90-inertialSensor.heading());
-    dy = changedRot * sin(90-inertialSensor.heading());
+    dx = changedRot * cos_with_deg(wheelAngle + inertialSensor.heading());
+    dy = changedRot * sin_with_deg(wheelAngle + inertialSensor.heading());
 
-    prevRot = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+    prevRot = (backleftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
 
     currLoc.x = dx + currLoc.x;
     currLoc.y = dy + currLoc.y;
@@ -174,8 +176,7 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
   }
   cout << "finalSpeed = " << speed << endl;
   Brain.Screen.print("finalSpeed = %f ", speed);
-  leftdrive.stop(bt);
-  rightdrive.stop(bt);
+  stop(vex::brakeType::brake);
   cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
   Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
   return currLoc;
@@ -218,6 +219,9 @@ void autonWithXD(XDriveRobot& robot) {
 
 void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, double kp) {
 
+    bool isShooting = false;
+    double counter = 0;
+
     while (1) {
 
         double h = robot.inertialSensor.heading();
@@ -238,11 +242,17 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, dou
         if (rc.ButtonY.pressing()) {
             robot.flywheel.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
         }
-        else if (rc.ButtonLeft.pressing()){
-            robot.flywheel.spin(vex::directionType::fwd, 40, vex::velocityUnits::pct);
-        }
-        else {
+        else if (isShooting == false) {
             robot.flywheel.stop(vex::brakeType::coast);
+        }
+
+        if (rc.ButtonLeft.pressing()){
+            isShooting = true;
+            robot.flywheel.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+        }
+        if (rc.ButtonRight.pressing()) {
+            isShooting = false;
+            counter = 0;
         }
 
         if (rc.ButtonL1.pressing()) {
@@ -251,7 +261,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, dou
         else if (rc.ButtonL2.pressing()) {
             robot.intake.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
         }
-        else {
+        else if (isShooting == false) {
             robot.intake.stop(vex::brakeType::coast);
         }
 
@@ -275,6 +285,11 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, dou
             robot.expander.stop(vex::brakeType::coast);
         }
 
+        if (isShooting && counter == 400) {
+            robot.intake.spin(vex::directionType::fwd, 50, vex::velocityUnits::pct);
+        }
+
+        counter++;
         vex::task::sleep(10);
     }
 }

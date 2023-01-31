@@ -102,10 +102,10 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
     double finalSpeed = 10; // lowest speed to avoid stall
     double const adaptiveInterval = 10; // slow down/speed up interval
 
-    double frsign = 1;
-    double flsign = -1;
     double blsign = -1;
     double brsign = 1;
+    double flsign = 1;
+    double frsign = -1;
 
     double msecs = 10.0; // looping interval
 
@@ -165,6 +165,7 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
 
         distToGo = sqrt( (destLoc.x - currLoc.x)*(destLoc.x - currLoc.x) + (destLoc.y - currLoc.y) * (destLoc.y - currLoc.y) );
 
+        rs.print("(%.1f, %.1f, %.1f, %.1f), ke=%.1f, dx=%.1f, %.1f", blspeed, brspeed, flspeed, frspeed, kpHeadingErr, dx, dy);
         vex::task::sleep(msecs);
 
     }  // while
@@ -280,7 +281,7 @@ double logDriveT(double cv) { // less intense, for turning
 }
 
 void autonWithXD(XDriveRobot& robot) {
-    robot.goStraight(5, directionType::fwd, 0, 70, 0.05);
+    robot.goStraight(20, directionType::fwd, 0, 70, 0.0);
 
     task::sleep(3000);
 

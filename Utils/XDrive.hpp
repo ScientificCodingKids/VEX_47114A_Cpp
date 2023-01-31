@@ -3,6 +3,7 @@
 
 // #include "vex.h"  -- SHOULD NOT DEPEND ON A SPECIFIC PROJECT!!!
 
+#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_motor.h"
 #include <iostream>
 
 #define _USE_MATH_DEFINES
@@ -20,12 +21,14 @@ using namespace std;
 
 class XDriveRobot {
     public:
-    XDriveRobot(vex::motor& bl, vex::motor& br, vex::motor& fr, vex::motor& fl, vex::brain& brn, vex::inertial& ins, vex::motor& fly, vex::motor& exp, vex::motor& intk, vex::motor& roll): 
-        backleftdrive(bl), backrightdrive(br), frontrightdrive(fr), frontleftdrive(fl), Brain (brn), inertialSensor(ins), flywheel(fly), expander(exp), intake(intk), roller(roll) {;} 
+    XDriveRobot(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, vex::brain& brn, vex::inertial& ins, vex::motor& fly, vex::motor& exp, vex::motor& intk, vex::motor& roll): 
+        backleftdrive(bl), backrightdrive(br), frontleftdrive(fr), frontrightdrive(fl), Brain (brn), inertialSensor(ins), flywheel(fly), expander(exp), intake(intk), roller(roll) {
+            ;
+    }
     vex::motor& backleftdrive;
     vex::motor& backrightdrive;
-    vex::motor& frontrightdrive;
     vex::motor& frontleftdrive;
+    vex::motor& frontrightdrive;
 
     vex::brain& Brain;
     vex::inertial& inertialSensor;
@@ -64,121 +67,111 @@ class XDriveRobot {
         frontrightdrive.resetRotation();
     }
 
-    double frxdriveVelocity (double speed, double tgtHeading, double wheelAngle = 45) {
-        return speed * sin(degree2arc(90-wheelAngle-tgtHeading));
-    }
-
-    double flxdriveVelocity (double speed, double tgtHeading, double wheelAngle = 45) {
-        return speed * sin(degree2arc(90-wheelAngle+tgtHeading));
-    }
-
-    double brxdriveVelocity (double speed, double tgtHeading, double wheelAngle = 45) {
-        return speed * sin(degree2arc(90-wheelAngle+tgtHeading));
-    }
-
-    double blxdriveVelocity (double speed, double tgtHeading, double wheelAngle = 45) {
-        return speed * sin(degree2arc(90-wheelAngle-tgtHeading));
-    }
-
     Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
 
 };  // class XDriveRobot
 
+double sin_by_deg(double x) {
+    return sin(x/M_PI);
+}
+
+double cos_by_deg(double x) {
+    return cos(x/M_PI);
+}
+
 Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp, vex::brakeType bt, Coord srcLoc) {
-  Coord currLoc = srcLoc;
+    RollingScreen rs(this->Brain.Screen);
 
-  resetRot();
+    Coord currLoc = srcLoc;
+    
+    Coord destLoc(srcLoc.x + dist * cos(90 - tgtHeading), srcLoc.y + dist * sin(90 - tgtHeading));
 
-  // orientation of the wheels, default = 45
-  double wheelAngle = 45;
-  double wheelArc = degree2arc(45);
+    double refDiameter = 4.0; // inch; for the wheel attached to the refMotor
 
-  // target orientation that the robot should cont. to travel at
-  // tgtHeading is a parameter
-  double targetArc = degree2arc(tgtHeading);
-  
-  // tracking distance
-  double distToGo = dist; // distance more to travel
-  double distTravelled = dist - distToGo; // distance already traveled
-  double prevRot = backleftdrive.rotation(vex::rotationUnits::deg); // amount of rotation at the last run through
-  double changedRot = backleftdrive.rotation(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
+    resetRot();
 
-  // speed
-  double finalSpeed = 10; // capping speed
-  double speed = originalSpeed; // max speed
-  double const adaptiveInterval = 10; // slow down/speed up interval
+    // orientation of the wheels, default = 45
+    double wheelAngle = 45;
 
-  
-  // location tracking on the coordinate plane
-  double dx = 0; // change in x coordinate since last loop
-  double dy = 0; // change in y coordinate since last loop
+    // tracking distance
+    double distToGo = dist; // distance more to travel
 
-  double xSpeed = originalSpeed * cos(targetArc);
-  double ySpeed = originalSpeed * sin(targetArc);
-
-  double blspeed = xSpeed - ySpeed;
-  double brspeed = -xSpeed - ySpeed;
-  double flspeed = -xSpeed + ySpeed;
-  double frspeed = xSpeed + ySpeed;
-
-  while (distToGo > 0) {
+    // speed
+    double finalSpeed = 10; // lowest speed to avoid stall
+    double const adaptiveInterval = 10; // slow down/speed up interval
 
     double frsign = 1;
     double flsign = -1;
     double blsign = -1;
     double brsign = 1;
 
-    // update other variables
+    double msecs = 10.0; // looping interval
 
-    double headingError = inertialSensor.heading() - tgtHeading; // updates the error in heading
+    while (distToGo > 0) {
+        // update other variables
+        double speed = originalSpeed; // compute current speed, which is subject to ramp up/down
 
-    // adjusts the heading error so that it is between -180 and 180
-    if (headingError < -180) headingError = headingError + 360;
-    if (headingError > 180) headingError = headingError - 360;
+        double headingError = inertialSensor.heading() - tgtHeading; // updates the error in heading
 
-    // caps headingError so that adjustments are not too dramatic
-    if (headingError < -15) headingError = -15;
-    if (headingError > 15) headingError = 15;
+        // adjusts the heading error so that it is between -180 and 180
+        if (headingError < -180) headingError = headingError + 360;
+        if (headingError > 180) headingError = headingError - 360;
 
-    // by default, speed with no adjustments is as such
-    speed = originalSpeed;
+        // caps headingError so that adjustments are not too dramatic
+        if (headingError < -15) headingError = -15;
+        if (headingError > 15) headingError = 15;
 
-    if (distTravelled < adaptiveInterval) speed = originalSpeed * distTravelled / adaptiveInterval;
-    if (distToGo < adaptiveInterval) speed = originalSpeed * (1 - (adaptiveInterval - distToGo) / adaptiveInterval);
+        // by default, speed with no adjustments is as such
+        speed = originalSpeed;
 
-    if (speed < finalSpeed) speed = finalSpeed;
+        if (distToGo > dist - adaptiveInterval) speed = originalSpeed * (dist - distToGo) / adaptiveInterval;
+        if (distToGo < adaptiveInterval) speed = originalSpeed * (1 - (adaptiveInterval - distToGo) / adaptiveInterval);
 
-    if (headingError > 0) {
-        move(blspeed * (1 + kp * headingError * blsign), brspeed * (1 + kp * headingError * brsign), flspeed * (1 + kp * headingError * flsign), frspeed * (1 + kp * headingError * frsign));
-    }
+        if (speed < finalSpeed) speed = finalSpeed;
 
-    else {
-        move(blspeed * (1 - kp * headingError * blsign), brspeed * (1 - kp * headingError * brsign), flspeed * (1 - kp * headingError * flsign), frspeed * (1 - kp * headingError * frsign));
-    }
+        // effective speed is computed at this point -- NO MORE adj
+        double xSpeed = speed * cos_by_deg(90 - tgtHeading);
+        double ySpeed = speed * sin_by_deg(90 - tgtHeading);
 
-    vex::task::sleep(10);
 
-    distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+        // based on motor config: +, -, -, +
+        double blspeed = xSpeed - ySpeed;
+        double brspeed = -xSpeed - ySpeed;
+        double flspeed = xSpeed + ySpeed;
+        double frspeed = -xSpeed + ySpeed;
 
-    changedRot = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRot; // need scale, deg => inch
+        double kpHeadingErr = kp * headingError;
 
-    dx = changedRot * cos(90-inertialSensor.heading());
-    dy = changedRot * sin(90-inertialSensor.heading());
+        move(blspeed * (1 + kpHeadingErr * blsign), 
+            brspeed * (1 + kpHeadingErr * brsign), 
+            flspeed * (1 + kpHeadingErr * flsign), 
+            frspeed * (1 + kpHeadingErr * frsign)
+            );
 
-    prevRot = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+        // cannot directly use "speed" as they are relative
 
-    currLoc.x = dx + currLoc.x;
-    currLoc.y = dy + currLoc.y;
-    
-    distTravelled = dist - distToGo;
-  }
-  cout << "finalSpeed = " << speed << endl;
-  Brain.Screen.print("finalSpeed = %f ", speed);
-  leftdrive.stop(bt);
-  rightdrive.stop(bt);
-  cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
-  Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
-  return currLoc;
+        double blDist = backleftdrive.rotation(vex::rotationUnits::deg) / 360. * M_PI * refDiameter;
+        double brDist = backrightdrive.rotation(vex::rotationUnits::deg) / 360. * M_PI * refDiameter;
+        double flDist = frontleftdrive.rotation(vex::rotationUnits::deg) / 360. * M_PI * refDiameter;
+        double frDist = frontrightdrive.rotation(vex::rotationUnits::deg) / 360. * M_PI * refDiameter;
+
+        double dx = (blDist - brDist + flDist - frDist) / 4.0;
+        double dy = (-blDist - brDist + flDist + frDist) / 4.0;
+
+        currLoc.x = dx + currLoc.x;
+        currLoc.y = dy + currLoc.y;
+
+        distToGo = sqrt( (destLoc.x - currLoc.x)*(destLoc.x - currLoc.x) + (destLoc.y - currLoc.y) * (destLoc.y - currLoc.y) );
+
+        vex::task::sleep(msecs);
+
+    }  // while
+
+    stop(bt);
+
+    //cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
+    //Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
+    return currLoc;
 } 
 
 double sign (double x) {
@@ -216,22 +209,36 @@ void autonWithXD(XDriveRobot& robot) {
 
 }  //autonWithXD
 
-void driveWithXD(XDriveRobot& robot, vex::controller& rc, RollingScreen& rs, double kp) {
+void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
+    RollingScreen rs(robot.Brain.Screen);
 
     while (1) {
-
-        double h = robot.inertialSensor.heading();
-
         double xSpeed = logDrive(rc.Axis4.position(vex::percentUnits::pct)); // run experiment to see which side is positive/negative
         double ySpeed = logDrive(rc.Axis3.position(vex::percentUnits::pct));
-        double spinSpeed = -logDriveT(rc.Axis1.position(vex::percentUnits::pct)*3/4);
+
+        // force move along x or y direction, no striffing
+        if (fabs(xSpeed) > 2.0 * fabs(ySpeed)) {
+            ySpeed = 0;
+        }
+        else {
+            if (fabs(xSpeed) < 0.5 * fabs(ySpeed)) {
+                xSpeed = 0;
+            }
+            else {
+                xSpeed = 0;
+                ySpeed = 0;
+            }
+        }
+
+        double spinSpeed = logDriveT(rc.Axis1.position(vex::percentUnits::pct)*3/4);
         
         rs.print("user speed: %.1f, %.1f, %.f", xSpeed, ySpeed, spinSpeed);
 
-        double blspeed = xSpeed - ySpeed + spinSpeed;
-        double brspeed = -xSpeed - ySpeed - spinSpeed;
-        double flspeed = -xSpeed + ySpeed + spinSpeed;
-        double frspeed = xSpeed + ySpeed - spinSpeed;
+        // based on motor config: +, -, -, +
+        double blspeed = xSpeed - ySpeed - spinSpeed;
+        double brspeed = -xSpeed - ySpeed + spinSpeed;
+        double flspeed = xSpeed + ySpeed + spinSpeed;
+        double frspeed = -xSpeed + ySpeed - spinSpeed;
 
         robot.move(blspeed, brspeed, flspeed, frspeed);
 

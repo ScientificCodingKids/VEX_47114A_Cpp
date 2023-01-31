@@ -104,5 +104,5 @@ INC += -I"$(VEX_DEV_HOME)/Utils"
 INC += ${TOOL_INC}
 
 # custom make config
-VEX_SLOT = 1
-VEX_ICON = "USER003x.bmp"
+VEX_SLOT = 5
+VEX_ICON = "USER005x.bmp"

@@ -293,15 +293,15 @@ double logDriveT(double cv) { // less intense, for turning
 }
 
 void autonWithXD(XDriveRobot& robot) {
-    robot.goStraight(40, directionType::fwd, 0, 70, 0.05);
+    //robot.goStraight(40, directionType::fwd, 0, 70, 0.05);
 
-    task::sleep(3000);
+    //task::sleep(3000);
 
-    robot.makeTurn(90, true, 25, 0.05);
+    //robot.makeTurn(90, true, 25, 1.0);
 
-    task::sleep(3000);
+    //task::sleep(3000);
 
-    robot.goStraight(40, directionType::fwd, 90, 50, 0.05);
+    robot.goStraight(20, directionType::fwd, 90, 50, 0.002);
     // below used in Kennedy event
     /* robot.move(-50, -50, 50, 50);
     vex::task::sleep(1000);

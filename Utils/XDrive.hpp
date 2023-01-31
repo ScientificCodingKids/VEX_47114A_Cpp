@@ -69,6 +69,7 @@ class XDriveRobot {
 
     Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
 
+    Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
 };  // class XDriveRobot
 
 double sin_by_deg(double x) {
@@ -172,7 +173,95 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
     //cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
     //Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
     return currLoc;
-} 
+}  // goStraight()
+
+Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, double tol, brakeType bt, Coord srcLoc)
+{
+    // similar to regular drivetrain's makeTurn()
+    // assume rotation is "in-place" for now, i.e. it does not change robot's location
+
+    RollingScreen rs(Brain.Screen);
+
+    Coord currLoc = srcLoc;
+
+    resetRot();
+
+    double degreeToGo = tgtHeading - inertialSensor.heading();
+
+    if (degreeToGo < 0) {
+        degreeToGo = degreeToGo + 360.0;
+    }
+
+    double CWDegreeToGo = degreeToGo;
+    double CCWDegreeToGo = 360 - degreeToGo;
+
+    double currentTurnClockwise = turnClockwise;
+
+    while (degreeToGo > tol) {
+        double ch = inertialSensor.heading();
+
+        //1. compute cw, ccw degreeToGo
+        CWDegreeToGo = tgtHeading - ch;
+        CCWDegreeToGo = 360 - CWDegreeToGo;
+
+        if (CWDegreeToGo < 0) {
+            CWDegreeToGo = CWDegreeToGo + 360;
+            CCWDegreeToGo = 360 - CWDegreeToGo;
+        }
+
+        assert(CWDegreeToGo >= 0 && CWDegreeToGo < 360);
+        assert(CCWDegreeToGo >= 0 && CCWDegreeToGo < 360);
+
+        //2. determine rotation direction and degreeToGo
+        degreeToGo = CWDegreeToGo < CCWDegreeToGo ? CWDegreeToGo : CCWDegreeToGo;
+
+        double headingError = degreeToGo;
+        double spinSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
+
+        // if kp is larger, correction is greater; if kp is smaller, correction is smaller
+
+        bool isClose = false;
+
+        if (headingError > 15 || headingError < -15) {
+            spinSpeed = speed;
+        }
+
+        else {
+            spinSpeed = speed*(1-(15 - degreeToGo)/15);
+            isClose = true;
+        }
+
+        if (isClose) {
+            currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
+        }
+        else {
+            currentTurnClockwise = turnClockwise;
+        }
+
+        if (spinSpeed < 5) {
+            spinSpeed = 5;
+        }
+
+        // 3. set motor speed and direction
+        //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
+        //cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
+        // based on motor config: +, -, -, +
+        double blspeed = -spinSpeed;
+        double brspeed = spinSpeed;
+        double flspeed = spinSpeed;
+        double frspeed = -spinSpeed;
+
+        move(blspeed, brspeed, flspeed, frspeed);
+
+        //update coordinates: skipped
+
+        vex::task::sleep(10);
+    }
+
+    stop(bt);
+       
+    return currLoc;
+}  //makeTurn()
 
 double sign (double x) {
     if (x<0) return -1;

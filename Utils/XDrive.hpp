@@ -10,6 +10,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 
 #include "nutils.hpp"
 using namespace vex;
@@ -70,7 +71,7 @@ class XDriveRobot {
 
     Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
 
-    Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
+    Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double tol=1, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
 };  // class XDriveRobot
 
 double sin_by_deg(double x) {
@@ -196,7 +197,7 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
     return currLoc;
 }  // goStraight()
 
-Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, double tol, brakeType bt, Coord srcLoc)
+Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed, double tol, brakeType bt, Coord srcLoc)
 {
     // similar to regular drivetrain's makeTurn()
     // assume rotation is "in-place" for now, i.e. it does not change robot's location
@@ -234,35 +235,27 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
         assert(CCWDegreeToGo >= 0 && CCWDegreeToGo < 360);
 
         //2. determine rotation direction and degreeToGo
-        degreeToGo = CWDegreeToGo < CCWDegreeToGo ? CWDegreeToGo : CCWDegreeToGo;
-
-        double headingError = degreeToGo;
-        double spinSpeed = speed * kp * headingError; // when close to target heading, the speed should be low (but not 0)
-
-        // if kp is larger, correction is greater; if kp is smaller, correction is smaller
-
-        bool isClose = false;
-
-        if (headingError > 15 || headingError < -15) {
-            spinSpeed = speed;
-        }
-
-        else {
-            spinSpeed = speed*(1-(15 - degreeToGo)/15);
-            isClose = true;
-        }
-
-        if (isClose) {
+        
+        if (CWDegreeToGo < 15 || CCWDegreeToGo < 15) {
             currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
         }
         else {
             currentTurnClockwise = turnClockwise;
         }
+            
+        degreeToGo = (currentTurnClockwise)? CWDegreeToGo: CCWDegreeToGo;
 
-        if (spinSpeed < 5) {
-            spinSpeed = 5;
+        // if kp is larger, correction is greater; if kp is smaller, correction is smaller
+
+        double spinSpeed = speed;
+
+        if (degreeToGo < 15) {
+            spinSpeed = speed*(1-(15 - degreeToGo)/15);
         }
 
+        spinSpeed = std::max(5.0, spinSpeed);
+
+        rs.print("h=%.1f; deg2Go=%.1f, sp=%.1f", ch, degreeToGo, spinSpeed);
         // 3. set motor speed and direction
         //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
         //cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal

@@ -4,6 +4,7 @@
 // #include "vex.h"  -- SHOULD NOT DEPEND ON A SPECIFIC PROJECT!!!
 
 #include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_motor.h"
+#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
 #include <iostream>
 
 #define _USE_MATH_DEFINES
@@ -300,6 +301,8 @@ void autonWithXD(XDriveRobot& robot) {
 
 void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
     RollingScreen rs(robot.Brain.Screen);
+    bool isShooting = false;
+    int counter = 0; // for delayed intake start after flywheel
 
     while (1) {
         double xSpeed = logDrive(rc.Axis4.position(vex::percentUnits::pct)); // run experiment to see which side is positive/negative
@@ -331,14 +334,20 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
 
         robot.move(blspeed, brspeed, flspeed, frspeed);
 
-        if (rc.ButtonY.pressing()) {
+        /*if (rc.ButtonY.pressing()) {
             robot.flywheel.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
         }
-        else if (rc.ButtonLeft.pressing()){
-            robot.flywheel.spin(vex::directionType::fwd, 40, vex::velocityUnits::pct);
+        else if (!isShooting) {
+            robot.flywheel.stop(vex::brakeType::coast);
+        }*/
+
+        if (rc.ButtonLeft.pressing()){
+            isShooting = true;
+            robot.flywheel.spin(vex::directionType::fwd, 70, vex::velocityUnits::pct);
         }
         else {
-            robot.flywheel.stop(vex::brakeType::coast);
+            isShooting = false;
+            counter = 0;
         }
 
         if (rc.ButtonL1.pressing()) {
@@ -347,7 +356,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
         else if (rc.ButtonL2.pressing()) {
             robot.intake.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
         }
-        else {
+        else if (!isShooting) {
             robot.intake.stop(vex::brakeType::coast);
         }
 
@@ -371,6 +380,13 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
             robot.expander.stop(vex::brakeType::coast);
         }
 
+        if (isShooting && counter == 400) {
+            robot.intake.spin(vex::directionType::fwd, 50, vex::velocityUnits::pct);
+        }
+
+        if (isShooting) {
+            counter++;
+        }
         vex::task::sleep(10);
     }
 }

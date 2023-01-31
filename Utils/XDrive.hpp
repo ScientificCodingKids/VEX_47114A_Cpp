@@ -74,11 +74,11 @@ class XDriveRobot {
 };  // class XDriveRobot
 
 double sin_by_deg(double x) {
-    return sin(x/M_PI);
+    return sin(x * M_PI / 180.);
 }
 
 double cos_by_deg(double x) {
-    return cos(x/M_PI);
+    return cos(x * M_PI / 180.);
 }
 
 Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp, vex::brakeType bt, Coord srcLoc) {
@@ -86,7 +86,7 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
 
     Coord currLoc = srcLoc;
     
-    Coord destLoc(srcLoc.x + dist * cos(90 - tgtHeading), srcLoc.y + dist * sin(90 - tgtHeading));
+    Coord destLoc(srcLoc.x + dist * cos_by_deg(90 - tgtHeading), srcLoc.y + dist * sin_by_deg(90 - tgtHeading));
 
     double refDiameter = 4.0; // inch; for the wheel attached to the refMotor
 
@@ -109,11 +109,16 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
 
     double msecs = 10.0; // looping interval
 
+    double blDistPrev = 0.0;
+    double brDistPrev = 0.0;
+    double flDistPrev = 0.0;
+    double frDistPrev = 0.0;
+
     while (distToGo > 0) {
         // update other variables
         double speed = originalSpeed; // compute current speed, which is subject to ramp up/down
 
-        double headingError = inertialSensor.heading() - tgtHeading; // updates the error in heading
+        double headingError = inertialSensor.heading()  - tgtHeading; // updates the error in heading
 
         // adjusts the heading error so that it is between -180 and 180
         if (headingError < -180) headingError = headingError + 360;
@@ -157,17 +162,31 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
         double flDist = frontleftdrive.rotation(vex::rotationUnits::deg) / 360. * M_PI * refDiameter;
         double frDist = frontrightdrive.rotation(vex::rotationUnits::deg) / 360. * M_PI * refDiameter;
 
-        double dx = (blDist - brDist + flDist - frDist) / 4.0;
-        double dy = (-blDist - brDist + flDist + frDist) / 4.0;
+        double blDD = blDist - blDistPrev;
+        double brDD = brDist - brDistPrev;
+        double flDD = flDist - flDistPrev;
+        double frDD = frDist - frDistPrev;
+
+        double dx = (blDD - brDD + flDD - frDD) / 4.0;
+        double dy = (-blDD - brDD + flDD + frDD) / 4.0;
 
         currLoc.x = dx + currLoc.x;
         currLoc.y = dy + currLoc.y;
 
-        distToGo = sqrt( (destLoc.x - currLoc.x)*(destLoc.x - currLoc.x) + (destLoc.y - currLoc.y) * (destLoc.y - currLoc.y) );
+        //distToGo = sqrt( (destLoc.x - currLoc.x)*(destLoc.x - currLoc.x) + (destLoc.y - currLoc.y) * (destLoc.y - currLoc.y) );
 
-        rs.print("(%.1f, %.1f, %.1f, %.1f), ke=%.1f, dx=%.1f, %.1f", blspeed, brspeed, flspeed, frspeed, kpHeadingErr, dx, dy);
+        double dr = sqrt(dx*dx + dy*dy);
+        distToGo -= dr;  // assume the actual path follows the straightline
+        //rs.print("(%.1f, %.1f, %.1f, %.1f), ke=%.1f, dx=%.1f, %.1f", blspeed, brspeed, flspeed, frspeed, kpHeadingErr, dx, dy);
+        
+        rs.print("%.1f, %.1f => %.1f, %.1f; %.3f", currLoc.x, currLoc.y, dr, distToGo, kpHeadingErr);
+        
         vex::task::sleep(msecs);
 
+        blDistPrev = blDist;
+        brDistPrev = brDist;
+        flDistPrev = flDist;
+        frDistPrev = frDist;
     }  // while
 
     stop(bt);
@@ -281,12 +300,15 @@ double logDriveT(double cv) { // less intense, for turning
 }
 
 void autonWithXD(XDriveRobot& robot) {
-    robot.goStraight(20, directionType::fwd, 0, 70, 0.0);
+    robot.goStraight(40, directionType::fwd, 0, 70, 0.05);
 
     task::sleep(3000);
 
-    //robot.makeTurn(90, true, 25, 0.05);
+    robot.makeTurn(90, true, 25, 0.05);
 
+    task::sleep(3000);
+
+    robot.goStraight(40, directionType::fwd, 90, 50, 0.05);
     // below used in Kennedy event
     /* robot.move(-50, -50, 50, 50);
     vex::task::sleep(1000);

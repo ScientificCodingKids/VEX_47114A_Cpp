@@ -23,7 +23,7 @@ using namespace std;
 class XDriveRobot {
     public:
     XDriveRobot(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, vex::brain& brn, vex::inertial& ins, vex::motor& fly, vex::motor& exp, vex::motor& intk, vex::motor& roll): 
-        backleftdrive(bl), backrightdrive(br), frontleftdrive(fr), frontrightdrive(fl), Brain (brn), inertialSensor(ins), flywheel(fly), expander(exp), intake(intk), roller(roll) {
+        backleftdrive(bl), backrightdrive(br), frontleftdrive(fl), frontrightdrive(fr), Brain (brn), inertialSensor(ins), flywheel(fly), expander(exp), intake(intk), roller(roll) {
             ;
     }
     vex::motor& backleftdrive;

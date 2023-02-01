@@ -33,7 +33,7 @@ upload: $(BUILD)/$(PROJECT).bin
 	echo Done
 # clean project
 
-all: upload
+all: clean upload
 	echo Build it all
 
 clean:

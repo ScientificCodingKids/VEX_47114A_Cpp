@@ -3,8 +3,6 @@
 
 // #include "vex.h"  -- SHOULD NOT DEPEND ON A SPECIFIC PROJECT!!!
 
-#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_motor.h"
-#include "C:/Program Files (x86)/VEX Robotics/VEXcode Pro V5/sdk/vexv5/include/vex_units.h"
 #include <iostream>
 
 #define _USE_MATH_DEFINES
@@ -150,11 +148,20 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
 
         double kpHeadingErr = kp * headingError;
 
-        move(blspeed * (1 + kpHeadingErr * blsign), 
-            brspeed * (1 + kpHeadingErr * brsign), 
-            flspeed * (1 + kpHeadingErr * flsign), 
-            frspeed * (1 + kpHeadingErr * frsign)
-            );
+        if (dt == directionType::fwd) {
+            move(blspeed * (1 + kpHeadingErr * blsign), 
+                brspeed * (1 + kpHeadingErr * brsign), 
+                flspeed * (1 + kpHeadingErr * flsign), 
+                frspeed * (1 + kpHeadingErr * frsign)
+                );
+        }
+        else {
+            move(-blspeed * (1 + kpHeadingErr * blsign), 
+                -brspeed * (1 + kpHeadingErr * brsign), 
+                -flspeed * (1 + kpHeadingErr * flsign), 
+                -frspeed * (1 + kpHeadingErr * frsign)
+                );
+        }
 
         // cannot directly use "speed" as they are relative
 
@@ -265,7 +272,12 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
         double flspeed = spinSpeed;
         double frspeed = -spinSpeed;
 
-        move(blspeed, brspeed, flspeed, frspeed);
+        if (turnClockwise) {
+            move(blspeed, brspeed, flspeed, frspeed);
+        }
+        else {
+            move(-blspeed, -brspeed, -flspeed, -frspeed);
+        }
 
         //update coordinates: skipped
 
@@ -293,24 +305,36 @@ double logDriveT(double cv) { // less intense, for turning
 }
 
 void autonWithXD(XDriveRobot& robot) {
-    //robot.goStraight(40, directionType::fwd, 0, 70, 0.05);
+
+    //robot.makeTurn(90, true);
+    //robot.makeTurn(0, false);
+
+    //robot.goStraight(20, directionType::fwd, 0, 50, 0.05);
 
     //task::sleep(3000);
 
-    //robot.makeTurn(90, true, 25, 1.0);
-
-    //task::sleep(3000);
-
-    robot.goStraight(20, directionType::fwd, 90, 50, 0.002);
+    //robot.goStraight(20, directionType::rev, 0, 50, 0.002);
     // below used in Kennedy event
-    /* robot.move(-50, -50, 50, 50);
+
+    
+    robot.move(-50, -50, 50, 50);
     vex::task::sleep(1000);
     robot.stop(vex::brakeType::coast);
     robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
     vex::task::sleep(1000);
     robot.roller.stop(vex::brakeType::coast); 
-    */
+    
+    robot.goStraight(22, directionType::rev, 0, 50, 0.05);
+    robot.makeTurn(90, true);
+    robot.goStraight(14, directionType::fwd, 0, 50, 0.05);
 
+    robot.move(-50, -50, 50, 50);
+    vex::task::sleep(1000);
+    robot.stop(vex::brakeType::coast);
+    robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+    vex::task::sleep(1000);
+    robot.roller.stop(vex::brakeType::coast); 
+    
     // robot.move(50, 50, -50, -50);
     // vex::task::sleep(2300);
     // robot.stop(vex::brakeType::coast);
@@ -372,7 +396,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
 
         if (btnShootStart.pressing()){
             isShooting = true;
-            robot.flywheel.spin(directionType::fwd, 70, velocityUnits::pct);
+            robot.flywheel.spin(directionType::fwd, 50, velocityUnits::pct);
         }
         
         if (btnShootStop.pressing()) {
@@ -413,7 +437,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
             robot.expander.stop(brakeType::coast);
         }
 
-        if (isShooting && counter == 400) {
+        if (isShooting && counter == 250) {
             robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
         }
 

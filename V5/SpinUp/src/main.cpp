@@ -24,6 +24,8 @@ void pre_auton( void ) {
 }
 
 void autonomous( void ) {
+  inertialSensor.calibrate();
+  vex::task::sleep(2000);
   autonWithXD(robot);
 }
 

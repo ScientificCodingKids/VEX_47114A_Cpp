@@ -12,7 +12,6 @@ using namespace std;
 
 competition Competition;
 XDriveRobot robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, flywheel, expander, intake, roller);
-RollingScreen rs(Brain.Screen);
 
 double multby2(double x) {
   return x * 2.0;
@@ -21,17 +20,17 @@ double multby2(double x) {
 
 void pre_auton( void ) {
   inertialSensor.calibrate();
-  vex::task::sleep(2000);
 }
 
 void autonomous( void ) {
+  inertialSensor.calibrate();
+  vex::task::sleep(2000);
   autonWithXD(robot);
 }
 
 
 void usercontrol( void ) {
-  robot.calibrate();
-  driveWithXD(robot, rc, rs, 0);
+  driveWithXD(robot, rc, 0);
 } // usercontrol
 
 int main() {

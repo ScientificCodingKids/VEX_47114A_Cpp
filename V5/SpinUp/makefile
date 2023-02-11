@@ -23,5 +23,8 @@ SRC_A  = makefile
 # project header file locations
 INC_F  = include
 
+# build targets
+bin: $(BUILD)/$(PROJECT).bin
+
 # include build rules
 include vex/mkrules.mk

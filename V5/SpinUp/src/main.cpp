@@ -20,7 +20,6 @@ double multby2(double x) {
 
 void pre_auton( void ) {
   inertialSensor.calibrate();
-  vex::task::sleep(2000);
 }
 
 void autonomous( void ) {
@@ -31,7 +30,6 @@ void autonomous( void ) {
 
 
 void usercontrol( void ) {
-  robot.calibrate();
   driveWithXD(robot, rc, 0);
 } // usercontrol
 

@@ -82,6 +82,7 @@ double cos_by_deg(double x) {
 
 Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp, vex::brakeType bt, Coord srcLoc) {
     RollingScreen rs(this->Brain.Screen);
+    double startHeading = inertialSensor.heading();
 
     Coord currLoc = srcLoc;
     
@@ -116,8 +117,9 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
     while (distToGo > 0) {
         // update other variables
         double speed = originalSpeed; // compute current speed, which is subject to ramp up/down
+        double currHeading = inertialSensor.heading();
 
-        double headingError = inertialSensor.heading()  - tgtHeading; // updates the error in heading
+        double headingError = currHeading - startHeading; // updates the error in heading
 
         // adjusts the heading error so that it is between -180 and 180
         if (headingError < -180) headingError = headingError + 360;
@@ -136,8 +138,8 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
         if (speed < finalSpeed) speed = finalSpeed;
 
         // effective speed is computed at this point -- NO MORE adj
-        double xSpeed = speed * cos_by_deg(90 - tgtHeading);
-        double ySpeed = speed * sin_by_deg(90 - tgtHeading);
+        double xSpeed = speed * cos_by_deg(90 - tgtHeading + startHeading);
+        double ySpeed = speed * sin_by_deg(90 - tgtHeading + startHeading);
 
 
         // based on motor config: +, -, -, +
@@ -146,22 +148,31 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
         double flspeed = xSpeed + ySpeed;
         double frspeed = -xSpeed + ySpeed;
 
-        double kpHeadingErr = kp * headingError;
+        double kpHeadingErr = -kp * headingError;
 
-        if (dt == directionType::fwd) {
-            move(blspeed * (1 + kpHeadingErr * blsign), 
-                brspeed * (1 + kpHeadingErr * brsign), 
-                flspeed * (1 + kpHeadingErr * flsign), 
-                frspeed * (1 + kpHeadingErr * frsign)
-                );
-        }
-        else {
-            move(-blspeed * (1 + kpHeadingErr * blsign), 
-                -brspeed * (1 + kpHeadingErr * brsign), 
-                -flspeed * (1 + kpHeadingErr * flsign), 
-                -frspeed * (1 + kpHeadingErr * frsign)
-                );
-        }
+        double moveSign = (dt == directionType::fwd) ? 1.0 : -1.0;
+    
+        /*move(moveSign * blspeed * (1 + kpHeadingErr ), 
+            moveSign * brspeed * (1 + kpHeadingErr ), 
+            moveSign * flspeed * (1 + kpHeadingErr ), 
+            moveSign * frspeed * (1 + kpHeadingErr )
+            );
+        */
+
+        /*move(moveSign * blspeed * (1 + kpHeadingErr * blsign), 
+            moveSign * brspeed * (1 + kpHeadingErr * brsign), 
+            moveSign * flspeed * (1 + kpHeadingErr * flsign), 
+            moveSign * frspeed * (1 + kpHeadingErr * frsign)
+            ); 
+        */
+
+
+        move(moveSign * (blspeed + speed * kpHeadingErr * blsign),
+            moveSign * (brspeed + speed * kpHeadingErr * brsign),
+            moveSign * (flspeed + speed * kpHeadingErr * flsign),
+            moveSign * (frspeed + speed * kpHeadingErr * frsign)
+        );
+
 
         // cannot directly use "speed" as they are relative
 
@@ -187,7 +198,7 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
         distToGo -= dr;  // assume the actual path follows the straightline
         //rs.print("(%.1f, %.1f, %.1f, %.1f), ke=%.1f, dx=%.1f, %.1f", blspeed, brspeed, flspeed, frspeed, kpHeadingErr, dx, dy);
         
-        rs.print("%.1f, %.1f => %.1f, %.1f; %.3f", currLoc.x, currLoc.y, dr, distToGo, kpHeadingErr);
+        rs.print("%.1f, %.1f => %.1f, %.1f; %.1f, %.1f; %.1f", currLoc.x, currLoc.y, dr, distToGo, startHeading, currHeading, kpHeadingErr);
         
         vex::task::sleep(msecs);
 
@@ -260,7 +271,7 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
             spinSpeed = speed*(1-(15 - degreeToGo)/15);
         }
 
-        spinSpeed = std::max(5.0, spinSpeed);
+        spinSpeed = std::max(2.0, spinSpeed);
 
         rs.print("h=%.1f; deg2Go=%.1f, sp=%.1f", ch, degreeToGo, spinSpeed);
         // 3. set motor speed and direction
@@ -283,9 +294,10 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
 
         vex::task::sleep(10);
     }
-
+    
     stop(bt);
-       
+    rs.print("final heading: %.1f", inertialSensor.heading());
+
     return currLoc;
 }  //makeTurn()
 
@@ -304,19 +316,43 @@ double logDriveT(double cv) { // less intense, for turning
   //return pow(fabs(cv), 1.5) / (sign(cv)*sqrt(50));
 }
 
+
+
+void matchautonWithXD(XDriveRobot& robot) {
+    robot.goStraight(20, directionType::fwd, 270, 60);
+    robot.move(-50, -50, 50, 50);
+    vex::task::sleep(1000);
+    robot.stop(vex::brakeType::coast);
+    robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+    vex::task::sleep(1000);
+    robot.roller.stop(vex::brakeType::coast);
+
+    robot.goStraight(5, directionType::fwd, 180, 50);
+    robot.makeTurn(45, true);
+    robot.goStraight(2.1 * 24, directionType::fwd, 135, 80);
+
+    robot.flywheel.spin(directionType::fwd, 62, velocityUnits::pct);
+    vex::task::sleep(4000);
+    robot.intake.spin(directionType::fwd, 30, velocityUnits::pct);
+    return;
+}
+
 void autonWithXD(XDriveRobot& robot) {
 
     //robot.makeTurn(90, true);
-    //robot.makeTurn(0, false);
 
-    //robot.goStraight(20, directionType::fwd, 0, 50, 0.05);
+    //robot.goStraight(10, directionType::fwd, 90, 50, 0.1);
+    //robot.goStraight(10, vex::directionType::fwd, 0, 50, 0.1);
 
     //task::sleep(3000);
+    //robot.makeTurn(90, true,30);
 
-    //robot.goStraight(20, directionType::rev, 0, 50, 0.002);
+    //task::sleep(3000);
+    //robot.goStraight(10, directionType::rev, 270, 50, 0.002);
+
+    //return;
+
     // below used in Kennedy event
-
-    
     robot.move(-50, -50, 50, 50);
     vex::task::sleep(1000);
     robot.stop(vex::brakeType::coast);
@@ -324,25 +360,40 @@ void autonWithXD(XDriveRobot& robot) {
     vex::task::sleep(1000);
     robot.roller.stop(vex::brakeType::coast); 
     
-    robot.goStraight(22, directionType::rev, 0, 50, 0.05);
+    robot.goStraight(14, directionType::fwd, 180, 50, 0.05);
     robot.makeTurn(90, true);
-    robot.goStraight(14, directionType::fwd, 0, 50, 0.05);
+    robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
+    robot.goStraight(17, directionType::fwd, 90, 50, 0.05);
 
     robot.move(-50, -50, 50, 50);
-    vex::task::sleep(1000);
+    vex::task::sleep(700);
     robot.stop(vex::brakeType::coast);
     robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
     vex::task::sleep(1000);
-    robot.roller.stop(vex::brakeType::coast); 
+    robot.roller.stop(vex::brakeType::coast);
+    robot.intake.stop(vex::brakeType::coast);
+
+    robot.goStraight(2 * 24, directionType::fwd, 270, 50);
+    robot.makeTurn(100, true);
+
+    robot.flywheel.spin(directionType::fwd, 50, velocityUnits::pct);
+    vex::task::sleep(2500);
+    robot.intake.spin(directionType::fwd, 60, velocityUnits::pct);
+
+    vex::task::sleep(7000);
+    robot.makeTurn(225, true);
+    robot.goStraight(5, directionType::fwd, 45, 50);
+
+    return;
     
     // robot.move(50, 50, -50, -50);
     // vex::task::sleep(2300);
     // robot.stop(vex::brakeType::coast);
     // robot.move(50, -50, -50, 50);
     // robot.stop(vex::brakeType::coast);
-    // robot.expander.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
-    // vex::task::sleep(1000);
-    // robot.expander.stop(vex::brakeType::coast);
+    robot.expander.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
+    vex::task::sleep(1000);
+    robot.expander.stop(vex::brakeType::coast);
     
 
 }  //autonWithXD
@@ -396,9 +447,14 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
 
         if (btnShootStart.pressing()){
             isShooting = true;
-            robot.flywheel.spin(directionType::fwd, 50, velocityUnits::pct);
+            robot.flywheel.spin(directionType::fwd, 80, velocityUnits::pct);
         }
-        
+
+        if (rc.ButtonY.pressing()) {
+            isShooting = true;
+            robot.flywheel.spin(directionType::fwd, 70, velocityUnits::pct);
+        }
+         
         if (btnShootStop.pressing()) {
             isShooting = false;
             counter = 0;
@@ -418,7 +474,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
         }
 
         if (btnRollerFwd.pressing()) {
-            robot.roller.spin(directionType::fwd, 70, velocityUnits::pct);
+            robot.roller.spin(directionType::fwd, 30, velocityUnits::pct);
         }
         else if (btnRollerRev.pressing()) {
             robot.roller.spin(directionType::rev, 70, velocityUnits::pct);
@@ -428,16 +484,20 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
         }
 
         if (btnExpanderFwd.pressing()) {
-            robot.expander.spin(directionType::fwd, 50, velocityUnits::pct);
+            robot.expander.spin(directionType::fwd, 40, velocityUnits::pct);
         }
         else if (btnExpanderRev.pressing()) {
-            robot.expander.spin(directionType::rev, 50, velocityUnits::pct);
+            robot.expander.spin(directionType::rev, 60, velocityUnits::pct);
         }
         else {
             robot.expander.stop(brakeType::coast);
         }
 
-        if (isShooting && counter == 250) {
+        if (isShooting && counter == 100) {
+            robot.flywheel.spin(directionType::fwd, 50, velocityUnits::pct);
+        }
+
+        if (isShooting && counter == 200) {
             robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
         }
 

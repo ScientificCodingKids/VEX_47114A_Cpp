@@ -12,13 +12,31 @@ using namespace std;
 
 competition Competition;
 XDriveRobot robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, flywheel, expander, intake, roller);
-
+RollingScreen rs(robot.Brain.Screen);
 
 bool AT_HOME = false;  // if at home, need calibrate in auto() and drive() as no pre_auton() is called
 
 
-void matchautonWithXD(XDriveRobot& robot) {
+void FarTeam(XDriveRobot& robot) {
     robot.goStraight(20, directionType::fwd, 270, 60);
+    robot.move(-50, -50, 50, 50);
+    vex::task::sleep(1000);
+    robot.stop(vex::brakeType::coast);
+    robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+    vex::task::sleep(1000);
+    robot.roller.stop(vex::brakeType::coast);
+
+    robot.goStraight(5, directionType::fwd, 180, 70);
+    robot.makeTurn(45, true);
+    robot.goStraight(2.1 * 24 + 1, directionType::fwd, 135, 80);
+
+    robot.flywheel.spin(directionType::fwd, 62, velocityUnits::pct);
+    vex::task::sleep(3000);
+    robot.intake.spin(directionType::fwd, 30, velocityUnits::pct);
+    return;
+}
+
+void ShortTeam(XDriveRobot& robot) {
     robot.move(-50, -50, 50, 50);
     vex::task::sleep(1000);
     robot.stop(vex::brakeType::coast);
@@ -30,28 +48,22 @@ void matchautonWithXD(XDriveRobot& robot) {
     robot.makeTurn(45, true);
     robot.goStraight(2.1 * 24, directionType::fwd, 135, 80);
 
-    robot.flywheel.spin(directionType::fwd, 62, velocityUnits::pct);
-    vex::task::sleep(4000);
+    robot.flywheel.spin(directionType::fwd, 60, velocityUnits::pct);
+    vex::task::sleep(3000);
     robot.intake.spin(directionType::fwd, 30, velocityUnits::pct);
     return;
 }
 
-void autonWithXD(XDriveRobot& robot) {
+void PrimitiveTeam(XDriveRobot& robot) {
+    robot.move(-50, -50, 50, 50);
+    vex::task::sleep(1000);
+    robot.stop(vex::brakeType::coast);
+    robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+    vex::task::sleep(1000);
+    robot.roller.stop(vex::brakeType::coast);
+}
 
-    //robot.makeTurn(90, true);
-
-    //robot.goStraight(10, directionType::fwd, 90, 50, 0.1);
-    //robot.goStraight(10, vex::directionType::fwd, 0, 50, 0.1);
-
-    //task::sleep(3000);
-    //robot.makeTurn(90, true,30);
-
-    //task::sleep(3000);
-    //robot.goStraight(10, directionType::rev, 270, 50, 0.002);
-
-    //return;
-
-    // below used in Kennedy event
+void FarSkills(XDriveRobot& robot) {
     robot.move(-50, -50, 50, 50);
     vex::task::sleep(1000);
     robot.stop(vex::brakeType::coast);
@@ -59,10 +71,10 @@ void autonWithXD(XDriveRobot& robot) {
     vex::task::sleep(1000);
     robot.roller.stop(vex::brakeType::coast); 
     
-    robot.goStraight(14, directionType::fwd, 180, 50, 0.05);
+    robot.goStraight(17, directionType::fwd, 180, 50, 0.05);
     robot.makeTurn(90, true);
-    robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
-    robot.goStraight(17, directionType::fwd, 90, 50, 0.05);
+    //robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
+    robot.goStraight(15, directionType::fwd, 90, 50, 0.05);
 
     robot.move(-50, -50, 50, 50);
     vex::task::sleep(700);
@@ -70,35 +82,78 @@ void autonWithXD(XDriveRobot& robot) {
     robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
     vex::task::sleep(1000);
     robot.roller.stop(vex::brakeType::coast);
-    robot.intake.stop(vex::brakeType::coast);
+    //robot.intake.stop(vex::brakeType::coast);
 
     robot.goStraight(2 * 24, directionType::fwd, 270, 50);
     robot.makeTurn(100, true);
 
     robot.flywheel.spin(directionType::fwd, 50, velocityUnits::pct);
     vex::task::sleep(2500);
-    robot.intake.spin(directionType::fwd, 60, velocityUnits::pct);
+    robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
 
     vex::task::sleep(7000);
-    robot.makeTurn(225, true);
-    robot.goStraight(5, directionType::fwd, 45, 50);
+    robot.flywheel.stop(brakeType::coast);
+    robot.intake.stop(brakeType::coast);
 
-    return;
-    
-    // robot.move(50, 50, -50, -50);
-    // vex::task::sleep(2300);
-    // robot.stop(vex::brakeType::coast);
-    // robot.move(50, -50, -50, 50);
-    // robot.stop(vex::brakeType::coast);
-    robot.expander.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);
+    robot.makeTurn(90, false);
+    robot.goStraight(5, directionType::fwd, 90, 50);
+    robot.goStraight(3.5 * 23.5, directionType::fwd, 180, 70);
+    robot.goStraight(23.5, directionType::fwd, 270, 50);
+    robot.makeTurn(180, true);
+
+    robot.move(-50, -50, 50, 50);
+    vex::task::sleep(700);
+    robot.stop(vex::brakeType::coast);
+    robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
     vex::task::sleep(1000);
+    robot.roller.stop(vex::brakeType::coast);
+}
+
+void autonWithXD(XDriveRobot& robot) {
+
+    robot.move(-50, -50, 50, 50);
+    vex::task::sleep(1000);
+    robot.stop(vex::brakeType::coast);
+    robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+    vex::task::sleep(1000);
+    robot.roller.stop(vex::brakeType::coast); 
+    
+    robot.goStraight(17, directionType::fwd, 180, 50, 0.05);
+    robot.makeTurn(90, true);
+    //robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
+    robot.goStraight(15, directionType::fwd, 90, 50, 0.05);
+
+    robot.move(-50, -50, 50, 50);
+    vex::task::sleep(700);
+    robot.stop(vex::brakeType::coast);
+    robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
+    vex::task::sleep(1000);
+    robot.roller.stop(vex::brakeType::coast);
+    //robot.intake.stop(vex::brakeType::coast);
+
+    robot.goStraight(2 * 24, directionType::fwd, 270, 50);
+    robot.makeTurn(105, true);
+
+    robot.flywheel.spin(directionType::fwd, 50, velocityUnits::pct);
+    vex::task::sleep(2500);
+    robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
+
+    vex::task::sleep(7000);
+    robot.flywheel.stop(brakeType::coast);
+    robot.intake.stop(brakeType::coast);
+    robot.makeTurn(225, true);
+    robot.goStraight(5, directionType::fwd, 315, 50);
+    robot.goStraight(5, directionType::fwd, 45, 50);
+    
+    robot.expander.spin(vex::directionType::rev, 40, vex::velocityUnits::pct);
+    vex::task::sleep(7000);
     robot.expander.stop(vex::brakeType::coast);
+    return;
     
 
 }  //autonWithXD
 
 void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
-    RollingScreen rs(robot.Brain.Screen);
     bool isShooting = false;
     int counter = 0; // for delayed intake start after flywheel
 
@@ -203,20 +258,19 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
         if (isShooting) {
             counter++;
         }
-        rs.print("%d: %d", isShooting, counter);
+        //rs.print("%d: %d", isShooting, counter);
         task::sleep(10);
     }
 }
 
 
 void pre_auton( void ) {
-  inertialSensor.calibrate();
+  if (AT_HOME == false) { inertialSensor.calibrate();  rs.print("pre_auton: calibrated %d", 0); }
 }
 
 void autonomous( void ) {
-  inertialSensor.calibrate();
-  vex::task::sleep(2000);
-  autonWithXD(robot);
+  if (AT_HOME) { robot.calibrate(); rs.print("auton: calibrated %d", 1);}
+  FarTeam(robot);
 }
 
 

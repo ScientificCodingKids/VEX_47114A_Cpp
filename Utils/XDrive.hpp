@@ -40,7 +40,7 @@ class XDriveRobot {
 
     void calibrate () {
         inertialSensor.calibrate();
-        vex::task::sleep(1500);
+        vex::task::sleep(3500);
     }
 
     void move(double blspeed, double brspeed, double flspeed, double frspeed) {
@@ -81,7 +81,7 @@ double cos_by_deg(double x) {
 }
 
 Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp, vex::brakeType bt, Coord srcLoc) {
-    RollingScreen rs(this->Brain.Screen);
+    //RollingScreen rs(this->Brain.Screen);
     double startHeading = inertialSensor.heading();
 
     Coord currLoc = srcLoc;
@@ -151,21 +151,6 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
         double kpHeadingErr = -kp * headingError;
 
         double moveSign = (dt == directionType::fwd) ? 1.0 : -1.0;
-    
-        /*move(moveSign * blspeed * (1 + kpHeadingErr ), 
-            moveSign * brspeed * (1 + kpHeadingErr ), 
-            moveSign * flspeed * (1 + kpHeadingErr ), 
-            moveSign * frspeed * (1 + kpHeadingErr )
-            );
-        */
-
-        /*move(moveSign * blspeed * (1 + kpHeadingErr * blsign), 
-            moveSign * brspeed * (1 + kpHeadingErr * brsign), 
-            moveSign * flspeed * (1 + kpHeadingErr * flsign), 
-            moveSign * frspeed * (1 + kpHeadingErr * frsign)
-            ); 
-        */
-
 
         move(moveSign * (blspeed + speed * kpHeadingErr * blsign),
             moveSign * (brspeed + speed * kpHeadingErr * brsign),
@@ -192,13 +177,11 @@ Coord XDriveRobot::goStraight(double dist, vex::directionType dt, double tgtHead
         currLoc.x = dx + currLoc.x;
         currLoc.y = dy + currLoc.y;
 
-        //distToGo = sqrt( (destLoc.x - currLoc.x)*(destLoc.x - currLoc.x) + (destLoc.y - currLoc.y) * (destLoc.y - currLoc.y) );
-
         double dr = sqrt(dx*dx + dy*dy);
         distToGo -= dr;  // assume the actual path follows the straightline
         //rs.print("(%.1f, %.1f, %.1f, %.1f), ke=%.1f, dx=%.1f, %.1f", blspeed, brspeed, flspeed, frspeed, kpHeadingErr, dx, dy);
         
-        rs.print("%.1f, %.1f => %.1f, %.1f; %.1f, %.1f; %.1f", currLoc.x, currLoc.y, dr, distToGo, startHeading, currHeading, kpHeadingErr);
+        //rs.print("%.1f, %.1f => %.1f, %.1f; %.1f, %.1f; %.1f", currLoc.x, currLoc.y, dr, distToGo, startHeading, currHeading, kpHeadingErr);
         
         vex::task::sleep(msecs);
 
@@ -273,7 +256,7 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
 
         spinSpeed = std::max(2.0, spinSpeed);
 
-        rs.print("h=%.1f; deg2Go=%.1f, sp=%.1f", ch, degreeToGo, spinSpeed);
+        //rs.print("h=%.1f; deg2Go=%.1f, sp=%.1f", ch, degreeToGo, spinSpeed);
         // 3. set motor speed and direction
         //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
         //cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
@@ -296,7 +279,7 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
     }
     
     stop(bt);
-    rs.print("final heading: %.1f", inertialSensor.heading());
+    //rs.print("final heading: %.1f", inertialSensor.heading());
 
     return currLoc;
 }  //makeTurn()

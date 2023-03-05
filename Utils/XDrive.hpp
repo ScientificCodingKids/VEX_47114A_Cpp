@@ -69,7 +69,7 @@ class XDriveRobot {
 
     Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
 
-    Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double tol=1, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
+    Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=60, double tol=0.5, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
 };  // class XDriveRobot
 
 double sin_by_deg(double x) {
@@ -237,7 +237,7 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
 
         //2. determine rotation direction and degreeToGo
         
-        if (CWDegreeToGo < 15 || CCWDegreeToGo < 15) {
+        if (CWDegreeToGo < 30 || CCWDegreeToGo < 30) {
             currentTurnClockwise = CWDegreeToGo < CCWDegreeToGo;
         }
         else {
@@ -250,8 +250,8 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
 
         double spinSpeed = speed;
 
-        if (degreeToGo < 15) {
-            spinSpeed = speed*(1-(15 - degreeToGo)/15);
+        if (degreeToGo < 45) {
+            spinSpeed = 10; // speed*(1.0-(30.0 - degreeToGo)/30.0);
         }
 
         spinSpeed = std::max(2.0, spinSpeed);
@@ -275,7 +275,7 @@ Coord XDriveRobot::makeTurn(double tgtHeading, bool turnClockwise, double speed,
 
         //update coordinates: skipped
 
-        vex::task::sleep(10);
+        vex::task::sleep(15);
     }
     
     stop(bt);

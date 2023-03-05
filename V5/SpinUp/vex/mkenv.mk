@@ -104,9 +104,9 @@ INC += -I"$(VEX_DEV_HOME)/Utils"
 INC += ${TOOL_INC}
 
 # custom make config
-VEX_SLOT = 1
+VEX_SLOT = 4
 VEX_ICON = "USER003x.bmp"
-APP_NAME = "FarTeam"
+APP_NAME = "FarSkills"
 
 # 1 - FarTeam
 # 2 - SkillsAuton

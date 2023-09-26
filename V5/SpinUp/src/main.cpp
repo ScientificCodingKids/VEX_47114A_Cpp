@@ -15,10 +15,15 @@ competition Competition;
 XDriveRobot robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, flywheel, expander, intake, roller);
 RollingScreen rs(robot.Brain.Screen);
 
-bool AT_HOME = true;  // if at home, need calibrate in auto() and drive() as no pre_auton() is called
+bool AT_HOME = false;  // if at home, need calibrate in auto() and drive() as no pre_auton() is called
 
 int straight180() {
     robot.goStraight(24, directionType::fwd, 180, 60);
+    return 0;
+}
+
+int spinForever() {
+    robot.flywheel.spinFor(directionType::fwd, 20, rotationUnits::rev);
     return 0;
 }
 
@@ -31,6 +36,7 @@ void FarTeam(XDriveRobot& robot) {
     vex::task::sleep(1000);
     robot.roller.stop(vex::brakeType::coast);
 
+/*
     robot.goStraight(5, directionType::fwd, 180, 70);
     robot.makeTurn(45, true);
     robot.goStraight(2.1 * 24 + 1, directionType::fwd, 135, 80);
@@ -38,6 +44,7 @@ void FarTeam(XDriveRobot& robot) {
     robot.flywheel.spin(directionType::fwd, 62, velocityUnits::pct);
     vex::task::sleep(3000);
     robot.intake.spin(directionType::fwd, 30, velocityUnits::pct);
+    */
     return;
 }
 
@@ -76,12 +83,15 @@ void FarSkillsDiagonal(XDriveRobot& robot) {
     robot.stop(vex::brakeType::coast);
     robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
     vex::task::sleep(1400);
-    robot.roller.stop(vex::brakeType::coast); 
+    robot.roller.stop(vex::brakeType::coast);
     
     // move to second roller
-    robot.goStraight(17, directionType::fwd, 180, 50, 0.05);
-    robot.makeTurn(90, true);
-    robot.goStraight(15, directionType::fwd, 90, 50, 0.05);
+    robot.goStraight(7, directionType::fwd, 180, 70, 0.05);
+    robot.makeTurn(90, true); // turn to push dir
+    robot.goStraight(15, directionType::fwd, 180, 70, 0.05); // push away
+    robot.goStraight(8, directionType::fwd, 90, 70, 0.05); // go forwards a little
+    robot.goStraight(5, directionType::fwd, 0, 70, 0.05); // move left
+    robot.goStraight(5, directionType::fwd, 90, 70, 0.05); // 
 
     // getting the second roller
     robot.move(-50, -50, 50, 50);
@@ -92,8 +102,11 @@ void FarSkillsDiagonal(XDriveRobot& robot) {
     robot.roller.stop(vex::brakeType::coast);
 
     // move to throwing position
-    robot.goStraight(2 * 24, directionType::fwd, 270, 50);
-    robot.makeTurn(108, true, 40, 3);
+    robot.goStraight(10, directionType::fwd, 270, 70);
+    robot.makeTurn(180, true);
+    robot.goStraight(2 * 24 - 5, directionType::fwd, 270, 70);
+    robot.goStraight(5, directionType::fwd, 90, 70);
+    robot.makeTurn(108, false, 40, 3);
 
     robot.flywheel.spin(directionType::fwd, 53, velocityUnits::pct);
     vex::task::sleep(2500);
@@ -105,27 +118,28 @@ void FarSkillsDiagonal(XDriveRobot& robot) {
 
     // move to long term diagonal position
     robot.makeTurn(90, false, 40, 3);
-    robot.goStraight(21, directionType::fwd, 90, 50);
+    robot.goStraight(21, directionType::fwd, 90, 70);
     robot.goStraight(3.2 * 23.5, vex::directionType::fwd, 225, 80);
     
     robot.makeTurn(179, true, 60, 1);
-    rs.print("before %d", 7);
-    robot.goStraight(7, vex::directionType::fwd, 180, 50);
-    rs.print("AFTER %d", 7);
+    //rs.print("before %d", 7);
+    robot.goStraight(7, vex::directionType::fwd, 180, 70);
+    //rs.print("AFTER %d", 7);
 
     // get third roller
     task t1(straight180);
-    vex::task::sleep(700);
+    vex::task::sleep(800);
     t1.stop();
+    robot.stop(brakeType::coast);
 
     robot.roller.spin(vex::directionType::rev, 70, vex::velocityUnits::pct);
     vex::task::sleep(1000);
     robot.roller.stop(vex::brakeType::coast);
 
     // move to fourth roller    
-    robot.goStraight(17, directionType::fwd, 0, 50, 0.05);
+    robot.goStraight(17, directionType::fwd, 0, 70, 0.05);
     robot.makeTurn(270, true);
-    robot.goStraight(15, directionType::fwd, 270, 50, 0.05);
+    robot.goStraight(15, directionType::fwd, 270, 70, 0.05);
 
     // get fourth roller
     robot.move(-50, -50, 50, 50);
@@ -136,12 +150,12 @@ void FarSkillsDiagonal(XDriveRobot& robot) {
     robot.roller.stop(vex::brakeType::coast);
 
     // move to optimal expansion position
-    robot.goStraight(12, vex::directionType::fwd, 90, 60);
-    robot.goStraight(12, vex::directionType::fwd, 0, 60);
+    robot.goStraight(12, vex::directionType::fwd, 90, 70);
+    robot.goStraight(12, vex::directionType::fwd, 0, 70);
     robot.makeTurn(135, false, 60, 1);
 
     // expand
-    robot.expander.spin(vex::directionType::rev, 40, vex::velocityUnits::pct);
+    robot.expander.spin(vex::directionType::fwd, 70, vex::velocityUnits::pct);
     vex::task::sleep(7000);
     robot.expander.stop(vex::brakeType::coast);
     
@@ -216,10 +230,10 @@ void autonWithXD(XDriveRobot& robot) {
     vex::task::sleep(1000);
     robot.roller.stop(vex::brakeType::coast); 
     
-    robot.goStraight(17, directionType::fwd, 180, 50, 0.05);
+    robot.goStraight(17, directionType::fwd, 180, 70, 0.05);
     robot.makeTurn(90, true);
     //robot.intake.spin(directionType::fwd, 50, velocityUnits::pct);
-    robot.goStraight(15, directionType::fwd, 90, 50, 0.05);
+    robot.goStraight(15, directionType::fwd, 90, 70, 0.05);
 
     robot.move(-50, -50, 50, 50);
     vex::task::sleep(700);
@@ -251,6 +265,13 @@ void autonWithXD(XDriveRobot& robot) {
 
 }  //autonWithXD
 
+void testTask(XDriveRobot& robot) {
+    task t2(spinForever);
+    vex::task::sleep(2000);
+    t2.stop();
+    robot.goStraight(10, directionType::fwd, 0, 60);
+}
+
 void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
     bool isShooting = false;
     int counter = 0; // for delayed intake start after flywheel
@@ -270,7 +291,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
     controller::button& btnExpanderRev = rc.ButtonDown;
 
     while (1) {
-        rs.print("velocity: %f", flywheel.velocity(velocityUnits::rpm));
+        //rs.print("velocity: %f", flywheel.velocity(velocityUnits::rpm));
 
         double xSpeed = logDrive(rc.Axis4.position(percentUnits::pct)); // run experiment to see which side is positive/negative
         double ySpeed = logDrive(rc.Axis3.position(percentUnits::pct));
@@ -314,7 +335,7 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
         if (btnShootStop.pressing()) {
             isShooting = false;
             counter = 0;
-            rs.print("STOP flywheel: %d", counter);
+            //rs.print("STOP flywheel: %d", counter);
             robot.flywheel.stop(brakeType::coast);
             robot.intake.stop(brakeType::coast);
             intakeStatus = 0;
@@ -384,13 +405,14 @@ void driveWithXD(XDriveRobot& robot, vex::controller& rc, double kp) {
 }
 
 void turnNinety(XDriveRobot& robot) {
-    rs.print("start heading: %.1f", robot.inertialSensor.heading());
+    //rs.print("start heading: %.1f", robot.inertialSensor.heading());
     robot.makeTurn(90, true);
-    rs.print("end heading: %.1f", robot.inertialSensor.heading());
+    //rs.print("end heading: %.1f", robot.inertialSensor.heading());
 }
 
 
 void pre_auton( void ) {
+/*
   if (AT_HOME == false) { 
     inertialSensor.calibrate();
     int timeCount = 0;
@@ -400,12 +422,15 @@ void pre_auton( void ) {
     vex::task::sleep(20);
     }
 
-    rs.print("calibration time: %d", timeCount);
+    rs.print("pre auton calibration time: %d", timeCount);
     }
+    */
 }
 
 void autonomous( void ) {
   //if (AT_HOME) { robot.calibrate(); rs.print("auton: calibrated %d", 1);}
+  robot.calibrate();
+  vex::task::sleep(3000);
   FarSkillsDiagonal(robot);
 }
 
@@ -418,7 +443,8 @@ int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
-  if (AT_HOME) { robot.calibrate(); rs.print("auton: calibrated %d", 1);}
+  //robot.calibrate();
+  //rs.print("main auton: calibrated %d", 1);
 
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );

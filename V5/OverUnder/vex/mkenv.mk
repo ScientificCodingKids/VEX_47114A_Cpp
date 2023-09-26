@@ -48,7 +48,7 @@ endif
 ifeq ($(BUILD_VERBOSE),0)
 Q = @
 else
-Q =
+Q = 
 endif
 
 # compile and link tools
@@ -106,3 +106,4 @@ INC += ${TOOL_INC}
 # custom make config
 VEX_SLOT = 1
 VEX_ICON = "USER003x.bmp"
+APP_NAME = "OverUnder"

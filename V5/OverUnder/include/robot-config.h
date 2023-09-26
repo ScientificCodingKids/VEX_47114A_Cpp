@@ -12,18 +12,8 @@ extern vex::motor_group rightdrive;
 
 extern vex::inertial inertialSensor;
 
-extern vex::drivetrain dt;
-extern vex::smartdrive sdrive;
+extern vex::motor cat;  // catapult
 
-extern vex::motor rightlift;
-extern vex::motor leftlift;
-
-extern vex::motor_group lift;
-
-extern vex::motor backintake;
-extern vex::motor frontintake;
-
-//extern vex::motor_group intake;
 extern vex::controller rc;
 
 /**

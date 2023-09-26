@@ -18,9 +18,10 @@ vex::inertial inertialSensor = vex::inertial(PORT8);
 vex::drivetrain dt = vex::drivetrain(leftdrive, rightdrive, 320, 260, 280);
 vex::smartdrive sdrive = vex::smartdrive(backleftdrive, backrightdrive, inertialSensor, 320, 260, 280);
 
-vex::motor flywheel = vex::motor(PORT10);
-vex::motor indexer = vex::motor(PORT9, true);
+vex::motor flywheel = vex::motor(PORT10, true);
+vex::motor expander = vex::motor(PORT9);
 vex::motor intake = vex::motor(PORT6);
+vex::motor roller = vex::motor(PORT15);
 
 vex::controller rc = vex::controller();
 

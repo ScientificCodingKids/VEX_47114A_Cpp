@@ -45,7 +45,8 @@ int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
-  inertialSensor.calibrate();
+  
+
   vex::task::sleep(2500);
 
   // Coord actualDestLoc = makeTurn(90, true);

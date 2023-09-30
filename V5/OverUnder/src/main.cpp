@@ -14,9 +14,11 @@ competition Competition;
 class RobotOverUnder: public DriveTrainBase {
   public:
     RobotOverUnder(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, vex::brain& brn, vex::inertial& ins, vex::motor& cat)
-    : DriveTrainBase(bl, br, fl, fr, brn, ins) {
-      // TODO
+    : DriveTrainBase(bl, br, fl, fr, brn, ins), catMotor(cat) {
+    
     }
+
+    vex::motor& catMotor;
 
     void throw_obj() { /* TODO */ }
 

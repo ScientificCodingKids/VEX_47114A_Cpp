@@ -1,6 +1,6 @@
 using namespace vex;
 
-extern brain Brain;
+extern brain theBrain;
 
 extern vex::motor backleftdrive;
 extern vex::motor backrightdrive;

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include "../include/robot-config.h"
 #include "../../../Utils/nutils.hpp"
 #include "../../../Utils/motion.hpp"
 
@@ -26,7 +27,71 @@ class RobotOverUnder: public DriveTrainBase {
 
 
 
-RollingScreen rs(Brain.Screen);
+RollingScreen rs(theBrain.Screen);
+
+RobotOverUnder theRobot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, theBrain, inertialSensor, cat);
+
+
+void experiment_catapult(RobotOverUnder& robot, vex::controller& rc) {
+  const controller::button& btnSlipRotCW = rc.ButtonLeft;
+  const controller::button& btnSlipRotCCW = rc.ButtonRight;
+  //controller::button& btnThrow = rc.ButtonUp;
+
+  const controller::button& btnModeSwitch = rc.ButtonL1;
+  int catState = 0;  // 0: no spin; 1: spin
+
+
+  const controller::button& btnSpeedUp = rc.ButtonR1;
+  const controller::button& btnSpeedDn = rc.ButtonR2;
+
+
+  double c = 60.0 / 36.0; // gear ratio
+
+  double theta_0 = 60.0 / 360. * 2.0 * M_PI;  // starting angle
+  double theta_s = -30.0 / 360. * 2.0 * M_PI; // shooting angle
+
+  double speed = 20.;
+
+  while (1) {
+    double oldSpeed = speed;
+
+    if (btnSpeedUp.pressing()) {
+      speed += 10.;
+    }
+    if (btnSpeedDn.pressing()) {
+      speed -= 10.;
+    }
+
+    speed = min(80., max(10., speed));
+
+    if (oldSpeed != speed) {
+      rs.print("curr speed: %.1f", speed);
+    }
+
+    int oldState = catState;
+
+    if (btnModeSwitch.pressing()) {
+      catState = 1 - catState;
+    }
+
+    if (oldState != catState) {
+      rs.print("Curr state: %d", catState);
+    }
+
+    if (btnSlipRotCW.pressing()) {
+      robot.catMotor.spin(directionType::fwd, speed, velocityUnits::pct);
+    }
+
+    if (btnSlipRotCCW.pressing()) {
+      robot.catMotor.spin(directionType::rev, speed, velocityUnits::pct);
+    }
+
+
+    task::sleep(100);
+  }
+
+
+}
 
 
 void pre_auton(RobotOverUnder& robot) {
@@ -41,7 +106,7 @@ void autonomous( void ) {
 }
 
 void usercontrol( void ) {
-  
+  experiment_catapult(theRobot, rc);
 } // usercontrol
 
 
@@ -52,7 +117,7 @@ int main() {
   vexcodeInit();
 
   // our own code ONLY AFTER vexcodeInit()
-  RobotOverUnder robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, cat);
+  RobotOverUnder robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, theBrain, inertialSensor, cat);
   robot.setRollingScreen(&rs);
 
   Competition.autonomous( autonomous );

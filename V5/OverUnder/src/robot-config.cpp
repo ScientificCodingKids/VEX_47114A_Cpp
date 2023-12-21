@@ -3,7 +3,7 @@
 using namespace vex;
 
 // A global instance of brain used for printing to the V5 brain screen
-brain Brain;
+brain theBrain;
 
 vex::motor backleftdrive = vex::motor(PORT3, true);
 vex::motor backrightdrive = vex::motor(PORT4);

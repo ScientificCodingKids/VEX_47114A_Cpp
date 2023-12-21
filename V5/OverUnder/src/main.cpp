@@ -78,14 +78,20 @@ void experiment_catapult(RobotOverUnder& robot, vex::controller& rc) {
       rs.print("Curr state: %d", catState);
     }
 
-    if (btnSlipRotCW.pressing()) {
-      robot.catMotor.spin(directionType::fwd, speed, velocityUnits::pct);
-    }
+    if (catState == 1) { // in motion
+      if (btnSlipRotCW.pressing()) {
+        robot.catMotor.spin(directionType::fwd, speed, velocityUnits::pct);
+      }
 
-    if (btnSlipRotCCW.pressing()) {
-      robot.catMotor.spin(directionType::rev, speed, velocityUnits::pct);
+      if (btnSlipRotCCW.pressing()) {
+        robot.catMotor.spin(directionType::rev, speed, velocityUnits::pct);
+      }
     }
+    else {
+      // no motion -- ideal to check status or do manual fix
+      robot.catMotor.spin(directionType::fwd, 0, velocityUnits::pct);
 
+    }
 
     task::sleep(100);
   }

@@ -65,9 +65,9 @@ Coord DriveTrainBase::goStraight(double dist, vex::directionType dt, double tgtH
 
   double distToGo = dist; // distance more to travel
   double distTravelled = dist - distToGo; // distance already traveled
-  double finalSpeed = 10; // capping speed
+  double finalSpeed = 20; // capping speed
   double speed = originalSpeed; // max speed
-  double const adaptiveInterval = 10; // slow down/speed up interval
+  double const adaptiveInterval = 5; // slow down/speed up interval
   double prevRot = leftdrive.position(vex::rotationUnits::deg); // amount of rotation at the last run through
   double changedRotations = leftdrive.position(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
   double dx = 0; // change in x coordinate since last loop

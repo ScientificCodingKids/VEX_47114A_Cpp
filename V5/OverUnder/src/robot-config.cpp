@@ -7,8 +7,8 @@ brain theBrain;
 
 vex::motor backleftdrive = vex::motor(PORT3, true);
 vex::motor backrightdrive = vex::motor(PORT4);
-vex::motor frontleftdrive = vex::motor(PORT1);
-vex::motor frontrightdrive = vex::motor(PORT2, true);
+vex::motor frontleftdrive = vex::motor(PORT1, true);
+vex::motor frontrightdrive = vex::motor(PORT6);
 
 vex::motor_group leftdrive = vex::motor_group(backleftdrive, frontleftdrive);
 vex::motor_group rightdrive = vex::motor_group(backrightdrive, frontrightdrive);
@@ -19,7 +19,10 @@ vex::inertial inertialSensor = vex::inertial(PORT8);
 //vex::smartdrive sdrive = vex::smartdrive(backleftdrive, backrightdrive, inertialSensor, 320, 260, 280);
 
 
-vex::motor cat = vex::motor(PORT18, true);
+vex::motor cat = vex::motor(PORT2, true);
+
+vex::motor intakeMotor = vex::motor(PORT10, true);
+vex::motor intakeLifter = vex::motor(PORT11);
 
 vex::controller rc = vex::controller();
 

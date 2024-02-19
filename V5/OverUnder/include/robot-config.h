@@ -14,6 +14,9 @@ extern vex::inertial inertialSensor;
 
 extern vex::motor cat;  // catapult
 
+extern vex::motor intakeMotor;
+extern vex::motor intakeLifter;
+
 extern vex::controller rc;
 
 /**

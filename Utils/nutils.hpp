@@ -83,7 +83,7 @@ class RollingScreen {
       _screen(aV5Screen), _firstRow(firstRow), _maxRows(maxRows), _rows() {;}
 
     // LCD screen row is indexed from 1, not 0
-    void setPenColor(color&& c) {this->_screen.setPenColor(c); }
+    void setPenColor(const color& c) {this->_screen.setPenColor(c); }
 
     template <class ... Args>
     void print(const char* fmt, Args ... args);

@@ -30,7 +30,7 @@ RollingScreen rs(Brain.Screen);
 void pre_auton(RobotOverUnder& robot) {
   rs.print("Enter pre_auton(): %d ", 0);
 
-  robot.calibrate();
+  //robot.calibrate();
 
 }
 
@@ -39,7 +39,31 @@ void autonomous( void ) {
 }
 
 void usercontrol( void ) {
-  
+  bool isRunning = false;
+  int currSpeed = 20;
+
+  while (1) {
+      if (rc.ButtonUp.pressing()) {
+        if (currSpeed == 0) 
+          cat.spin(vex::directionType::fwd);  // port 18
+        else {
+          currSpeed += 10;
+          cat.setVelocity(currSpeed, velocityUnits::pct);
+        }
+          
+        isRunning = true;
+      }
+      if (rc.ButtonDown.pressing()) {
+        cat.stop(brakeType::coast);
+        isRunning = false;
+      }
+
+      if (isRunning) {
+        rs.print("%.0f => v:%.0f, i:%.0f, p:%.0f \n", currSpeed, cat.voltage(), cat.current(), cat.power());
+      }
+      
+      task::sleep(1000);
+  }  // while
 } // usercontrol
 
 

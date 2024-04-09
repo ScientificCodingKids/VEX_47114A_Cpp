@@ -104,6 +104,6 @@ INC += -I"$(VEX_DEV_HOME)/Utils"
 INC += ${TOOL_INC}
 
 # custom make config
-VEX_SLOT = 1
-VEX_ICON = "USER003x.bmp"
-APP_NAME = "OverUnder"
+VEX_SLOT = 2
+VEX_ICON = "USER004x.bmp"
+APP_NAME = "FlyWOnStick"

@@ -59,7 +59,7 @@ void usercontrol( void ) {
       }
 
       if (isRunning) {
-        rs.print("%.0f => v:%.0f, i:%.0f, p:%.0f \n", currSpeed, cat.voltage(), cat.current(), cat.power());
+        rs.print("%.0f | %.0f => v:%.0f, i:%.0f, p:%.0f \n", currSpeed, cat.velocity(), cat.voltage(), cat.current(), cat.power());
       }
       
       task::sleep(1000);

@@ -16,6 +16,7 @@ extern vex::motor cat;  // catapult
 
 extern vex::controller rc;
 
+extern vex::vision visionSensor;
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
  *

@@ -13,20 +13,63 @@ using namespace vex;
 using namespace std;
 
 
+class DriveTrainBase {
+    public:
+    DriveTrainBase(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, vex::brain& brn,  vex::inertial& ins): 
+        backleftdrive(bl), backrightdrive(br), frontleftdrive(fl), frontrightdrive(fr), _brain(brn), inertialSensor(ins) {
+            ;
+    }
+    vex::motor& backleftdrive;
+    vex::motor& backrightdrive;
+    vex::motor& frontleftdrive;
+    vex::motor& frontrightdrive;
 
-Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0)) {
+    vex::brain& _brain;
+    vex::inertial& inertialSensor;
+
+    RollingScreen* _rollScr; // why not initialized in constructor()?
+
+    void setRollingScreen(RollingScreen* rs) { _rollScr = rs; }
+
+    void calibrate () {
+      int v = 0;  // get around syntax of print()
+      _rollScr->setPenColor(vex::color::red);
+
+      _rollScr->print("START calib: %d", v);
+
+      inertialSensor.calibrate();
+
+      while (inertialSensor.isCalibrating()) {
+        // busy waiting
+        vex::task::sleep(50);
+      }
+
+      _rollScr->print("END calib: %d", v);     
+      _rollScr->setPenColor(vex::color::black);
+
+    }
+
+  Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp = 0.02, vex::brakeType bt = brake, Coord srcLoc = Coord(0.0, 0.0));
+
+  Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, Coord srcLoc = Coord(0.0, 0.0));
+
+  Coord gotoCoord(double startX, double startY, double destX, double destY, double originalSpeed);
+};  // class DriveTrainBase
+
+
+Coord DriveTrainBase::goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp, vex::brakeType bt, Coord srcLoc) {
   Coord currLoc = srcLoc;
 
-  leftdrive.resetRotation();
-  rightdrive.resetRotation();
+  leftdrive.resetPosition();
+  rightdrive.resetPosition();
 
   double distToGo = dist; // distance more to travel
   double distTravelled = dist - distToGo; // distance already traveled
   double finalSpeed = 10; // capping speed
   double speed = originalSpeed; // max speed
   double const adaptiveInterval = 10; // slow down/speed up interval
-  double prevRot = leftdrive.rotation(vex::rotationUnits::deg); // amount of rotation at the last run through
-  double changedRotations = leftdrive.rotation(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
+  double prevRot = leftdrive.position(vex::rotationUnits::deg); // amount of rotation at the last run through
+  double changedRotations = leftdrive.position(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
   double dx = 0; // change in x coordinate since last loop
   double dy = 0; // change in y coordinate since last loop
  
@@ -56,14 +99,14 @@ Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double o
 
     vex::task::sleep(10);
 
-    distToGo = dist - fabs(leftdrive.rotation(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
+    distToGo = dist - fabs(leftdrive.position(vex::rotationUnits::deg) / 360 * (4.0 * 3.1415269265));
 
-    changedRotations = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRot; // need scale, deg => inch
+    changedRotations = (leftdrive.position(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360 - prevRot; // need scale, deg => inch
 
     dx = changedRotations * cos(90-inertialSensor.heading());
     dy = changedRotations * sin(90-inertialSensor.heading());
 
-    prevRot = (leftdrive.rotation(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
+    prevRot = (leftdrive.position(vex::rotationUnits::deg) * 4.0 * 3.1415269265) / 360;
 
     currLoc.x = dx + currLoc.x;
     currLoc.y = dy + currLoc.y;
@@ -71,27 +114,28 @@ Coord goStraight(double dist, vex::directionType dt, double tgtHeading, double o
     distTravelled = dist - distToGo;
   }
   cout << "finalSpeed = " << speed << endl;
-  Brain.Screen.print("finalSpeed = %f ", speed);
+  _brain.Screen.print("finalSpeed = %f ", speed);
   leftdrive.stop(bt);
   rightdrive.stop(bt);
   cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
-  Brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
+  _brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
   return currLoc;
-} 
+}  // DriveTrainBase::goStraight()
+
  
-Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp=0.03, double tol=1, Coord srcLoc = Coord(0.0, 0.0))
+Coord DriveTrainBase::makeTurn(double tgtHeading, bool turnClockwise, double speed, double kp, double tol, Coord srcLoc)
 {
   // using straight line method to measure
   // close enough to arc (within 0.1)
   // code for arc is commented out
 
-  RollingScreen rs(Brain.Screen);
+  RollingScreen rs(_brain.Screen);
 
   Coord currLoc = srcLoc;
   //Coord currLoc2 = srcLoc;
 
-  leftdrive.resetRotation();
-  rightdrive.resetRotation();
+  leftdrive.resetPosition();
+  rightdrive.resetPosition();
 
   double degreeToGo = tgtHeading - inertialSensor.heading();
 
@@ -102,7 +146,7 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
   double CWDegreeToGo = degreeToGo;
   double CCWDegreeToGo = 360 - degreeToGo;
 
-  double lrot = leftdrive.rotation(vex::rotationUnits::deg);
+  double lrot = leftdrive.position(vex::rotationUnits::deg);
   double prevDegree = 0.0;
   double changedRotations = lrot - prevDegree; // rotations passed since last loop
   double dx = 0;
@@ -115,11 +159,11 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
   double currentTurnClockwise = turnClockwise;
 
   while (degreeToGo > tol) {
-    double travelledDist = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg)) - pastTravelled;
+    double travelledDist = rotation2distance(leftdrive.position(vex::rotationUnits::deg)) - pastTravelled;
     double ch = inertialSensor.heading();
     double chArc = degree2arc(ch);
     //double chOldArc = degree2arc(chOld);
-    lrot = leftdrive.rotation(vex::rotationUnits::deg);
+    lrot = leftdrive.position(vex::rotationUnits::deg);
 
     //1. compute cw, ccw degreeToGo
     CWDegreeToGo = tgtHeading - ch;
@@ -164,7 +208,7 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
     }
 
     // 3. set motor speed and direction
-    //Brain.Screen.print("%f, %d \n", currentSpeed, isClose);
+    //_brain.Screen.print("%f, %d \n", currentSpeed, isClose);
     //cout << ch << ": [ " << CWDegreeToGo << ", " << CCWDegreeToGo << "]" << degreeToGo << ", " << headingError << ", " << currentSpeed << "; " << isClose << "; " << currentTurnClockwise << endl;  // print to terminal
 
    
@@ -200,7 +244,7 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
     //currLoc2.x = dx2 + currLoc2.x;
     //currLoc2.y = dy2 + currLoc2.y;
 
-    pastTravelled = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
+    pastTravelled = rotation2distance(leftdrive.position(vex::rotationUnits::deg));
 
     prevDegree = lrot;
 
@@ -214,11 +258,13 @@ Coord makeTurn(double tgtHeading, bool turnClockwise, double speed=15, double kp
   // ss.printAt(1, "straight line location: (%.2f, %.2f)", currLoc.x, currLoc.y);
  
   return currLoc;
-}
+}    // DriveTrainBase::makeTurn()
 
-void gotoCoord(double startX, double startY, double destX, double destY, double originalSpeed) {
-  leftdrive.resetRotation();
-  rightdrive.resetRotation();
+
+Coord DriveTrainBase::gotoCoord(double startX, double startY, double destX, double destY, double originalSpeed) {
+  // WARN: this function is NOT tested and NOT used [yet]
+  leftdrive.resetPosition();
+  rightdrive.resetPosition();
 
   // length of travel
   double xToGo = startX-destX;
@@ -248,74 +294,13 @@ void gotoCoord(double startX, double startY, double destX, double destY, double 
       angle = 180 + triangleAngle;
     }
   }
-  makeTurn(angle, true, originalSpeed); // make sure angle is heading
-  goStraight(distToGo, vex::directionType::fwd, angle, originalSpeed);
-}
 
-void goPlatform(double initialSpeed=20, double changeInPitchThreshold = 0.4, double tgtHeading = 0) {
-  // assume the inertial sensor is attached so that pitch is being used and it is negative when heading up
-  // the heading is positive towards the right
+  Coord srcLoc(startX, startY);
 
-  leftdrive.resetRotation();
-  rightdrive.resetRotation();
+  Coord loc1 = makeTurn(angle, true, originalSpeed, 0.03, 1.0, srcLoc); // make sure angle is heading
 
-  double currentPitch = inertialSensor.pitch(); // pitch (angle) of robot
-  double previousPitch = currentPitch;
+  return goStraight(distToGo, vex::directionType::fwd, angle, originalSpeed, 0.02, vex::brake, loc1);
+}  // DriveTrainBase::gotoCoord()
 
-  bool goforward = false; // direction
-  bool isDone = false; // exit while loop
-  double kp = 0.1;
-  double speed = initialSpeed; // adjusted speed
-  bool isRampUp = true; // whether it is the first time going up the ramp
-  double headingError = inertialSensor.heading() - tgtHeading;
-  double wheelRotationIn = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
-  double rampUpTime = 0;
-  double timeInterval = 0.01; // ok: 0.05; (0.85)
-  double rampUpWait = 2;
-
-  RollingScreen rs(Brain.Screen);
-
-  while ((currentPitch < changeInPitchThreshold + previousPitch || isRampUp) && !isDone) {
-    previousPitch = currentPitch;
-
-    currentPitch = inertialSensor.pitch();
-    wheelRotationIn = rotation2distance(leftdrive.rotation(vex::rotationUnits::deg));
-
-    if (rampUpTime > rampUpWait) isRampUp = false;
-
-    // changing directions
-    goforward = isRampUp || (currentPitch < 0.);
-
-    headingError = inertialSensor.heading() - tgtHeading;
-    if (headingError < -270) headingError = headingError + 360;
-    if (headingError > 270) headingError = headingError - 360;
-
-    if (headingError < -15) headingError = -15;
-    if (headingError > 15) headingError = 15;
-
-    if (goforward) {
-      leftdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
-      rightdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
-      leftdrive.spin(vex::directionType::fwd);
-      rightdrive.spin(vex::directionType::fwd);
-    } else {
-      leftdrive.setVelocity(speed * (1 + kp * headingError), vex::percentUnits::pct);
-      rightdrive.setVelocity(speed * (1 - kp * headingError), vex::percentUnits::pct);
-      leftdrive.spin(vex::directionType::rev);
-      rightdrive.spin(vex::directionType::rev);
-    }
-
-    if (rc.ButtonX.pressing()) {
-      isDone = true;
-    }
-    rs.print("p:%.1f/%.1f, RampUp: %d, speed: %.1f", currentPitch, previousPitch, isRampUp, speed);
-
-    vex::task::sleep(1000. * timeInterval);
-    rampUpTime = rampUpTime + timeInterval;
-
-  }
-  leftdrive.stop(vex::brakeType::hold);
-  rightdrive.stop(vex::brakeType::hold);
-}
 
 #endif  // _motion_hpp_

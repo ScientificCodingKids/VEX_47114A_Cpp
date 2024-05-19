@@ -17,12 +17,16 @@ class DriveTrainBase {
     public:
     DriveTrainBase(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, vex::brain& brn,  vex::inertial& ins): 
         backleftdrive(bl), backrightdrive(br), frontleftdrive(fl), frontrightdrive(fr), _brain(brn), inertialSensor(ins) {
-            ;
+              
+      leftdrive = vex::motor_group(backleftdrive, frontleftdrive);
+      rightdrive = vex::motor_group(backrightdrive, frontrightdrive);
     }
     vex::motor& backleftdrive;
     vex::motor& backrightdrive;
     vex::motor& frontleftdrive;
     vex::motor& frontrightdrive;
+
+    vex::motor_group leftdrive, rightdrive;
 
     vex::brain& _brain;
     vex::inertial& inertialSensor;

@@ -2,8 +2,8 @@
 #include <iostream>
 #include <cmath>
 #include <cassert>
-#include "../../../Utils/nutils.hpp"
-#include "../../../Utils/motion.hpp"
+#include "nutils.hpp"
+#include "motion.hpp"
 
 using namespace vex;
 using namespace std;

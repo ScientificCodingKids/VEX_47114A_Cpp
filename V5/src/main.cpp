@@ -44,6 +44,7 @@ void usercontrol( void ) {
   int maxSpeed = 90;
 
   vex::directionType intakeRotDir = vex::directionType::fwd;
+  rs.print("START ... \n");
 
   while (1) {
       if (rc.ButtonA.pressing()) {
@@ -53,22 +54,23 @@ void usercontrol( void ) {
       if (rc.ButtonB.pressing()) {
         intakeRotDir = vex::directionType::rev;
       }
+      intake.spin(intakeRotDir);
 
       if (rc.ButtonUp.pressing()) {
-        if (currSpeed == 0) 
-          intake.spin(intakeRotDir);
-        else {
-          currSpeed += 10;
-          currSpeed = min(currSpeed, maxSpeed);
-          intake.setVelocity(currSpeed, velocityUnits::pct);
-        }
-          
-        isRunning = true;
+      
+        currSpeed += 10;
+        currSpeed = min(currSpeed, maxSpeed);
+        intake.setVelocity(currSpeed, velocityUnits::pct);
+        
+        rs.print("SPIN at %.1f \n", currSpeed);
+
       }
       if (rc.ButtonDown.pressing()) {
-        if (currSpeed == 0)
+        if (currSpeed == 0) {
           intake.stop(brakeType::coast);
+          rs.print("STOP");
           //isRunning = false;
+        }
         else {
           currSpeed -= 10;
           intake.setVelocity(currSpeed, velocityUnits::pct);

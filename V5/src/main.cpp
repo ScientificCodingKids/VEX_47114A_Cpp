@@ -20,7 +20,7 @@ class Roboto: public DriveTrainBase {
     }
   
     vex::motor& intake;
-};  // class RobotOverUnder
+};  // class Roboto
 
 
 

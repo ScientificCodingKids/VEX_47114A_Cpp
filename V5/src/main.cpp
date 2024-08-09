@@ -38,50 +38,105 @@ void autonomous( void ) {
 
 }
 
+
 void usercontrol( void ) {
-  bool isRunning = false;
+  // remote control key mapping
+  // https://kb.vex.com/hc/en-us/articles/360035954651-Using-Blocks-for-Controller-Buttons-Joysticks-in-VEXcode-V5
+
+  bool enableDrivetrain = false;
+  bool enableIntake = true;
+
+  //bool isRunning = false;
   int currSpeed = 20;
   int maxSpeed = 90;
+
+  bool isMotorFLOn = false;
+  bool isMotorFROn = false;
+  bool isMotorBLOn = false;
+  bool isMotorBROn = false;
+
 
   vex::directionType intakeRotDir = vex::directionType::fwd;
   rs.print("START ... \n");
 
   while (1) {
-      if (rc.ButtonA.pressing()) {
-        intakeRotDir = vex::directionType::fwd;
+    if (rc.ButtonR1.pressing()) {
+      currSpeed = min(currSpeed + 10, maxSpeed);
+    }
+
+    if (rc.ButtonR2.pressing()) {
+      currSpeed = max(currSpeed - 10, 0);
+    }
+
+    if (enableDrivetrain) {
+      if (rc.ButtonL2.pressing()) {
+        isMotorFLOn = false;
+        isMotorFROn = false;
+        isMotorBLOn = false;
+        isMotorBROn = false;
+      }
+
+      if (rc.ButtonY.pressing()) {
+        isMotorFLOn = true;
+      }
+
+      if (rc.ButtonX.pressing()) {
+        isMotorFROn = true;
       }
 
       if (rc.ButtonB.pressing()) {
+        isMotorBLOn = true;
+      }
+
+      if (rc.ButtonA.pressing()) {
+        isMotorBROn = true;
+      }
+
+      if (isMotorFLOn) {
+        frontleftdrive.setVelocity(currSpeed, vex::velocityUnits::pct);
+        frontleftdrive.spin(vex::directionType::fwd);
+      }
+      if (isMotorFROn) {
+        frontrightdrive.setVelocity(currSpeed, vex::velocityUnits::pct);
+        frontrightdrive.spin(vex::directionType::fwd);
+      }
+
+      if (isMotorBLOn) {
+        backleftdrive.setVelocity(currSpeed, vex::velocityUnits::pct);
+        backleftdrive.spin(vex::directionType::fwd);
+      }
+
+      if (isMotorBROn) {
+        backrightdrive.setVelocity(currSpeed, vex::velocityUnits::pct);
+        backrightdrive.spin(vex::directionType::fwd);
+      }
+          
+    }  // if enableDrivetrain
+
+    if (enableIntake) {
+      if (rc.ButtonUp.pressing()) {
+        intakeRotDir = vex::directionType::fwd;
+      }
+
+      if (rc.ButtonDown.pressing()) {
         intakeRotDir = vex::directionType::rev;
       }
+
+      intake.setVelocity(currSpeed, velocityUnits::pct);
+
+      rs.print("Intake SPIN at %.1f \n", currSpeed);
+
       intake.spin(intakeRotDir);
 
-      if (rc.ButtonUp.pressing()) {
-      
-        currSpeed += 10;
-        currSpeed = min(currSpeed, maxSpeed);
-        intake.setVelocity(currSpeed, velocityUnits::pct);
-        
-        rs.print("SPIN at %.1f \n", currSpeed);
 
-      }
-      if (rc.ButtonDown.pressing()) {
-        if (currSpeed == 0) {
-          intake.stop(brakeType::coast);
-          rs.print("STOP");
-          //isRunning = false;
-        }
-        else {
-          currSpeed -= 10;
-          intake.setVelocity(currSpeed, velocityUnits::pct);
-        }
-      }
-
-      // if (isRunning) {
-      //   rs.print("%.0f | %.0f => v:%.0f, i:%.0f, p:%.0f \n", currSpeed, cat.velocity(), cat.voltage(), cat.current(), cat.power());
-      // }
+    }  // if enableIntake
       
-      task::sleep(1000);
+
+    // if (isRunning) {
+    //   rs.print("%.0f | %.0f => v:%.0f, i:%.0f, p:%.0f \n", currSpeed, cat.velocity(), cat.voltage(), cat.current(), cat.power());
+    // }
+    
+    task::sleep(100);
   }  // while
 } // usercontrol
 

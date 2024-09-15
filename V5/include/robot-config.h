@@ -2,6 +2,9 @@ using namespace vex;
 
 extern brain Brain;
 extern vex::motor intake;
+extern vex::motor conveyor;
+
+extern vex::digital_out mogomech;
 
 extern vex::motor backleftdrive;
 extern vex::motor backrightdrive;

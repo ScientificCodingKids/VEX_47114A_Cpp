@@ -15,8 +15,8 @@ using namespace std;
 
 class DriveTrainBase {
     public:
-    DriveTrainBase(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, vex::brain& brn,  vex::inertial& ins): 
-        backleftdrive(bl), backrightdrive(br), frontleftdrive(fl), frontrightdrive(fr), _brain(brn), inertialSensor(ins) {
+    DriveTrainBase(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, vex::brain& brn,  vex::inertial& ins, RollingScreen& scr): 
+        backleftdrive(bl), backrightdrive(br), frontleftdrive(fl), frontrightdrive(fr), _brain(brn), inertialSensor(ins), screen(scr) {
               
       leftdrive = vex::motor_group(backleftdrive, frontleftdrive);
       rightdrive = vex::motor_group(backrightdrive, frontrightdrive);
@@ -31,15 +31,13 @@ class DriveTrainBase {
     vex::brain& _brain;
     vex::inertial& inertialSensor;
 
-    RollingScreen* _rollScr; // why not initialized in constructor()?
-
-    void setRollingScreen(RollingScreen* rs) { _rollScr = rs; }
+    RollingScreen screen;
 
     void calibrate () {
       int v = 0;  // get around syntax of print()
-      _rollScr->setPenColor(vex::color::red);
+      screen.setPenColor(vex::color::red);
 
-      _rollScr->print("START calib: %d", v);
+      screen.print("START calib: %d \n", v);
 
       inertialSensor.calibrate();
 
@@ -48,8 +46,8 @@ class DriveTrainBase {
         vex::task::sleep(50);
       }
 
-      _rollScr->print("END calib: %d", v);     
-      _rollScr->setPenColor(vex::color::black);
+      screen.print("FINISH calib %d \n", v);
+      screen.setPenColor(vex::color::black);
 
     }
 
@@ -63,9 +61,12 @@ class DriveTrainBase {
 
 Coord DriveTrainBase::goStraight(double dist, vex::directionType dt, double tgtHeading, double originalSpeed, double kp, vex::brakeType bt, Coord srcLoc) {
   Coord currLoc = srcLoc;
-
+  int v0 = 0;
+  this->screen.print("A : %d", v0);
   leftdrive.resetPosition();
   rightdrive.resetPosition();
+
+  this->screen.print("B: %d", v0);
 
   double distToGo = dist; // distance more to travel
   double distTravelled = dist - distToGo; // distance already traveled
@@ -79,6 +80,8 @@ Coord DriveTrainBase::goStraight(double dist, vex::directionType dt, double tgtH
  
   while (distToGo > 0) {
     double headingError = inertialSensor.heading() - tgtHeading;
+
+    this->screen.print("HeadingErr %.2f", headingError);
     if (headingError < -270) headingError = headingError + 360;
     if (headingError > 270) headingError = headingError - 360;
 
@@ -117,12 +120,12 @@ Coord DriveTrainBase::goStraight(double dist, vex::directionType dt, double tgtH
     
     distTravelled = dist - distToGo;
   }
-  cout << "finalSpeed = " << speed << endl;
-  _brain.Screen.print("finalSpeed = %f ", speed);
+  //cout << "finalSpeed = " << speed << endl;
+  //_brain.Screen.print("finalSpeed = %f ", speed);
   leftdrive.stop(bt);
   rightdrive.stop(bt);
-  cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
-  _brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
+  //cout << "ending coordinate = " << currLoc.x << ", " << currLoc.y << endl;
+  //_brain.Screen.print("ending coordinate = %f, %f", currLoc.x, currLoc.y);
   return currLoc;
 }  // DriveTrainBase::goStraight()
 

@@ -6,14 +6,17 @@ using namespace vex;
 brain Brain;
 
 vex::motor intake = vex::motor(PORT5, true);
+vex::motor conveyor = vex::motor(PORT7);
 
 vex::motor backleftdrive = vex::motor(PORT3, true);
 vex::motor backrightdrive = vex::motor(PORT4);
-vex::motor frontleftdrive = vex::motor(PORT1);
-vex::motor frontrightdrive = vex::motor(PORT2, true);
+vex::motor frontleftdrive = vex::motor(PORT1, true);
+vex::motor frontrightdrive = vex::motor(PORT2);
+
+digital_out mogomech = digital_out(Brain.ThreeWirePort.F);
 
 
-vex::inertial inertialSensor = vex::inertial(PORT8);
+vex::inertial inertialSensor = vex::inertial(PORT15);
 
 //vex::drivetrain dt = vex::drivetrain(leftdrive, rightdrive, 320, 260, 280);
 //vex::smartdrive sdrive = vex::smartdrive(backleftdrive, backrightdrive, inertialSensor, 320, 260, 280);

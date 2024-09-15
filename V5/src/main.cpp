@@ -15,27 +15,51 @@ class Roboto: public DriveTrainBase {
   public:
     Roboto(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, 
       vex::brain& brn, vex::inertial& ins, 
-      vex::motor& aIntake): DriveTrainBase(bl, br, fl, fr, brn, ins), intake(aIntake) {
+      vex::motor& aIntake, vex::motor& convey, RollingScreen rs): DriveTrainBase(bl, br, fl, fr, brn, ins, rs), intake(aIntake), conveyor(convey) {
       // TODO
     }
   
     vex::motor& intake;
+    vex::motor& conveyor;
 };  // class Roboto
 
 
 
 RollingScreen rs(Brain.Screen);
 
+Roboto robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, intake, conveyor, rs);
+
 
 void pre_auton(Roboto& robot) {
-  rs.print("Enter pre_auton(): %d ", 0);
+ 
+  robot.screen.print("Enter pre_auton(): %d \n", 0);
 
-  //robot.calibrate();
+  robot.calibrate();
+  
+  robot.screen.print("1: calib done %p \n", (void*)(&rs));
 
 }
 
 void autonomous( void ) {
+  // go straight and suck in
+  //frontleftdrive.spin(directionType::fwd);
+  int v0 = 0;
 
+  robot.screen.print("$Start auton %d \n", v0);
+
+  robot.goStraight(5., directionType::fwd, 0., 80);
+  
+  robot.screen.print("!BBBB goStraightDone %d \n", v0);
+
+  robot.conveyor.setVelocity(70.0, velocityUnits::pct);
+  robot.intake.setVelocity(70., velocityUnits::pct);
+  robot.intake.spin(directionType::fwd);
+  robot.conveyor.spin(directionType::fwd);
+
+  robot.goStraight(3., directionType::fwd, 0., 10.);
+
+  robot.makeTurn(90., true, 25.);
+  
 }
 
 
@@ -43,23 +67,65 @@ void usercontrol( void ) {
   // remote control key mapping
   // https://kb.vex.com/hc/en-us/articles/360035954651-Using-Blocks-for-Controller-Buttons-Joysticks-in-VEXcode-V5
 
-  bool enableDrivetrain = false;
-  bool enableIntake = true;
 
-  //bool isRunning = false;
   int currSpeed = 20;
   int maxSpeed = 90;
 
-  bool isMotorFLOn = false;
-  bool isMotorFROn = false;
-  bool isMotorBLOn = false;
-  bool isMotorBROn = false;
+  int leftJoyPos;
+  int rightJoyPos;
+
+  int leftDriveSpeed;
+  int rightDriveSpeed;
+
+  directionType leftDriveDir = directionType::fwd;
+  directionType rightDriveDir = directionType::fwd;
 
 
   vex::directionType intakeRotDir = vex::directionType::fwd;
   rs.print("START ... \n");
 
   while (1) {
+    leftJoyPos = rc.Axis3.position();
+    rightJoyPos = rc.Axis2.position();
+    leftDriveSpeed = abs(leftJoyPos * 0.85);
+    rightDriveSpeed = abs(rightJoyPos * 0.85);
+
+    if (leftJoyPos > 5) {
+      leftDriveDir = directionType::fwd;
+      frontleftdrive.setVelocity(leftDriveSpeed, velocityUnits::pct);
+      backleftdrive.setVelocity(leftDriveSpeed, velocityUnits::pct);
+    }
+    else if (leftJoyPos < -5) {
+      leftDriveDir = directionType::rev;
+      frontleftdrive.setVelocity(leftDriveSpeed, velocityUnits::pct);
+      backleftdrive.setVelocity(leftDriveSpeed, velocityUnits::pct);
+    }
+    else {
+      frontleftdrive.setVelocity(0, velocityUnits::pct);
+      backleftdrive.setVelocity(0, velocityUnits::pct);
+    }
+
+    if (rightJoyPos > 5) {
+      rightDriveDir = directionType::fwd;
+      frontrightdrive.setVelocity(rightDriveSpeed, velocityUnits::pct);
+      backrightdrive.setVelocity(rightDriveSpeed, velocityUnits::pct);
+    }
+    else if (rightJoyPos < -5) {
+      rightDriveDir = directionType::rev;
+      frontrightdrive.setVelocity(rightDriveSpeed, velocityUnits::pct);
+      backrightdrive.setVelocity(rightDriveSpeed, velocityUnits::pct);
+    }
+    else {
+      frontrightdrive.setVelocity(0, velocityUnits::pct);
+      backrightdrive.setVelocity(0, velocityUnits::pct);
+    }
+
+    frontleftdrive.spin(leftDriveDir);
+    frontrightdrive.spin(rightDriveDir);
+    backleftdrive.spin(leftDriveDir);
+    backrightdrive.spin(rightDriveDir);
+
+
     if (rc.ButtonR1.pressing()) {
       currSpeed = min(currSpeed + 10, maxSpeed);
     }
@@ -68,74 +134,37 @@ void usercontrol( void ) {
       currSpeed = max(currSpeed - 10, 0);
     }
 
-    if (enableDrivetrain) {
-      if (rc.ButtonL2.pressing()) {
-        isMotorFLOn = false;
-        isMotorFROn = false;
-        isMotorBLOn = false;
-        isMotorBROn = false;
-      }
-
-      if (rc.ButtonY.pressing()) {
-        isMotorFLOn = true;
-      }
-
-      if (rc.ButtonX.pressing()) {
-        isMotorFROn = true;
-      }
-
-      if (rc.ButtonB.pressing()) {
-        isMotorBLOn = true;
-      }
-
-      if (rc.ButtonA.pressing()) {
-        isMotorBROn = true;
-      }
-
-      if (isMotorFLOn) {
-        frontleftdrive.setVelocity(currSpeed, vex::velocityUnits::pct);
-        frontleftdrive.spin(vex::directionType::fwd);
-      }
-      if (isMotorFROn) {
-        frontrightdrive.setVelocity(currSpeed, vex::velocityUnits::pct);
-        frontrightdrive.spin(vex::directionType::fwd);
-      }
-
-      if (isMotorBLOn) {
-        backleftdrive.setVelocity(currSpeed, vex::velocityUnits::pct);
-        backleftdrive.spin(vex::directionType::fwd);
-      }
-
-      if (isMotorBROn) {
-        backrightdrive.setVelocity(currSpeed, vex::velocityUnits::pct);
-        backrightdrive.spin(vex::directionType::fwd);
-      }
-          
-    }  // if enableDrivetrain
-
-    if (enableIntake) {
-      if (rc.ButtonUp.pressing()) {
-        intakeRotDir = vex::directionType::fwd;
-      }
-
-      if (rc.ButtonDown.pressing()) {
-        intakeRotDir = vex::directionType::rev;
-      }
-
-      intake.setVelocity(currSpeed, velocityUnits::pct);
-
-      rs.print("Intake SPIN at %.1f \n", currSpeed);
-
-      intake.spin(intakeRotDir);
-
-
-    }  // if enableIntake
-      
-
-    // if (isRunning) {
-    //   rs.print("%.0f | %.0f => v:%.0f, i:%.0f, p:%.0f \n", currSpeed, cat.velocity(), cat.voltage(), cat.current(), cat.power());
-    // }
+    intake.setVelocity(currSpeed, velocityUnits::pct);
+    conveyor.setVelocity(currSpeed, velocityUnits::pct);
+    rs.print("Intake SPIN at %.1f \n", currSpeed);
     
+    if (rc.ButtonUp.pressing()) {
+      intake.spin(directionType::fwd);
+    }
+    else if (rc.ButtonDown.pressing()) {
+      intake.spin(directionType::rev);
+    }
+    else if (rc.ButtonX.pressing()) {
+      intake.stop(brakeType::coast);
+    }
+
+    if (rc.ButtonLeft.pressing()) {
+      conveyor.spin(directionType::fwd);
+    }
+    else if (rc.ButtonRight.pressing()) {
+      conveyor.spin(directionType::rev);
+    }
+    else if (rc.ButtonY.pressing()) {
+      conveyor.stop(brakeType::coast);
+    }
+
+    if (rc.ButtonL1.pressing()) {
+      mogomech.set(true);
+    }
+    else if (rc.ButtonL2.pressing()) {
+      mogomech.set(false);
+    }
+  
     task::sleep(100);
   }  // while
 } // usercontrol
@@ -148,8 +177,6 @@ int main() {
   vexcodeInit();
 
   // our own code ONLY AFTER vexcodeInit()
-  Roboto robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, intake);
-  robot.setRollingScreen(&rs);
 
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );

@@ -21,6 +21,7 @@ class DriveTrainBase {
       leftdrive = vex::motor_group(backleftdrive, frontleftdrive);
       rightdrive = vex::motor_group(backrightdrive, frontrightdrive);
     }
+
     vex::motor& backleftdrive;
     vex::motor& backrightdrive;
     vex::motor& frontleftdrive;
@@ -31,7 +32,7 @@ class DriveTrainBase {
     vex::brain& _brain;
     vex::inertial& inertialSensor;
 
-    RollingScreen screen;
+    RollingScreen& screen;
 
     void calibrate () {
       int v = 0;  // get around syntax of print()
@@ -66,6 +67,7 @@ Coord DriveTrainBase::goStraight(double dist, vex::directionType dt, double tgtH
   leftdrive.resetPosition();
   rightdrive.resetPosition();
 
+  //this->_brain.Screen.print("goSt");
   this->screen.print("B: %d", v0);
 
   double distToGo = dist; // distance more to travel
@@ -79,6 +81,8 @@ Coord DriveTrainBase::goStraight(double dist, vex::directionType dt, double tgtH
   double dy = 0; // change in y coordinate since last loop
  
   while (distToGo > 0) {
+    //this->_brain.Screen.print("distToGo %.2f", distToGo);
+
     double headingError = inertialSensor.heading() - tgtHeading;
 
     this->screen.print("HeadingErr %.2f", headingError);

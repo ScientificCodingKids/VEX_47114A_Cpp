@@ -15,8 +15,9 @@ class Roboto: public DriveTrainBase {
   public:
     Roboto(vex::motor& bl, vex::motor& br, vex::motor& fl, vex::motor& fr, 
       vex::brain& brn, vex::inertial& ins, 
-      vex::motor& aIntake, vex::motor& convey, RollingScreen rs): DriveTrainBase(bl, br, fl, fr, brn, ins, rs), intake(aIntake), conveyor(convey) {
+      vex::motor& aIntake, vex::motor& convey, RollingScreen& rs): DriveTrainBase(bl, br, fl, fr, brn, ins, rs), intake(aIntake), conveyor(convey) {
       // TODO
+      ;
     }
   
     vex::motor& intake;
@@ -24,20 +25,41 @@ class Roboto: public DriveTrainBase {
 };  // class Roboto
 
 
+// A global instance of brain used for printing to the V5 brain screen
+brain Brain;
+
+vex::motor intake = vex::motor(PORT5, true);
+vex::motor conveyor = vex::motor(PORT7);
+
+vex::motor backleftdrive = vex::motor(PORT3, true);
+vex::motor backrightdrive = vex::motor(PORT4);
+vex::motor frontleftdrive = vex::motor(PORT1, true);
+vex::motor frontrightdrive = vex::motor(PORT2);
+
+//digital_out mogomech = digital_out(Brain.ThreeWirePort.F);
+
+
+vex::inertial inertialSensor = vex::inertial(PORT15);
+
+//vex::drivetrain dt = vex::drivetrain(leftdrive, rightdrive, 320, 260, 280);
+//vex::smartdrive sdrive = vex::smartdrive(backleftdrive, backrightdrive, inertialSensor, 320, 260, 280);
+
+
+//vex::motor cat = vex::motor(PORT18, true);
+
+vex::controller rc = vex::controller();
 
 RollingScreen rs(Brain.Screen);
 
 Roboto robot(backleftdrive, backrightdrive, frontleftdrive, frontrightdrive, Brain, inertialSensor, intake, conveyor, rs);
-
-
+ 
 void pre_auton(Roboto& robot) {
  
   robot.screen.print("Enter pre_auton(): %d \n", 0);
 
   robot.calibrate();
   
-  robot.screen.print("1: calib done %p \n", (void*)(&rs));
-
+  robot.screen.print("@: calib done %d \n", 0);
 }
 
 void autonomous( void ) {
@@ -45,22 +67,26 @@ void autonomous( void ) {
   //frontleftdrive.spin(directionType::fwd);
   int v0 = 0;
 
-  robot.screen.print("$Start auton %d \n", v0);
+  // robot.screen.print("$Start auton %d \n", v0);
+  // robot.rightdrive.spin(directionType::fwd, 40., velocityUnits::pct);
+  // robot.screen.print("$$$ \n", 1);
+  // return;
 
   robot.goStraight(5., directionType::fwd, 0., 80);
   
-  robot.screen.print("!BBBB goStraightDone %d \n", v0);
-
+  //robot.screen.print("!BBBB goStraightDone %d \n", v0);
+  //print("coveyor/intake");
   robot.conveyor.setVelocity(70.0, velocityUnits::pct);
   robot.intake.setVelocity(70., velocityUnits::pct);
   robot.intake.spin(directionType::fwd);
   robot.conveyor.spin(directionType::fwd);
 
-  robot.goStraight(3., directionType::fwd, 0., 10.);
+  //robot.goStraight(3., directionType::fwd, 0., 10.);
 
-  robot.makeTurn(90., true, 25.);
+  //robot.makeTurn(90., true, 25.);
   
 }
+
 
 
 void usercontrol( void ) {
@@ -82,7 +108,7 @@ void usercontrol( void ) {
 
 
   vex::directionType intakeRotDir = vex::directionType::fwd;
-  rs.print("START ... \n");
+  //rs.print("START ... \n");
 
   while (1) {
     leftJoyPos = rc.Axis3.position();
@@ -136,7 +162,7 @@ void usercontrol( void ) {
 
     intake.setVelocity(currSpeed, velocityUnits::pct);
     conveyor.setVelocity(currSpeed, velocityUnits::pct);
-    rs.print("Intake SPIN at %.1f \n", currSpeed);
+    //rs.print("Intake SPIN at %.1f \n", currSpeed);
     
     if (rc.ButtonUp.pressing()) {
       intake.spin(directionType::fwd);
@@ -159,7 +185,7 @@ void usercontrol( void ) {
     }
 
     if (rc.ButtonL1.pressing()) {
-      mogomech.set(true);
+     mogomech.set(true);
     }
     else if (rc.ButtonL2.pressing()) {
       mogomech.set(false);
@@ -181,6 +207,7 @@ int main() {
   Competition.autonomous( autonomous );
   Competition.drivercontrol( usercontrol );
 
+  
   pre_auton(robot);
 
   while(1){

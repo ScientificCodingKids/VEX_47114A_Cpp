@@ -96,22 +96,24 @@ class RollingScreen {
 
 template<class ... Args>
 void RollingScreen::print(const char* fmt, Args ... args) {
-  char buf[1024];
-  _maxRows = min(_maxRows, 12 - _firstRow +1);
+  // char buf[1024];
+  // _maxRows = min(_maxRows, 12 - _firstRow +1);
   
-  snprintf(buf, 1024, fmt, args...);
-  _rows.push_back(std::string(buf));
+  // snprintf(buf, 1024, fmt, args...);
+  // _rows.push_back(std::string(buf));
 
-  while (_rows.size() > _maxRows) {
-    _rows.pop_front();
-  }
+  // while (_rows.size() > _maxRows) {
+  //   _rows.pop_front();
+  // }
 
-  for (unsigned int i=0; i< _rows.size(); ++i) {
-    int realRow = i + _firstRow;
-    _screen.clearLine(realRow);
-    _screen.setCursor(realRow, 1);
-    _screen.print("%d: %s", _rows.size(), _rows[i].c_str() );
-  }
+  // for (unsigned int i=0; i< _rows.size(); ++i) {
+  //   int realRow = i + _firstRow;
+  //   _screen.clearLine(realRow);
+  //   _screen.setCursor(realRow, 1);
+  //   _screen.print("%d: %s", _rows.size(), _rows[i].c_str() );
+  // }
+
+  return;
 
 }
 

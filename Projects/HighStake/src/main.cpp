@@ -15,17 +15,18 @@ using namespace vex;
 using namespace std;
 
 
-void goStraight(Coord& loc, double dist, vex::directionType dt, double tgtHeading, double origSpeed, double kp=0.004, vex::brakeType bt=coast, double wheelDiameter=4.0) {
+void goStraight(Coord& loc, double dist, vex::directionType dt, double origSpeed, double kp=0.004, vex::brakeType bt=coast, double wheelDiameter=4.0) {
   leftDrive.resetPosition();
   rightDrive.resetPosition();
 
+  double tgtHeading = inertialSensor.heading();
   double distToGo = dist; // distance more to travel
   double distTravelled = 0.0; // distance already traveled
   double finalSpeed = 10; // capping speed
   double speed = origSpeed; // max speed
   double const adaptiveInterval = 10; // slow down/speed up interval
   double prevRot = leftDrive.position(vex::rotationUnits::deg); // amount of rotation at the last run through
-  double changedRotations = leftDrive.position(vex::rotationUnits::deg) - prevRot; // rotations passed since last loop
+  double changedRotations = 0; // rotations passed since last loop
   double dx = 0; // change in x coordinate since last loop
   double dy = 0; // change in y coordinate since last loop
 
@@ -48,14 +49,13 @@ void goStraight(Coord& loc, double dist, vex::directionType dt, double tgtHeadin
 
     double speedAdj = kp * hE; 
 
-    speedAdj = 0;  //max(-0.1, min(0.1, speedAdj));
+    speedAdj = max(-0.1, min(0.1, speedAdj));
     double lowSpd = speed * (1. - speedAdj);
     double highSpd = speed * (1. + speedAdj);
 
     leftDrive.setVelocity(dt == fwd? lowSpd: highSpd, pct);
     rightDrive.setVelocity(dt == fwd? highSpd: lowSpd, pct); 
     
-
     leftDrive.spin(dt);
     rightDrive.spin(dt);
 
@@ -88,6 +88,8 @@ void goStraight(Coord& loc, double dist, vex::directionType dt, double tgtHeadin
 }
 
 void pre_auton(void) {
+  mogomech.set(true);  // release
+
   inertialSensor.calibrate();
 
   while (inertialSensor.isCalibrating()) {
@@ -114,23 +116,64 @@ void move_back_left() {
 
 void move_back_right() {}
 
-void autonomous(void) {
-// focus: move fast and suck in rings reliably (or grab goal reliably)
+void autonomous1(void) {
+// focus: move fast and suck in rings reliably
+// yes, high speed movement can pick up 2 rings along its way.
   intake.setVelocity(70, pct);
+  intake.spin(fwd);
 
   Coord loc(0, 0);
 
-  goStraight(loc, 20, fwd, 0., 80);
-  Brain.Screen.printAt(10, 0, "Fast move to {%.1f}: {%.1f}", loc.x, loc.y);
-  goStraight(loc, 1.5, fwd, 0., 30);
-  Brain.Screen.printAt(20, 0, "Slow move to {%.1f}: {%.1f}", loc.x, loc.y);
+  goStraight(loc, 40, fwd, 80);
+  Brain.Screen.printAt(0, 30, "Fast move to {%.1f}: {%.1f}", loc.x, loc.y);
+  goStraight(loc, 1.5, fwd, 30);
+  Brain.Screen.printAt(0, 35, "Slow move to {%.1f}: {%.1f}", loc.x, loc.y);
 
-  mogomech.set(true);
 
-  goStraight(loc, 0.5, vex::directionType::rev, 0., 80.);
+  goStraight(loc, 0.5, vex::directionType::rev, 80.);
 
-  mogomech.set(false);
+}
 
+
+void task_go_in_autom() {
+  Coord loc(0, 0);
+  Brain.Screen.printAt(0, 10, "XXXXXXXX");
+  goStraight(loc, 25., vex::directionType::rev, 50.);
+  goStraight(loc, 10, directionType::fwd, 40);
+
+}
+
+void task_grab_base_in_autom() {
+    task::sleep(2000);
+    mogomech.set(false);
+
+}
+
+void autonomous(void) {
+// focus: move fast and grab goal reliably
+  //return;
+
+  Coord loc(0, 0);
+
+  //goStraight(loc, 40, vex::directionType::rev, 80);
+  //Brain.Screen.printAt(0, 30, "Fast move to {%.1f}: {%.1f}", loc.x, loc.y);
+  //goStraight(loc, 1.5, vex::directionType::rev, 30);
+  //Brain.Screen.printAt(0, 5, "Slow move to {%.1f}: {%.1f}", loc.x, loc.y);
+
+  //mogomech.set(false);
+
+  //goStraight(loc, 30., vex::directionType::rev, 50.);
+
+  //mogomech.set(false);
+
+  //goStraight(loc, 5., vex::directionType::fwd, 5.);
+
+  vex::thread t1(task_go_in_autom);
+  vex::thread t2(task_grab_base_in_autom);
+
+  Brain.Screen.printAt(5, 5, "go: %d, grab: %d", t1.get_id(), t2.get_id());
+
+  task::sleep(2000);
 }
 
 
@@ -165,6 +208,8 @@ void usercontrol(void) {
   int rightDriveSpeed;
   directionType leftDriveDir = directionType::fwd;
   directionType rightDriveDir = directionType::fwd;
+
+  bool getGoal = false;
 
   while (1) {
     leftJoyPos = rc.Axis3.position();
@@ -246,6 +291,13 @@ void usercontrol(void) {
       leftDrive.stop();
       rightDrive.stop();
     }
+
+    if (rc.ButtonR1.pressing() && !getGoal) {
+      getGoal = true;
+      autonomous();
+      getGoal = false;
+    }
+
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
   }

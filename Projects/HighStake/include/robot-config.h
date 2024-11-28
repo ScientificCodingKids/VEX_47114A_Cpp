@@ -16,7 +16,8 @@ extern vex::motor frontrightdrive;
 extern motor_group leftDrive;
 extern motor_group rightDrive;
 
-extern digital_out mogomech;
+extern bumper bumpBase, bumpBase2; // installed at rear to detect mobile base
+extern pneumatics mogomech;
 extern vex::inertial inertialSensor;
 extern vex::motor conveyor;
 

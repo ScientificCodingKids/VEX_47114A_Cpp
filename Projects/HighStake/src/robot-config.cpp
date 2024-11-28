@@ -20,6 +20,9 @@ vex::motor frontrightdrive = vex::motor(PORT2);
 motor_group leftDrive = motor_group(backleftdrive, frontleftdrive);
 motor_group rightDrive = motor_group(backrightdrive, frontrightdrive);
 
-digital_out mogomech = digital_out(Brain.ThreeWirePort.F);
+bumper bumpBase(Brain.ThreeWirePort.D);
+bumper bumpBase2(Brain.ThreeWirePort.E);
+
+pneumatics mogomech(Brain.ThreeWirePort.F);
 vex::inertial inertialSensor = vex::inertial(PORT15);
 vex::motor conveyor = vex::motor(PORT7);

@@ -10,12 +10,23 @@
 #include "vex.h"
 #include <cmath>
 #include <algorithm>
+#include <thread>
 
 using namespace vex;
 using namespace std;
 
 
-void goStraight(Coord& loc, double dist, vex::directionType dt, double origSpeed, double kp=0.004, vex::brakeType bt=coast, double wheelDiameter=4.0) {
+void goStraight(
+  Coord& loc, 
+  double dist, 
+  vex::directionType dt, 
+  double origSpeed, 
+  double kp=0.004, 
+  vex::brakeType bt=coast, 
+  double wheelDiameter=4.0, 
+  double triggerDist = 10000., 
+  void(*triggerFunc)(void) = nullptr) 
+{
   leftDrive.resetPosition();
   rightDrive.resetPosition();
 
@@ -29,6 +40,8 @@ void goStraight(Coord& loc, double dist, vex::directionType dt, double origSpeed
   double changedRotations = 0; // rotations passed since last loop
   double dx = 0; // change in x coordinate since last loop
   double dy = 0; // change in y coordinate since last loop
+
+  double isTriggered = false;
 
   while (distToGo > 0) {
     double h = inertialSensor.heading();
@@ -74,6 +87,11 @@ void goStraight(Coord& loc, double dist, vex::directionType dt, double origSpeed
     dx = changedRotations * cos( (90-h)/ M_PI);
     dy = changedRotations * sin( (90-h)/ M_PI);
 
+    if ((distTravelled > triggerDist) && (!isTriggered) && (triggerFunc != nullptr)) {
+      isTriggered = true;
+      triggerFunc();
+    }
+
     // prepare for next iteration
     prevRot = rot;
     
@@ -110,11 +128,6 @@ void my_go_straight_10() {
     rightDrive.spinFor(5, timeUnits::sec);
 }
 
-void move_back_left() {
-
-}
-
-void move_back_right() {}
 
 void autonomous1(void) {
 // focus: move fast and suck in rings reliably
@@ -147,6 +160,25 @@ void task_grab_base_in_autom() {
     task::sleep(2000);
     mogomech.set(false);
 
+}
+
+void justForFun() {
+  Brain.Screen.printAt(5, 5, "it is ok");
+}
+
+void goStraightAndPickupBase(Coord& loc, double dist, vex::directionType dt, double origSpeed, double kp=0.004, vex::brakeType bt=coast, double wheelDiameter=4.0)
+{
+  // assume base is placed at the end of dist
+  /* this is what we need but we cannot make it compile -- guess VEX C++ is not up to C++11 standard
+  auto t1 = [&loc, dist, dt, origSpeed,kp, bt, wheelDiameter]() { 
+    goStraight(loc, dist, dt, origSpeed, kp, bt, wheelDiameter); 
+    };
+  */
+  auto t1 = [] () {justForFun(); };
+
+  thread thr1(t1);
+
+  thr1.join();  // ensure main thread won't exit until thr1 completes
 }
 
 void autonomous(void) {
@@ -208,8 +240,6 @@ void usercontrol(void) {
   int rightDriveSpeed;
   directionType leftDriveDir = directionType::fwd;
   directionType rightDriveDir = directionType::fwd;
-
-  bool getGoal = false;
 
   while (1) {
     leftJoyPos = rc.Axis3.position();
@@ -277,10 +307,10 @@ void usercontrol(void) {
     }
 
     if (rc.ButtonL1.pressing()) {
-     mogomech.set(true);
+     mogomech.set(true); //release
     }
     else if (rc.ButtonL2.pressing()) {
-      mogomech.set(false);
+      mogomech.set(false); // grab
     }
 
     if (rc.ButtonUp.pressing()) {
@@ -290,12 +320,6 @@ void usercontrol(void) {
     if (rc.ButtonDown.pressing()) {
       leftDrive.stop();
       rightDrive.stop();
-    }
-
-    if (rc.ButtonR1.pressing() && !getGoal) {
-      getGoal = true;
-      autonomous();
-      getGoal = false;
     }
 
     wait(20, msec); // Sleep the task for a short amount of time to
@@ -313,6 +337,12 @@ int main() {
 
   // Run the pre-autonomous function.
   pre_auton();
+
+  bumpBase.pressed([] () {
+      Brain.Screen.printAt(20, 20, "!!!!!");
+      mogomech.set(false);  // grab
+    }
+  );
 
   // Prevent main from exiting with an infinite loop.
   while (true) {
